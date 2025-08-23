@@ -17,8 +17,9 @@ import userRoutes from './routes/userRoutes'
 import stripeRoutes from './routes/stripeRoutes'
 import countryRoutes from './routes/countryRoutes'
 import paypalRoutes from './routes/paypalRoutes'
-import ipinfoRoutes from './routes/ipinfoRoutes'
 import bankDetailsRoutes from './routes/bankDetailsRoutes'
+import carStateRoutes from './routes/carStateRoutes'
+import ipinfoRoutes from './routes/ipinfoRoutes'
 import settingRoutes from './routes/settingRoutes'
 import * as helper from './utils/helper'
 
@@ -63,6 +64,7 @@ app.use('/', countryRoutes)
 app.use('/', paypalRoutes)
 app.use('/', ipinfoRoutes)
 app.use('/', bankDetailsRoutes)
+app.use('/', carStateRoutes)
 app.use('/', settingRoutes)
 
 if (env.ENABLE_SENTRY) {

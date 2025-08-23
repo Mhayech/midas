@@ -767,7 +767,7 @@ const Checkout = () => {
                       </div>
                     )}
 
-                    {car.supplier.payLater && (
+                    {true && (
                       <div className="payment-options-container">
                         <div className="checkout-info">
                           <PaymentOptionsIcon />
@@ -776,7 +776,7 @@ const Checkout = () => {
                         <div className="payment-options">
                           <FormControl>
                             <RadioGroup
-                              defaultValue="payOnline"
+                              defaultValue="payLater"
                               onChange={(e) => {
                                 setValue('payLater', e.target.value === 'payLater')
                                 setValue('payDeposit', e.target.value === 'payDeposit')

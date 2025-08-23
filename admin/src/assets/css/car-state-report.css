@@ -1,0 +1,61 @@
+.car-state-report {
+  padding-bottom: 16px;
+}
+
+.car-state-report .csr-header {
+  margin-bottom: 16px;
+}
+
+.car-state-report .csr-card {
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.car-state-report .csr-card .MuiCardContent-root {
+  padding: 18px 20px;
+}
+
+.car-state-report .csr-section-title {
+  font-weight: 600;
+}
+
+.car-state-report .csr-meta {
+  color: #6b7280; /* neutral 500 */
+}
+
+.car-state-report .csr-thumb {
+  width: 140px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.14);
+}
+
+.car-state-report .csr-preview {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.14);
+}
+
+.car-state-dialog .MuiDialogTitle-root {
+  font-weight: 600;
+  background: linear-gradient(135deg,#f6f8ff,#fff);
+  border-bottom: 1px solid #eef0f5;
+}
+
+.car-state-dialog .MuiDialogContent-root {
+  padding-top: 16px;
+}
+
+.car-state-dialog .MuiFormControl-root {
+  margin-bottom: 8px;
+}
+
+.car-state-dialog .MuiButton-root {
+  text-transform: none;
+}
+
+

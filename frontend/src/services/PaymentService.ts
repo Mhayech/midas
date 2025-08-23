@@ -1,3 +1,4 @@
+// src/services/PaymentService.ts
 import * as bookcarsHelper from ':bookcars-helper'
 import env from '@/config/env.config'
 
@@ -38,17 +39,14 @@ export const getCurrencySymbol = () => env.CURRENCIES.find((c) => c.code === get
  *
  * @async
  * @param {number} amount
- * @param {string} to
  * @returns {Promise<number>}
  */
 export const convertPrice = async (amount: number) => {
   const to = getCurrency()
-
   if (to !== env.BASE_CURRENCY) {
     const res = await bookcarsHelper.convertPrice(amount, env.BASE_CURRENCY, to)
     return res
   }
-
   return amount
 }
 

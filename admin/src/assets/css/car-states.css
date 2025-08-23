@@ -1,0 +1,227 @@
+/* Car State Management Styles */
+
+.car-state-section {
+  margin: 20px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.car-state-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.car-state-display .MuiChip-root {
+  font-weight: 500;
+}
+
+.car-state-history {
+  margin-top: 16px;
+}
+
+.car-state-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.car-state-form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.car-state-form .MuiFormControl-root {
+  margin-bottom: 16px;
+}
+
+.car-state-list {
+  margin-top: 16px;
+}
+
+.car-state-list .MuiTableContainer-root {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.car-state-list .MuiTableHead-root {
+  background-color: #f8f9fa;
+}
+
+.car-state-list .MuiTableCell-head {
+  font-weight: 600;
+  color: #495057;
+}
+
+.car-state-card {
+  transition: all 0.2s ease-in-out;
+}
+
+.car-state-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.car-state-card .MuiCardContent-root {
+  padding: 16px;
+}
+
+.car-state-card .MuiCardActions-root {
+  padding: 8px 16px 16px;
+  justify-content: flex-end;
+}
+
+.car-state-chip {
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.car-state-chip.available {
+  background-color: #d4edda;
+  color: #155724;
+  border-color: #c3e6cb;
+}
+
+.car-state-chip.in-use {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border-color: #bee5eb;
+}
+
+.car-state-chip.maintenance {
+  background-color: #fff3cd;
+  color: #856404;
+  border-color: #ffeaa7;
+}
+
+.car-state-chip.damaged {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-color: #f5c6cb;
+}
+
+.car-state-chip.cleaning {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border-color: #bee5eb;
+}
+
+.car-state-chip.out-of-service {
+  background-color: #e2e3e5;
+  color: #383d41;
+  border-color: #d6d8db;
+}
+
+.car-state-chip.pre-rental {
+  background-color: #e2d9f3;
+  color: #5a2d82;
+  border-color: #d4b5f8;
+}
+
+.car-state-chip.post-rental {
+  background-color: #e2d9f3;
+  color: #5a2d82;
+  border-color: #d4b5f8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .car-state-section {
+    padding: 16px;
+    margin: 16px 0;
+  }
+  
+  .car-state-history-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .car-state-form {
+    max-width: 100%;
+  }
+  
+  .car-state-list .MuiTableContainer-root {
+    font-size: 14px;
+  }
+}
+
+/* Animation for state changes */
+.car-state-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+.car-state-transition:hover {
+  transform: scale(1.02);
+}
+
+/* Loading states */
+.car-state-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  color: #6c757d;
+}
+
+/* Empty state */
+.car-state-empty {
+  text-align: center;
+  padding: 40px;
+  color: #6c757d;
+}
+
+.car-state-empty .MuiTypography-root {
+  margin-bottom: 16px;
+}
+
+/* Form validation styles */
+.car-state-form .MuiFormHelperText-root {
+  margin-left: 0;
+  margin-top: 4px;
+}
+
+.car-state-form .MuiInputLabel-root.Mui-focused {
+  color: #1976d2;
+}
+
+.car-state-form .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #1976d2;
+}
+
+/* Dialog styles */
+.car-state-dialog .MuiDialogTitle-root {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.car-state-dialog .MuiDialogContent-root {
+  padding: 24px;
+}
+
+.car-state-dialog .MuiDialogActions-root {
+  padding: 16px 24px;
+  border-top: 1px solid #e9ecef;
+}
+
+/* Snackbar customization */
+.car-state-snackbar .MuiAlert-root {
+  border-radius: 8px;
+}
+
+.car-state-snackbar .MuiAlert-standardSuccess {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.car-state-snackbar .MuiAlert-standardError {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}

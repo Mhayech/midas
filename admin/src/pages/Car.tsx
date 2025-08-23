@@ -17,6 +17,7 @@ import {
   Check as CheckIcon,
   Clear as UncheckIcon,
   LocationOn as LocationIcon,
+  Assessment as AssessmentIcon,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -33,9 +34,12 @@ import Error from './Error'
 import Avatar from '@/components/Avatar'
 import BookingList from '@/components/BookingList'
 import * as helper from '@/utils/helper'
+ 
+import Pager from '@/components/Pager'
 
 import DoorsIcon from '@/assets/img/car-door.png'
 import '@/assets/css/car.css'
+import '@/assets/css/car-states.css'
 
 const Car = () => {
   const navigate = useNavigate()
@@ -163,6 +167,20 @@ const Car = () => {
     } else {
       setLoading(false)
       setNoMatch(true)
+    }
+  }
+
+  const handleCarStateChange = async () => {
+    // Reload car data to reflect state changes
+    if (car) {
+      try {
+        const updatedCar = await CarService.getCar(car._id)
+        if (updatedCar) {
+          setCar(updatedCar)
+        }
+      } catch (err) {
+        console.error('Error reloading car data:', err)
+      }
     }
   }
 
@@ -333,6 +351,7 @@ const Car = () => {
                 </ul>
               </div>
             </section>
+            
             {edit && (
               <section className="buttons action">
                 <Button variant="contained" className="btn-primary btn-margin btn-margin-bottom" size="small" onClick={() => navigate(`/update-car?cr=${car._id}`)}>
@@ -340,6 +359,14 @@ const Car = () => {
                 </Button>
                 <Button variant="contained" className="btn-margin-bottom" color="error" size="small" onClick={handleDelete}>
                   {commonStrings.DELETE}
+                </Button>
+                <Button 
+                  variant="contained"
+                  className="btn-margin-bottom"
+                  size="small"
+                  onClick={() => navigate(`/car-state-management/${car._id}`)}
+                >
+                  {strings.MANAGE_STATE}
                 </Button>
               </section>
             )}

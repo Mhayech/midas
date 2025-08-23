@@ -205,6 +205,20 @@ const carSchema = new Schema<env.Car>(
       type: Boolean,
       default: true,
     },
+    currentState: {
+      type: String,
+      enum: [
+        bookcarsTypes.CarState.Available,
+        bookcarsTypes.CarState.InUse,
+        bookcarsTypes.CarState.Maintenance,
+        bookcarsTypes.CarState.Damaged,
+        bookcarsTypes.CarState.Cleaning,
+        bookcarsTypes.CarState.OutOfService,
+        bookcarsTypes.CarState.PreRental,
+        bookcarsTypes.CarState.PostRental,
+      ],
+      default: bookcarsTypes.CarState.Available,
+    },
   },
   {
     timestamps: true,

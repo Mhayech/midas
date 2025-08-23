@@ -1,0 +1,13 @@
+.csm-hero .MuiCardContent-root {
+	padding: 20px;
+}
+
+.csm-car-thumb img {
+	width: 100%;
+	height: 160px;
+	object-fit: cover;
+	border-radius: 10px;
+	box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+

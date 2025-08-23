@@ -252,6 +252,7 @@ const strings = new LocalizedStrings({
     ALL: 'Todos',
     SUPPLIER: 'Proveedor',
     STATUS: 'Estado',
+    REFRESH: 'Actualizar',
     PICK_UP_LOCATION: 'Lugar de recogida',
     DROP_OFF_LOCATION: 'Lugar de entrega',
     OPTIONS: 'Opciones',

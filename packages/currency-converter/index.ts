@@ -1,7 +1,10 @@
+// currency-converter/index.ts
 import { Convert } from 'easy-currencies'
+import axios from 'axios'
 
 export type CurrencyCode =
   | 'USD'
+  | 'TND'
   | 'AED'
   | 'AFN'
   | 'ALL'
@@ -140,6 +143,7 @@ type CurrencyPair = { expiryDate: Date, rate: number }
 
 export const currencies: CurrencyCode[] = [
   'USD',
+  'TND',
   'AED',
   'AFN',
   'ALL',
@@ -285,6 +289,7 @@ class CurrencyConverter {
   ratesCache: Record<string, CurrencyPair>
   currencyCode: CurrencyCode[] = currencies
   currencies: Record<CurrencyCode, string> = {
+    'TND': 'Tunisian Dinar',
     'AFN': 'Afghan Afghani',
     'ALL': 'Albanian Lek',
     'DZD': 'Algerian Dinar',
@@ -293,7 +298,7 @@ class CurrencyConverter {
     'AMD': 'Armenian Dram',
     'AWG': 'Aruban Florin',
     'AUD': 'Australian Dollar',
-    'AZN': 'Azerbaijani M anat',
+    'AZN': 'Azerbaijani Manat',
     'BSD': 'Bahamian Dollar',
     'BBD': 'Bajan Dollar',
     'BDT': 'Bangladeshi Taka',
@@ -306,9 +311,9 @@ class CurrencyConverter {
     'BRL': 'Brazilian Real',
     'BND': 'Brunei Dollar',
     'BGN': 'Bulgarian Lev',
-    'BIF': 'Burundian Fra nc',
+    'BIF': 'Burundian Franc',
     'XPF': 'CFP Franc',
-    'KHR': 'Cambodian riel',
+    'KHR': 'Cambodian Riel',
     'CAD': 'Canadian Dollar',
     'CVE': 'Cape Verdean Escudo',
     'KYD': 'Cayman Islands Dollar',
@@ -321,12 +326,12 @@ class CurrencyConverter {
     'CZK': 'Czech Koruna',
     'DKK': 'Danish Krone',
     'DJF': 'Djiboutian Franc',
-    'DOP': 'Dominican Pe so',
+    'DOP': 'Dominican Peso',
     'XCD': 'East Caribbean Dollar',
     'EGP': 'Egyptian Pound',
     'ETB': 'Ethiopian Birr',
     'FJD': 'Fijian Dollar',
-    'GMD': 'Gambian dalasi',
+    'GMD': 'Gambian Dalasi',
     'GEL': 'Georgian Lari',
     'GIP': 'Gibraltar pound',
     'GTQ': 'Guatemalan Quetzal',
@@ -360,10 +365,10 @@ class CurrencyConverter {
     'MXN': 'Mexican Peso',
     'MDL': 'Moldovan Leu',
     'MAD': 'Moroccan Dirham',
-    'MZN': 'Mozambican metical',
+    'MZN': 'Mozambican Metical',
     'MMK': 'Myanmar Kyat',
-    'MNT': 'Mongolia',
-    'NAD': 'Namibian dol lar',
+    'MNT': 'Mongolian Tugrik',
+    'NAD': 'Namibian Dollar',
     'NPR': 'Nepalese Rupee',
     'ANG': 'Netherlands Antillean Guilder',
     'NZD': 'New Zealand Dollar',
@@ -374,13 +379,13 @@ class CurrencyConverter {
     'PAB': 'Panamanian Balboa',
     'PGK': 'Papua New Guinean Kina',
     'PYG': 'Paraguayan Guarani',
-    'PHP': 'Philippine peso',
+    'PHP': 'Philippine Peso',
     'PLN': 'Poland Złoty',
-    'GBP': 'Pound sterling',
+    'GBP': 'Pound Sterling',
     'QAR': 'Qatari Rial',
-    'RON': 'Romania n Leu',
+    'RON': 'Romanian Leu',
     'RUB': 'Russian Ruble',
-    'RWF': 'Rwandan franc',
+    'RWF': 'Rwandan Franc',
     'SAR': 'Saudi Riyal',
     'RSD': 'Serbian Dinar',
     'SCR': 'Seychellois Rupee',
@@ -388,12 +393,12 @@ class CurrencyConverter {
     'SBD': 'Solomon Islands Dollar',
     'SOS': 'Somali Shilling',
     'ZAR': 'South African Rand',
-    'KRW': 'South Korean won',
+    'KRW': 'South Korean Won',
     'LKR': 'Sri Lankan Rupee',
-    'SHP': 'Saint Helena pound',
-    'SLE': 'Sierra Leonean leone',
+    'SHP': 'Saint Helena Pound',
+    'SLE': 'Sierra Leonean Leone',
     'SRD': 'Surinamese Dollar',
-    'STD': 'São Tomé and Príncipe',
+    'STD': 'Sao Tome and Principe Dobra',
     'SZL': 'Swazi Lilangeni',
     'SEK': 'Swedish Krona',
     'CHF': 'Swiss Franc',
@@ -402,30 +407,30 @@ class CurrencyConverter {
     'THB': 'Thai Baht',
     'TOP': 'Tongan Pa\'anga',
     'TTD': 'Trinidad and Tobago Dollar',
-    'TRY': 'Turkish lira',
+    'TRY': 'Turkish Lira',
     'UGX': 'Ugandan Shilling',
-    'UAH': 'Ukrainian hryvnia',
+    'UAH': 'Ukrainian Hryvnia',
     'AED': 'United Arab Emirates Dirham',
     'USD': 'United States Dollar',
     'UYU': 'Uruguayan Peso',
     'UZS': 'Uzbekistani Som',
     'VUV': 'Vanuatu Vatu',
-    'VND': 'Vietnamese dong',
-    'WST': 'Samoa',
-    'XAF': 'Central African CFA franc',
-    'XOF': 'West African CFA franc',
+    'VND': 'Vietnamese Dong',
+    'WST': 'Samoa Tala',
+    'XAF': 'Central African CFA Franc',
+    'XOF': 'West African CFA Franc',
     'YER': 'Yemeni Rial',
     'ZMW': 'Zambian Kwacha',
     'EUR': 'Euro',
-    'TWD': 'NT$',
+    'TWD': 'New Taiwan Dollar',
     'PEN': 'Peruvian Sol'
   }
 
   constructor(
-    params: {
-      from: string,
-      to: string,
-      amount: number,
+    params?: {
+      from?: string,
+      to?: string,
+      amount?: number,
     }) {
     this.currencyFrom = ''
     this.currencyTo = ''
@@ -435,129 +440,79 @@ class CurrencyConverter {
     this.ratesCacheDuration = 0
     this.ratesCache = {}
 
-    if (params != undefined) {
-      if (params['from'] !== undefined)
-        this.from(params['from'])
-
-      if (params['to'] !== undefined)
-        this.to(params['to'])
-
-      if (params['amount'] !== undefined)
-        this.amount(params['amount'])
+    if (params !== undefined) {
+      if (params.from !== undefined) this.from(params.from)
+      if (params.to !== undefined) this.to(params.to)
+      if (params.amount !== undefined) this.amount(params.amount)
     }
   }
 
   from(currencyFrom: string) {
-    if (typeof currencyFrom !== 'string')
-      throw new TypeError('currency code should be a string')
-
+    if (typeof currencyFrom !== 'string') throw new TypeError('currency code should be a string')
     if (!this.currencyCode.includes(currencyFrom.toUpperCase() as CurrencyCode))
       throw new Error(`${currencyFrom} is not a valid currency code`)
 
     this.currencyFrom = currencyFrom.toUpperCase()
     return this
   }
-  to(currencyTo: string) {
-    if (typeof currencyTo !== 'string')
-      throw new TypeError('currency code should be a string')
 
+  to(currencyTo: string) {
+    if (typeof currencyTo !== 'string') throw new TypeError('currency code should be a string')
     if (!this.currencyCode.includes(currencyTo.toUpperCase() as CurrencyCode))
       throw new Error(`${currencyTo} is not a valid currency code`)
 
-    this.currencyTo = currencyTo
+    this.currencyTo = currencyTo.toUpperCase()
     return this
   }
-  amount(currencyAmount: number) {
-    if (typeof currencyAmount !== 'number')
-      throw new TypeError('amount should be a number')
 
-    if (currencyAmount <= 0)
-      throw new Error('amount should be a positive number')
+  amount(currencyAmount: number) {
+    if (typeof currencyAmount !== 'number') throw new TypeError('amount should be a number')
+    if (currencyAmount <= 0) throw new Error('amount should be a positive number')
 
     this.currencyAmount = currencyAmount
     return this
   }
 
-  replaceAll(text: string, queryString: string, replaceString: string) {
-    let text_ = ''
-    for (let i = 0; i < text.length; i++) {
-      if (text[i] === queryString) {
-        text_ += replaceString
-      } else {
-        text_ += text[i]
-      }
-    }
-    return text_
-  }
-
   setupRatesCache(ratesCacheOptions: { isRatesCaching: boolean, ratesCacheDuration: number }) {
-    if (typeof ratesCacheOptions != 'object')
-      throw new TypeError('ratesCacheOptions should be an object')
-
-    if (ratesCacheOptions.isRatesCaching === undefined)
-      throw new Error(`ratesCacheOptions should have a property called isRatesCaching`)
-
-    if (typeof ratesCacheOptions.isRatesCaching != 'boolean')
-      throw new TypeError('ratesCacheOptions.isRatesCaching should be a boolean')
-
-    if (typeof ratesCacheOptions.ratesCacheDuration != 'number')
-      throw new TypeError('ratesCacheOptions.ratesCacheDuration should be a number')
-
-    if (ratesCacheOptions.ratesCacheDuration <= 0)
-      throw new Error('ratesCacheOptions.ratesCacheDuration should be a positive number of seconds')
+    if (typeof ratesCacheOptions != 'object') throw new TypeError('ratesCacheOptions should be an object')
+    if (ratesCacheOptions.isRatesCaching === undefined) throw new Error(`ratesCacheOptions should have a property called isRatesCaching`)
+    if (typeof ratesCacheOptions.isRatesCaching != 'boolean') throw new TypeError('ratesCacheOptions.isRatesCaching should be a boolean')
+    if (typeof ratesCacheOptions.ratesCacheDuration != 'number') throw new TypeError('ratesCacheOptions.ratesCacheDuration should be a number')
+    if (ratesCacheOptions.ratesCacheDuration <= 0) throw new Error('ratesCacheOptions.ratesCacheDuration should be a positive number of seconds')
 
     this.isRatesCaching = ratesCacheOptions.isRatesCaching
-
-    if (ratesCacheOptions.ratesCacheDuration === undefined)
-      this.ratesCacheDuration = 3600 // Defaults to 3600 seconds (1 hour)
-    else
-      this.ratesCacheDuration = ratesCacheOptions.ratesCacheDuration
-
+    this.ratesCacheDuration = ratesCacheOptions.ratesCacheDuration || 3600
     return this
   }
 
   rates(): Promise<number> {
-    if (this.currencyFrom === this.currencyTo) {
-      return new Promise((resolve, _) => {
-        resolve(1)
-      })
-    } else {
-      let currencyPair = this.currencyFrom.toUpperCase() + this.currencyTo.toUpperCase()
-      let now = new Date()
-      if (currencyPair in this.ratesCache && now < this.ratesCache[currencyPair].expiryDate) {
-        return new Promise((resolve, _) => {
-          resolve(this.ratesCache[currencyPair].rate)
-        })
-      } else {
-        return new Promise((resolve, reject) => {
-          Convert(this.currencyAmount).from(this.currencyFrom).to(this.currencyTo)
-            .then((res) => resolve(res))
-            .catch((err) => reject(err))
-        })
-          .then((rates: unknown) => {
-            const ratesNum = rates as number / this.currencyAmount
-            if (this.isRatesCaching) {
-              this.addRateToRatesCache(currencyPair, ratesNum)
-            }
-            return ratesNum
-          })
-      }
+    if (this.currencyFrom === this.currencyTo) return Promise.resolve(1)
+
+    const currencyPair = this.currencyFrom.toUpperCase() + this.currencyTo.toUpperCase()
+    const now = new Date()
+    if (currencyPair in this.ratesCache && now < this.ratesCache[currencyPair].expiryDate) {
+      return Promise.resolve(this.ratesCache[currencyPair].rate)
     }
+
+    return new Promise((resolve, reject) => {
+      Convert(this.currencyAmount).from(this.currencyFrom).to(this.currencyTo)
+        .then((res) => resolve(res))
+        .catch((err) => reject(err))
+    })
+      .then((rates: unknown) => {
+        const ratesNum = (rates as number) / this.currencyAmount
+        if (this.isRatesCaching) {
+          this.addRateToRatesCache(currencyPair, ratesNum)
+        }
+        return ratesNum
+      })
   }
 
   convert(currencyAmount?: number) {
-    if (currencyAmount !== undefined) {
-      this.amount(currencyAmount)
-    }
-
-    if (this.currencyFrom == '')
-      throw new Error('currency code cannot be an empty string')
-
-    if (this.currencyTo == '')
-      throw new Error('currency code cannot be an empty string')
-
-    if (this.currencyAmount == 0)
-      throw new Error('currency amount should be a positive value')
+    if (currencyAmount !== undefined) this.amount(currencyAmount)
+    if (this.currencyFrom === '') throw new Error('currency code cannot be an empty string')
+    if (this.currencyTo === '') throw new Error('currency code cannot be an empty string')
+    if (this.currencyAmount === 0) throw new Error('currency amount should be a positive value')
 
     return this.rates().then((rates) => {
       this.convertedValue = rates * this.currencyAmount
@@ -566,39 +521,66 @@ class CurrencyConverter {
   }
 
   currencyName(currencyCode_: string) {
-    if (typeof currencyCode_ != 'string')
-      throw new TypeError('currency code should be a string')
-
+    if (typeof currencyCode_ !== 'string') throw new TypeError('currency code should be a string')
     if (!this.currencyCode.includes(currencyCode_.toUpperCase() as CurrencyCode))
       throw new Error(`${currencyCode_} is not a valid currency code`)
-
-    return this.currencies[currencyCode_ as CurrencyCode]
+    return this.currencies[currencyCode_.toUpperCase() as CurrencyCode]
   }
 
   addRateToRatesCache(currencyPair: string, rate_: number) {
-    if (typeof currencyPair != 'string')
-      throw new TypeError('currency pair should be a string')
+    if (typeof currencyPair !== 'string') throw new TypeError('currency pair should be a string')
+    if (typeof rate_ !== 'number') throw new TypeError('rate should be a number')
 
-    if (typeof rate_ != 'number')
-      throw new TypeError('rate should be a number')
-
-    let now = new Date()
+    const now = new Date()
     if (currencyPair in this.ratesCache) {
       if (now > this.ratesCache[currencyPair].expiryDate) {
-        let newExpiry = new Date()
+        const newExpiry = new Date()
         newExpiry.setSeconds(newExpiry.getSeconds() + this.ratesCacheDuration)
-        this.ratesCache[currencyPair] = {
-          rate: rate_,
-          expiryDate: newExpiry
-        }
+        this.ratesCache[currencyPair] = { rate: rate_, expiryDate: newExpiry }
       }
     } else {
-      let newExpiry = new Date()
+      const newExpiry = new Date()
       newExpiry.setSeconds(newExpiry.getSeconds() + this.ratesCacheDuration)
-      this.ratesCache[currencyPair] = {
-        rate: rate_,
-        expiryDate: newExpiry
+      this.ratesCache[currencyPair] = { rate: rate_, expiryDate: newExpiry }
+    }
+  }
+}
+
+/**
+ * Convert from TND to another currency using exchangerate.host
+ * Falls back to easy-currencies if exchangerate.host fails.
+ */
+export async function convertFromTND(amount: number, toCurrency: string): Promise<number> {
+  try {
+    const from = 'TND'
+    const to = toCurrency.toUpperCase()
+
+    if (to === from) return amount
+
+    // Use exchangerate.host — free, no key, simple
+    const response = await axios.get('https://api.exchangerate.host/latest', {
+      params: {
+        base: from,
+        symbols: to
       }
+    })
+
+    if (!response.data || !response.data.rates || typeof response.data.rates[to] !== 'number') {
+      throw new Error(`Invalid rates data for ${from} → ${to}`)
+    }
+
+    const rate = response.data.rates[to]
+    return Number((amount * rate).toFixed(2))
+  } catch (error) {
+    // Fallback: try easy-currencies library via the class
+    try {
+      const cc = new CurrencyConverter({ from: 'TND', to: toCurrency.toUpperCase(), amount })
+      const res = await cc.convert()
+      return Number(res.toFixed(2))
+    } catch (err) {
+      console.error('TND conversion error (and fallback failed):', err)
+      // As last resort, return original amount (so app doesn't crash)
+      return amount
     }
   }
 }

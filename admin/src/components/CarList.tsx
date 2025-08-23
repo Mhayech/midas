@@ -10,7 +10,8 @@ import {
   Tooltip,
   Card,
   CardContent,
-  Typography
+  Typography,
+  Chip
 } from '@mui/material'
 import {
   LocalGasStation as CarTypeIcon,
@@ -23,6 +24,7 @@ import {
   Visibility as ViewIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Assessment as AssessmentIcon,
   Info as InfoIcon,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
@@ -386,6 +388,52 @@ const CarList = ({
   const admin = helper.admin(user)
   const fr = bookcarsHelper.isFrench(language)
 
+  const getCarStateLabel = (state: bookcarsTypes.CarState) => {
+    switch (state) {
+      case bookcarsTypes.CarState.Available:
+        return 'Available'
+      case bookcarsTypes.CarState.InUse:
+        return 'In Use'
+      case bookcarsTypes.CarState.Maintenance:
+        return 'Maintenance'
+      case bookcarsTypes.CarState.Damaged:
+        return 'Damaged'
+      case bookcarsTypes.CarState.Cleaning:
+        return 'Cleaning'
+      case bookcarsTypes.CarState.OutOfService:
+        return 'Out of Service'
+      case bookcarsTypes.CarState.PreRental:
+        return 'Pre-Rental'
+      case bookcarsTypes.CarState.PostRental:
+        return 'Post-Rental'
+      default:
+        return state
+    }
+  }
+
+  const getCarStateColor = (state: bookcarsTypes.CarState) => {
+    switch (state) {
+      case bookcarsTypes.CarState.Available:
+        return 'success'
+      case bookcarsTypes.CarState.InUse:
+        return 'primary'
+      case bookcarsTypes.CarState.Maintenance:
+        return 'warning'
+      case bookcarsTypes.CarState.Damaged:
+        return 'error'
+      case bookcarsTypes.CarState.Cleaning:
+        return 'info'
+      case bookcarsTypes.CarState.OutOfService:
+        return 'default'
+      case bookcarsTypes.CarState.PreRental:
+        return 'secondary'
+      case bookcarsTypes.CarState.PostRental:
+        return 'secondary'
+      default:
+        return 'default'
+    }
+  }
+
   return (
     (user && (
       <>
@@ -444,6 +492,19 @@ const CarList = ({
                       <div className="name"><h2>{car.name}</h2></div>
                       {!hidePrice && <div className="price">{`${bookcarsHelper.formatPrice(car.dailyPrice, commonStrings.CURRENCY, language as string)}${commonStrings.DAILY}`}</div>}
                     </div>
+                    
+                    {/* Current Car State Display */}
+                    {car.currentState && (
+                      <div className="car-state-display" style={{ marginBottom: '10px' }}>
+                        <Chip
+                          label={getCarStateLabel(car.currentState)}
+                          color={getCarStateColor(car.currentState) as any}
+                          size="small"
+                          variant="outlined"
+                        />
+                      </div>
+                    )}
+                    
                     <ul className="car-info-list">
                       {car.type !== bookcarsTypes.CarType.Unknown && (
                         <li className="car-type">
@@ -620,6 +681,11 @@ const CarList = ({
                           <Tooltip title={commonStrings.UPDATE}>
                             <IconButton onClick={() => navigate(`/update-car?cr=${car._id}`)}>
                               <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title={strings.MANAGE_STATE}>
+                            <IconButton onClick={() => navigate(`/car-state-management/${car._id}`)}>
+                              <AssessmentIcon />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title={commonStrings.DELETE}>

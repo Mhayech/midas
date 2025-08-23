@@ -20,11 +20,6 @@ const LANGUAGES: Language[] = [
     countryCode: 'fr',
     label: 'Français',
   },
-  {
-    code: 'es',
-    countryCode: 'es',
-    label: 'Español',
-  },
 ]
 
 type Currency = { code: string, symbol: string }
@@ -45,12 +40,8 @@ const CURRENCIES: Currency[] = [
     symbol: '€',
   },
   {
-    code: 'GBP',
-    symbol: '£',
-  },
-  {
-    code: 'AUD',
-    symbol: '$',
+    code: 'TND',
+    symbol: 'د.ت',
   },
 ]
 
@@ -72,14 +63,14 @@ const env = {
   isProduction: import.meta.env.VITE_NODE_ENV === 'production',
   isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
 
-  WEBSITE_NAME: String(import.meta.env.VITE_BC_WEBSITE_NAME || 'BookCars'),
+  WEBSITE_NAME: String(import.meta.env.VITE_BC_WEBSITE_NAME || 'MIDAS'),
 
   APP_TYPE: bookcarsTypes.AppType.Frontend,
   API_HOST: String(import.meta.env.VITE_BC_API_HOST),
   LANGUAGES: LANGUAGES.map((l) => l.code),
   _LANGUAGES: LANGUAGES,
-  DEFAULT_LANGUAGE: String(import.meta.env.VITE_BC_DEFAULT_LANGUAGE || 'en'),
-  BASE_CURRENCY: String(import.meta.env.VITE_BC_BASE_CURRENCY || 'USD'),
+  DEFAULT_LANGUAGE: String(import.meta.env.VITE_BC_DEFAULT_LANGUAGE || 'fr'),
+  BASE_CURRENCY: String(import.meta.env.VITE_BC_BASE_CURRENCY || 'TND'),
   CURRENCIES,
   PAGE_SIZE: Number.parseInt(String(import.meta.env.VITE_BC_PAGE_SIZE), 10) || 30,
   CARS_PAGE_SIZE: Number.parseInt(String(import.meta.env.VITE_BC_CARS_PAGE_SIZE), 10) || 15,

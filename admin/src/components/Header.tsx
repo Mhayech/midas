@@ -356,6 +356,7 @@ const Header = ({
                   <ListItemIcon><CarsIcon /></ListItemIcon>
                   <ListItemText primary={strings.CARS} />
                 </ListItem>
+                
                 <ListItem
                   onClick={() => {
                     navigate('/users')

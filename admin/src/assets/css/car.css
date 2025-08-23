@@ -4,6 +4,10 @@ div.car {
   right: 0;
   left: 0;
   overflow: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-top: 16px;
+  padding-bottom: 16px;
 }
 
 div.car section.car-sec div.car-info ul.locations-list {

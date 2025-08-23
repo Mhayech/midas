@@ -1,5 +1,6 @@
+// bookcars-helper/index.ts
 import * as bookcarsTypes from ':bookcars-types'
-import CurrencyConverter, { currencies } from ':currency-converter'
+import CurrencyConverter, { currencies, convertFromTND } from ':currency-converter'
 
 /**
  * Format a number.
@@ -28,13 +29,47 @@ export const formatDatePart = (n: number): string => {
 }
 
 /**
+ * Format a date to YYYY-MM-DD format.
+ *
+ * @export
+ * @param {Date} date
+ * @returns {string}
+ */
+export const formatDate = (date: Date): string => {
+  const year = date.getFullYear()
+  const month = formatDatePart(date.getMonth() + 1)
+  const day = formatDatePart(date.getDate())
+  return `${year}-${month}-${day}`
+}
+
+/**
+ * Format a time to HH:MM format.
+ *
+ * @export
+ * @param {string} time
+ * @returns {string}
+ */
+export const formatTime = (time: string): string => {
+  if (!time) return ''
+  // If time is already in HH:MM format, return as is
+  if (/^\d{2}:\d{2}$/.test(time)) {
+    return time
+  }
+  // If time is in HH:MM:SS format, extract HH:MM
+  if (/^\d{2}:\d{2}:\d{2}$/.test(time)) {
+    return time.substring(0, 5)
+  }
+  return time
+}
+
+/**
  * Capitalize a string.
  *
  * @export
  * @param {string} str
  * @returns {string}
  */
-export const capitalize = (str: string): string => {
+export const capitalize = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
@@ -78,9 +113,7 @@ export const joinURL = (part1?: string, part2?: string) => {
  * @param {string} val
  * @returns {boolean}
  */
-export const isInteger = (val: string) => {
-  return /^\d+$/.test(val)
-}
+export const isInteger = (val: string) => /^\d+$/.test(val)
 
 /**
  * Check if a string is a year.
@@ -88,9 +121,7 @@ export const isInteger = (val: string) => {
  * @param {string} val
  * @returns {boolean}
  */
-export const isYear = (val: string) => {
-  return /^\d{2}$/.test(val)
-}
+export const isYear = (val: string) => /^\d{2}$/.test(val)
 
 /**
  * Check if a string is a CVV.
@@ -98,9 +129,7 @@ export const isYear = (val: string) => {
  * @param {string} val
  * @returns {boolean}
  */
-export const isCvv = (val: string) => {
-  return /^\d{3,4}$/.test(val)
-}
+export const isCvv = (val: string) => /^\d{3,4}$/.test(val)
 
 /**
  * Check if two arrays are equal.
@@ -110,25 +139,12 @@ export const isCvv = (val: string) => {
  * @returns {boolean}
  */
 export const arrayEqual = (a: any, b: any) => {
-  if (a === b) {
-    return true
-  }
-  if (a == null || b == null) {
-    return false
-  }
-  if (a.length !== b.length) {
-    return false
-  }
-
-  // If you don't care about the order of the elements inside
-  // the array, you should sort both arrays here.
-  // Please note that calling sort on an array will modify that array.
-  // you might want to clone your array first.
+  if (a === b) return true
+  if (a == null || b == null) return false
+  if (a.length !== b.length) return false
 
   for (let i = 0; i < a.length; i += 1) {
-    if (a[i] !== b[i]) {
-      return false
-    }
+    if (a[i] !== b[i]) return false
   }
   return true
 }
@@ -139,9 +155,7 @@ export const arrayEqual = (a: any, b: any) => {
  * @param {*} obj
  * @returns {*}
  */
-export const clone = (obj: any) => {
-  return Array.isArray(obj) ? Array.from(obj) : Object.assign({}, obj)
-}
+export const clone = (obj: any) => (Array.isArray(obj) ? Array.from(obj) : Object.assign({}, obj))
 
 /**
  * Clone an array.
@@ -152,12 +166,8 @@ export const clone = (obj: any) => {
  * @returns {(T[] | undefined | null)}
  */
 export const cloneArray = <T>(arr: T[]): T[] | undefined | null => {
-  if (typeof arr === 'undefined') {
-    return undefined
-  }
-  if (arr == null) {
-    return null
-  }
+  if (typeof arr === 'undefined') return undefined
+  if (arr == null) return null
   return [...arr]
 }
 
@@ -169,29 +179,13 @@ export const cloneArray = <T>(arr: T[]): T[] | undefined | null => {
  * @returns {boolean}
  */
 export const filterEqual = (a?: bookcarsTypes.Filter | null, b?: bookcarsTypes.Filter | null) => {
-  if (a === b) {
-    return true
-  }
-  if (a == null || b == null) {
-    return false
-  }
-
-  if (a.from !== b.from) {
-    return false
-  }
-  if (a.to !== b.to) {
-    return false
-  }
-  if (a.pickupLocation !== b.pickupLocation) {
-    return false
-  }
-  if (a.dropOffLocation !== b.dropOffLocation) {
-    return false
-  }
-  if (a.keyword !== b.keyword) {
-    return false
-  }
-
+  if (a === b) return true
+  if (a == null || b == null) return false
+  if (a.from !== b.from) return false
+  if (a.to !== b.to) return false
+  if (a.pickupLocation !== b.pickupLocation) return false
+  if (a.dropOffLocation !== b.dropOffLocation) return false
+  if (a.keyword !== b.keyword) return false
   return true
 }
 
@@ -201,8 +195,7 @@ export const filterEqual = (a?: bookcarsTypes.Filter | null, b?: bookcarsTypes.F
  * @param {bookcarsTypes.User[]} suppliers
  * @returns {string[]}
  */
-export const flattenSuppliers = (suppliers: bookcarsTypes.User[]): string[] =>
-  suppliers.map((supplier) => supplier._id ?? '')
+export const flattenSuppliers = (suppliers: bookcarsTypes.User[]): string[] => suppliers.map((supplier) => supplier._id ?? '')
 
 /**
  * Get number of days between two dates.
@@ -211,20 +204,17 @@ export const flattenSuppliers = (suppliers: bookcarsTypes.User[]): string[] =>
  * @param {?Date} [to]
  * @returns {number}
  */
-export const days = (from?: Date, to?: Date) =>
-  (from && to && Math.ceil((to.getTime() - from.getTime()) / (1000 * 3600 * 24))) || 0
+export const days = (from?: Date, to?: Date) => (from && to && Math.ceil((to.getTime() - from.getTime()) / (1000 * 3600 * 24))) || 0
 
 /**
  * Get number of hours between two dates.
  *
- * @param {?Date} [from] 
- * @param {?Date} [to] 
- * @returns {number} 
+ * @param {?Date} [from]
+ * @param {?Date} [to]
+ * @returns {number}
  */
 export const hours = (from?: Date, to?: Date): number => {
-  if (!from || !to) {
-    return 0
-  }
+  if (!from || !to) return 0
   const ms = to.getTime() - from.getTime()
   const hrs = ms / (1000 * 60 * 60)
   return Math.ceil(hrs)
@@ -236,7 +226,7 @@ export const hours = (from?: Date, to?: Date): number => {
  * @returns {*}
  */
 export const currencyRTL = (currencySymbol: string) => {
-  const isRTL = ['$', '£'].includes(currencySymbol)
+  const isRTL = ['$', '£', '€'].includes(currencySymbol) === false // not a perfect test; used in formatPrice
   return isRTL
 }
 
@@ -246,15 +236,15 @@ export const currencyRTL = (currencySymbol: string) => {
  * @param {number} price
  * @param {string} currency
  * @param {string} language ISO 639-1 language code
- * @returns {boolean}
+ * @returns {string}
  */
 export const formatPrice = (price: number, currency: string, language: string) => {
   const formatedPrice = formatNumber(price, language)
 
+  // caller passes currency code or symbol; we keep a simple behavior:
   if (currencyRTL(currency)) {
     return `${currency}${formatedPrice}`
   }
-
   return `${formatedPrice} ${currency}`
 }
 
@@ -274,32 +264,23 @@ export const calculateTotalPrice = (car: bookcarsTypes.Car, from: Date, to: Date
 
   if (car.isDateBasedPrice) {
     let currentDate = new Date(from)
-
-    // Reset time to 00:00:00 before loop
     currentDate.setHours(0, 0, 0, 0)
-
-    // Loop until the last day is reached
     let currentDay = 1
     while (currentDay <= totalDays) {
-      let applicableRate = (car.discountedDailyPrice || car.dailyPrice)
-
-      // Check if a custom rate applies
-      for (const dateBasedPrice of car.dateBasedPrices) {
-        // Ensure startDate and endDate are also normalized
+      let applicableRate = car.discountedDailyPrice || car.dailyPrice
+      for (const dateBasedPrice of car.dateBasedPrices || []) {
         const _startDate = new Date(dateBasedPrice.startDate!)
         _startDate.setHours(0, 0, 0, 0)
         const _endDate = new Date(dateBasedPrice.endDate!)
         _endDate.setHours(0, 0, 0, 0)
-
         if (currentDate.getTime() >= _startDate.getTime() && currentDate.getTime() <= _endDate.getTime()) {
           applicableRate = Number(dateBasedPrice.dailyPrice)
           break
         }
       }
-
       totalPrice += applicableRate
       currentDate.setDate(currentDate.getDate() + 1)
-      currentDate.setHours(0, 0, 0, 0) // Ensure time is reset
+      currentDate.setHours(0, 0, 0, 0)
       currentDay += 1
     }
   } else {
@@ -340,7 +321,6 @@ export const calculateTotalPrice = (car: bookcarsTypes.Car, from: Date, to: Date
       if (hourlyRate) {
         totalPrice += hourlyRate * remainingHours
       } else if (car.dailyPrice || car.discountedDailyPrice) {
-        // fallback to daily rate if no hourly price
         totalPrice += (car.discountedDailyPrice || car.dailyPrice)
       }
     }
@@ -348,24 +328,12 @@ export const calculateTotalPrice = (car: bookcarsTypes.Car, from: Date, to: Date
 
   // add extra options
   if (options) {
-    if (options.cancellation && car.cancellation > 0) {
-      totalPrice += car.cancellation
-    }
-    if (options.amendments && car.amendments > 0) {
-      totalPrice += car.amendments
-    }
-    if (options.theftProtection && car.theftProtection > 0) {
-      totalPrice += car.theftProtection * totalDays
-    }
-    if (options.collisionDamageWaiver && car.collisionDamageWaiver > 0) {
-      totalPrice += car.collisionDamageWaiver * totalDays
-    }
-    if (options.fullInsurance && car.fullInsurance > 0) {
-      totalPrice += car.fullInsurance * totalDays
-    }
-    if (options.additionalDriver && car.additionalDriver > 0) {
-      totalPrice += car.additionalDriver * totalDays
-    }
+    if (options.cancellation && car.cancellation > 0) totalPrice += car.cancellation
+    if (options.amendments && car.amendments > 0) totalPrice += car.amendments
+    if (options.theftProtection && car.theftProtection > 0) totalPrice += car.theftProtection * totalDays
+    if (options.collisionDamageWaiver && car.collisionDamageWaiver > 0) totalPrice += car.collisionDamageWaiver * totalDays
+    if (options.fullInsurance && car.fullInsurance > 0) totalPrice += car.fullInsurance * totalDays
+    if (options.additionalDriver && car.additionalDriver > 0) totalPrice += car.additionalDriver * totalDays
   }
 
   // apply price change rate
@@ -377,25 +345,44 @@ export const calculateTotalPrice = (car: bookcarsTypes.Car, from: Date, to: Date
 /**
  * Convert price from a given currency to another.
  *
- * @async
- * @param {number} amount
- * @param {string} from
- * @param {string} to
- * @returns {Promise<number>}
+ * This implementation:
+ *  - validates currencies against the currency-converter list
+ *  - tries a TND-optimized route (exchangerate.host via convertFromTND)
+ *  - otherwise uses the CurrencyConverter class (easy-currencies) to convert pairs
  */
 export const convertPrice = async (amount: number, from: string, to: string): Promise<number> => {
-  if (!checkCurrency(from)) {
-    throw new Error(`Currency ${from} not supported`)
+  const _from = (from || '').toUpperCase()
+  const _to = (to || '').toUpperCase()
+
+  if (!checkCurrency(_from)) {
+    throw new Error(`Currency ${_from} not supported`)
   }
-  if (!checkCurrency(to)) {
-    throw new Error(`Currency ${to} not supported`)
+  if (!checkCurrency(_to)) {
+    throw new Error(`Currency ${_to} not supported`)
   }
-  if (from === to) {
-    return amount
+  if (_from === _to) return amount
+
+  // if converting from TND, use the exchangerate.host optimized helper (more reliable for TND base)
+  if (_from === 'TND') {
+    try {
+      return await convertFromTND(amount, _to)
+    } catch (err) {
+      // fallback to generic converter below
+      console.warn('[convertPrice] convertFromTND failed, falling back to generic converter', err)
+    }
   }
-  const cc = new CurrencyConverter({ from, to, amount })
-  const res = await cc.convert()
-  return res
+
+  // generic conversion using CurrencyConverter (easy-currencies)
+  try {
+    const cc = new CurrencyConverter({ from: _from, to: _to, amount })
+    const res = await cc.convert()
+    return Number((res as number))
+  } catch (err) {
+    // if generic converter fails, try a fallback using the converter's class but swapped base if needed
+    // last resort: throw for the caller to handle
+    console.error('[convertPrice] generic conversion failed', err)
+    throw err
+  }
 }
 
 /**
@@ -404,7 +391,7 @@ export const convertPrice = async (amount: number, from: string, to: string): Pr
  * @param {string} currency
  * @returns {boolean}
  */
-export const checkCurrency = (currency: string) => currencies.findIndex((c) => c === currency) > -1
+export const checkCurrency = (currency: string) => currencies.findIndex((c) => c === (currency || '').toUpperCase()) > -1
 
 /**
  * Check whether language is french
@@ -447,11 +434,7 @@ export const shuffle = (array: any[]) => {
  *
  * @returns {bookcarsTypes.UserType[]}
  */
-export const getAllUserTypes = () => [
-  bookcarsTypes.UserType.Admin,
-  bookcarsTypes.UserType.Supplier,
-  bookcarsTypes.UserType.User,
-]
+export const getAllUserTypes = () => [bookcarsTypes.UserType.Admin, bookcarsTypes.UserType.Supplier, bookcarsTypes.UserType.User]
 
 /**
  * Return all car ranges.
@@ -465,7 +448,7 @@ export const getAllRanges = () => [
   bookcarsTypes.CarRange.Scooter,
   bookcarsTypes.CarRange.Bus,
   bookcarsTypes.CarRange.Truck,
-  bookcarsTypes.CarRange.Caravan,
+  bookcarsTypes.CarRange.Caravan
 ]
 
 /**
@@ -477,7 +460,7 @@ export const getAllMultimedias = () => [
   bookcarsTypes.CarMultimedia.Touchscreen,
   bookcarsTypes.CarMultimedia.Bluetooth,
   bookcarsTypes.CarMultimedia.AndroidAuto,
-  bookcarsTypes.CarMultimedia.AppleCarPlay,
+  bookcarsTypes.CarMultimedia.AppleCarPlay
 ]
 
 /**
@@ -489,7 +472,7 @@ export const getAllFuelPolicies = () => [
   bookcarsTypes.FuelPolicy.FreeTank,
   bookcarsTypes.FuelPolicy.LikeForLike,
   bookcarsTypes.FuelPolicy.FullToFull,
-  bookcarsTypes.FuelPolicy.FullToEmpty,
+  bookcarsTypes.FuelPolicy.FullToEmpty
 ]
 
 /**
@@ -503,7 +486,7 @@ export const getAllBookingStatuses = () => [
   bookcarsTypes.BookingStatus.Deposit,
   bookcarsTypes.BookingStatus.Paid,
   bookcarsTypes.BookingStatus.Reserved,
-  bookcarsTypes.BookingStatus.Cancelled,
+  bookcarsTypes.BookingStatus.Cancelled
 ]
 
 /**
@@ -608,16 +591,17 @@ export const trim = (str: string, char: string): string => {
  * @param {number} milliseconds
  * @returns {Promise<unknown>}
  */
-export const delay = (milliseconds: number) => new Promise((resolve) => {
-  setTimeout(resolve, milliseconds)
-})
+export const delay = (milliseconds: number) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, milliseconds)
+  })
 
 /**
  * Truncates a string.
  *
- * @param {string} str 
- * @param {number} maxLength 
- * @returns {string} 
+ * @param {string} str
+ * @param {number} maxLength
+ * @returns {string}
  */
 export const truncateString = (str: string, maxLength: number) => {
   if (str.length <= maxLength) {

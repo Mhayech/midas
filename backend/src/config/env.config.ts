@@ -49,7 +49,7 @@ export const expireAt = 'expireAt'
  *
  * @type {string}
  */
-export const WEBSITE_NAME = __env__('BC_WEBSITE_NAME', false, 'BookCars')
+export const WEBSITE_NAME = __env__('BC_WEBSITE_NAME', false, 'MIDAS')
 
 /**
  * Indicate whether we are in CI environment or not.
@@ -656,6 +656,25 @@ export interface Car extends Document {
   trips: number
   co2?: number
   blockOnPay?: boolean
+  currentState?: bookcarsTypes.CarState
+}
+
+/**
+ * CarStateInfo Document.
+ *
+ * @export
+ * @interface CarStateInfo
+ * @typedef {CarStateInfo}
+ * @extends {Document}
+ */
+export interface CarStateInfo extends Document {
+  _id: Types.ObjectId
+  car: Types.ObjectId
+  state: bookcarsTypes.CarState
+  notes?: string
+  admin: Types.ObjectId
+  createdAt: Date
+  updatedAt: Date
 }
 
 /**

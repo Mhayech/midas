@@ -2,6 +2,10 @@ div.booking {
   display: flex;
   flex-direction: row;
   transform: translate3d(0, 0, 0);
+  padding-left: 16px;
+  padding-right: 16px;
+  padding-top: 16px;
+  padding-bottom: 16px;
 }
 
 div.booking div.col-2 div.col-2-header {

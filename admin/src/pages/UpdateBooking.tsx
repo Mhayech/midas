@@ -15,7 +15,8 @@ import {
 } from '@mui/material'
 import {
   Info as InfoIcon,
-  Person as DriverIcon
+  Person as DriverIcon,
+  Assessment as AssessmentIcon
 } from '@mui/icons-material'
 import { DateTimeValidationError } from '@mui/x-date-pickers'
 import { Control, FieldErrors, useForm, UseFormClearErrors, UseFormRegister, UseFormSetValue, UseFormTrigger, useWatch } from 'react-hook-form'
@@ -856,10 +857,27 @@ const UpdateBooking = () => {
                   <Button variant="contained" className="btn-margin-bottom" color="error" size="small" onClick={handleDelete}>
                     {commonStrings.DELETE}
                   </Button>
-                  <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={() => navigate('/')}>
+                  <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={() => navigate('/') }>
                     {commonStrings.CANCEL}
                   </Button>
+                  {carObj && (
+                    <Button 
+                      variant="contained"
+                      className="btn-margin-bottom"
+                      size="small"
+                      onClick={() => navigate(`/car-state-management/booking/${booking?._id}`)}
+                    >
+                      {strings.MANAGE_STATE}
+                    </Button>
+                  )}
                 </div>
+                
+                {/* Car State Management Button */}
+                {carObj && (
+                  <div className="buttons" style={{ marginTop: '10px' }}>
+                    
+                  </div>
+                )}
               </div>
             </form>
           </div>

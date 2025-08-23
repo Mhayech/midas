@@ -56,6 +56,17 @@ export enum BookingStatus {
   Cancelled = 'cancelled',
 }
 
+export enum CarState {
+  Available = 'available',
+  InUse = 'in_use',
+  Maintenance = 'maintenance',
+  Damaged = 'damaged',
+  Cleaning = 'cleaning',
+  OutOfService = 'out_of_service',
+  PreRental = 'pre_rental',
+  PostRental = 'post_rental',
+}
+
 export enum Mileage {
   Limited = 'limited',
   Unlimited = 'unlimited',
@@ -508,7 +519,63 @@ export interface Car {
   trips: number
   co2?: number
   blockOnPay?: boolean
+  currentState?: CarState
   [propKey: string]: any
+}
+
+export interface CarStateInfo {
+  _id?: string
+  car: string | Car
+  booking?: string | Booking
+  stateType: CarState
+  location: string | Location
+  date: Date
+  time: string
+  mileage: number
+  fuelLevel: number
+  bodyCondition: 'excellent' | 'good' | 'fair' | 'poor'
+  interiorCondition: 'excellent' | 'good' | 'fair' | 'poor'
+  damages: DamageMarker[]
+  includedItems: IncludedItem[]
+  photos: CarStatePhoto[]
+  adminNotes?: string
+  customerNotes?: string
+  internalNotes?: string
+  admin: string | User
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'archived'
+  verifiedBy?: string | User
+  verifiedAt?: Date
+  previousState?: string | CarStateInfo
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface DamageMarker {
+  id: string
+  type: 'W' | 'P' | 'O' | 'T' | 'R'  // Dent, Crack, Chip, Scratch, Scuff
+  severity: 'minor' | 'moderate' | 'major' | 'critical'
+  viewAngle: 'front' | 'back' | 'left' | 'right' | 'top' | 'interior'
+  x: number
+  y: number
+  description: string
+  isNewDamage: boolean
+  createdAt: Date
+  createdBy: string
+}
+
+export interface IncludedItem {
+  name: string
+  isPresent: boolean
+  condition: 'excellent' | 'good' | 'fair' | 'poor' | 'missing'
+  notes?: string
+}
+
+export interface CarStatePhoto {
+  url: string
+  caption: string
+  viewAngle?: 'front' | 'back' | 'left' | 'right' | 'top' | 'interior'
+  uploadedAt: Date
+  uploadedBy: string | User
 }
 
 export interface Data<T> {
@@ -530,6 +597,90 @@ export interface Notification {
   isRead?: boolean
   checked?: boolean
   createdAt?: Date
+}
+
+// Car State Management Types
+export interface CreateCarStatePayload {
+  car: string
+  booking?: string
+  stateType: CarState
+  location: string
+  date: Date
+  time: string
+  mileage: number
+  fuelLevel: number
+  bodyCondition: 'excellent' | 'good' | 'fair' | 'poor'
+  interiorCondition: 'excellent' | 'good' | 'fair' | 'poor'
+  damages?: DamageMarker[]
+  includedItems?: IncludedItem[]
+  photos?: CarStatePhoto[]
+  adminNotes?: string
+  customerNotes?: string
+  admin: string
+}
+
+export interface UpdateCarStatePayload {
+  _id: string
+  car?: string
+  booking?: string
+  stateType?: CarState
+  location?: string
+  date?: Date
+  time?: string
+  mileage?: number
+  fuelLevel?: number
+  bodyCondition?: 'excellent' | 'good' | 'fair' | 'poor'
+  interiorCondition?: 'excellent' | 'good' | 'fair' | 'poor'
+  damages?: DamageMarker[]
+  includedItems?: IncludedItem[]
+  photos?: CarStatePhoto[]
+  adminNotes?: string
+  customerNotes?: string
+  admin?: string
+}
+
+export interface GetCarStatesPayload {
+  car?: string
+  booking?: string
+  stateType?: string
+  location?: string
+  from?: string
+  to?: string
+  page?: number
+  limit?: number
+}
+
+export interface GetCarStatesResponse {
+  carStates: CarStateInfo[]
+  total: number
+  page: number
+  limit: number
+  pages: number
+}
+
+export interface CarStateComparison {
+  beforeState: CarStateInfo | null
+  afterState: CarStateInfo | null
+  hasComparison: boolean
+  differences?: {
+    mileage: number
+    fuelLevel: number
+    newDamages: number
+    previousDamages: number
+    bodyConditionChanged: boolean
+    interiorConditionChanged: boolean
+  }
+}
+
+export interface CarStateStatistics {
+  stats: Array<{
+    _id: string
+    count: number
+    avgMileage: number
+    avgFuelLevel: number
+  }>
+  totalStates: number
+  totalDamages: number
 }
 
 export interface NotificationCounter {
