@@ -306,6 +306,12 @@ const Car = ({
               <Text style={styles.text}>{helper.getCarTypeShort(car.type)}</Text>
             </View>
           )}
+          {car.immatriculation && (
+            <View style={styles.info}>
+              <MaterialIcons name="info" size={iconSize} color={iconColor} style={styles.infoIcon} />
+              <Text style={styles.text}>{car.immatriculation}</Text>
+            </View>
+          )}
           <View style={styles.info}>
             <MaterialIcons name="account-tree" size={iconSize} color={iconColor} style={styles.infoIcon} />
             <Text style={styles.text}>{helper.getGearboxTypeShort(car.gearbox)}</Text>

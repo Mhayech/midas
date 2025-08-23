@@ -33,6 +33,7 @@ export const schema = z.object({
       { message: strings.MINIMUM_AGE_NOT_VALID }
     ),
   locations: z.array(optionSchema),
+  immatriculation: z.string().min(1, { message: commonStrings.REQUIRED }),
   dailyPrice: z.string().refine((val) => !val || numberRegex.test(val), { message: commonStrings.FIELD_NOT_VALID }),
   discountedDailyPrice: z.string().refine((val) => !val || numberRegex.test(val), { message: commonStrings.FIELD_NOT_VALID }).optional(),
   hourlyPrice: z.string().refine((val) => !val || numberRegex.test(val), { message: commonStrings.FIELD_NOT_VALID }),

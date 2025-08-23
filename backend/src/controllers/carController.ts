@@ -161,6 +161,7 @@ export const update = async (req: Request, res: Response) => {
         comingSoon,
         type,
         locations,
+        immatriculation,
         dailyPrice,
         discountedDailyPrice,
         hourlyPrice,
@@ -197,6 +198,7 @@ export const update = async (req: Request, res: Response) => {
       car.minimumAge = minimumAge
       car.locations = locations.map((l) => new mongoose.Types.ObjectId(l))
       car.name = name
+      car.immatriculation = immatriculation
       car.available = available
       car.fullyBooked = fullyBooked
       car.comingSoon = comingSoon

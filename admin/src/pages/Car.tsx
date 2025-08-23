@@ -18,6 +18,7 @@ import {
   Clear as UncheckIcon,
   LocationOn as LocationIcon,
   Assessment as AssessmentIcon,
+  Info as InfoIcon,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
@@ -228,6 +229,7 @@ const Car = () => {
                       </div>
                     </Tooltip>
                   </li>
+
                   <li className="gearbox">
                     <Tooltip title={helper.getGearboxTooltip(car.gearbox)} placement="top">
                       <div className="car-info-list-item">
@@ -277,6 +279,17 @@ const Car = () => {
                       </div>
                     </Tooltip>
                   </li>
+                  {car.immatriculation && (
+                    <li className="immatriculation">
+                      <Tooltip title={strings.IMMATRICULATION} placement="left">
+                        <div className="car-info-list-item">
+                          <InfoIcon />
+                          <span className="car-info-list-text">{`${strings.IMMATRICULATION}${fr ? ' : ' : ': '}${car.immatriculation}`}</span>
+                        </div>
+                      </Tooltip>
+                    </li>
+                  )}
+
                 </ul>
                 <ul className="extras-list">
                   <li className={car.available ? 'car-available' : 'car-unavailable'}>

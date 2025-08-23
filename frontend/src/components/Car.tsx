@@ -247,6 +247,16 @@ const Car = ({
                 </Tooltip>
               </li>
             )}
+            {car.immatriculation && (
+              <li className="immatriculation">
+                <Tooltip title={strings.IMMATRICULATION} placement="top">
+                  <div className="car-info-list-item">
+                    <InfoIcon />
+                    <span className="car-info-list-text">{car.immatriculation}</span>
+                  </div>
+                </Tooltip>
+              </li>
+            )}
             <li className="gearbox">
               <Tooltip title={helper.getGearboxTooltip(car.gearbox)} placement="top">
                 <div className="car-info-list-item">
