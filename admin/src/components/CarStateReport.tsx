@@ -567,7 +567,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
             </Grid>
             <Grid item xs={12} md={4}>
               <Typography variant="body2" className="csr-meta">{csrStrings.REGISTRATION}</Typography>
-              <Typography variant="body1">{car.registration || 'N/A'}</Typography>
+              <Typography variant="body1">{car.immatriculation || 'N/A'}</Typography>
             </Grid>
           </Grid>
         </CardContent>
@@ -658,7 +658,6 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                 </Box>
               ) : (
                 <Box textAlign="center" py={3}>
-                  <Typography variant="body2" color="textSecondary">{csrStrings.CREATE_PICKUP}</Typography>
                   <Button
                     variant="outlined"
                     size="small"
@@ -770,7 +769,6 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                 </Box>
               ) : (
                 <Box textAlign="center" py={3}>
-                  <Typography variant="body2" color="textSecondary">{csrStrings.CREATE_DROPOFF}</Typography>
                   <Button
                     variant="outlined"
                     size="small"

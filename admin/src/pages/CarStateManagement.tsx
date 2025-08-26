@@ -162,9 +162,6 @@ const CarStateManagement = () => {
           >
             {csmStrings.BACK}
           </Button>
-          <Typography variant="h4" component="h1">
-            {csmStrings.TITLE}
-          </Typography>
         </Box>
         <Box>
           <Button
@@ -178,71 +175,135 @@ const CarStateManagement = () => {
         </Box>
       </Box>
 
-      {/* Summary Card */}
-      <Card sx={{ mb: 3 }} className="csm-hero">
-        <CardContent>
-          <Typography variant="h6" gutterBottom>{csmStrings.SUMMARY}</Typography>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={5}>
-              <Typography variant="body2" color="textSecondary">
-                {csmStrings.CAR}
-              </Typography>
-              <Typography variant="h6">{car.name}</Typography>
-              <Typography variant="body2" color="textSecondary">{csmStrings.REGISTRATION}</Typography>
-              <Typography variant="body1">{car.registration || 'N/A'}</Typography>
-              <Typography variant="body2" color="textSecondary">{csmStrings.MILEAGE}</Typography>
-              <Typography variant="body1">{car.mileage} km</Typography>
-              {car.supplier?.fullName && (
-                <>
-                  <Typography variant="body2" color="textSecondary">Supplier</Typography>
-                  <Typography variant="body1">{car.supplier.fullName}</Typography>
-                </>
-              )}
-            </Grid>
-            <Grid item xs={12} md={7}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="textSecondary">
-                    {csmStrings.LOCATION}
-                  </Typography>
-                  <Typography variant="body1">{location.name}</Typography>
-                  <Typography variant="body2" color="textSecondary">{csmStrings.ADDRESS}</Typography>
-                  <Typography variant="body1">{
-                    (location.latitude != null && location.longitude != null)
-                      ? `${location.latitude}, ${location.longitude}`
-                      : 'N/A'
-                  }</Typography>
-                </Grid>
-                {booking && (
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="body2" color="textSecondary">
-                      {csmStrings.BOOKING}
-                    </Typography>
-                    <Typography variant="body1">{booking._id?.slice(-8)}...</Typography>
-                    <Typography variant="body2" color="textSecondary">{csmStrings.DRIVER}</Typography>
-                    <Typography variant="body1">{typeof booking.driver === 'object' ? booking.driver.fullName : ''}</Typography>
-                    <Typography variant="body2" color="textSecondary">{csmStrings.FROM}</Typography>
-                    <Typography variant="body1">{new Date(booking.from).toLocaleString()}</Typography>
-                    <Typography variant="body2" color="textSecondary">{csmStrings.TO}</Typography>
-                    <Typography variant="body1">{new Date(booking.to).toLocaleString()}</Typography>
-                    <Typography variant="body2" color="textSecondary">{csmStrings.PRICE_TOTAL}</Typography>
-                    <Typography variant="body1">{bookcarsHelper.formatPrice(booking.price || 0, commonStrings.CURRENCY, 'en')}</Typography>
-                    <Typography variant="body2" color="textSecondary">{csmStrings.PRICE_PER_DAY}</Typography>
-                    <Typography variant="body1">{
-                      (() => {
-                        const ms = new Date(booking.to).getTime() - new Date(booking.from).getTime()
-                        const days = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)))
-                        const perDay = (booking.price || 0) / days
-                        return bookcarsHelper.formatPrice(perDay, commonStrings.CURRENCY, 'en')
-                      })()
-                    }</Typography>
-                  </Grid>
-                )}
-              </Grid>
-            </Grid>
+{/* Summary Card */}
+<Card sx={{ mb: 3 }} className="csm-hero">
+  <Typography variant="h4" component="h1" sx={{ mt: 0, mb: 1 }}>
+    {csmStrings.TITLE}
+  </Typography>
+
+  <CardContent sx={{ pt: 1 }}>
+    <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
+      {csmStrings.SUMMARY}
+    </Typography>
+
+    <Grid container spacing={2} alignItems="flex-start">
+      {/* Left Column: Car Details */}
+      <Grid item xs={12} md={5}>
+        <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+          {csmStrings.CAR}
+        </Typography>
+        <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+          {car.name}
+        </Typography>
+
+        <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+          {csmStrings.REGISTRATION}
+        </Typography>
+        <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+          {car.immatriculation || 'N/A'}
+        </Typography>
+
+        {car.supplier?.fullName && (
+          <>
+            <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+              {csmStrings.SUPPLIER}
+            </Typography>
+            <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+              {car.supplier.fullName}
+            </Typography>
+          </>
+        )}
+
+        {/* Uncomment if mileage is needed */}
+        {/* 
+        <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+          {csmStrings.MILEAGE}
+        </Typography>
+        <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+          {car.mileage} km
+        </Typography>
+        */}
+      </Grid>
+
+      {/* Right Column: Location and Booking */}
+      <Grid item xs={12} md={7}>
+        <Grid container spacing={2}>
+          {/* Location */}
+          <Grid item xs={12} sm={6}>
+            <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+              {csmStrings.LOCATION}
+            </Typography>
+            <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+              {location.name}
+            </Typography>
+
+            <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+              {csmStrings.ADDRESS}
+            </Typography>
+            <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+              {location.latitude != null && location.longitude != null
+                ? `${location.latitude}, ${location.longitude}`
+                : 'N/A'}
+            </Typography>
           </Grid>
-        </CardContent>
-      </Card>
+
+          {/* Booking */}
+          {booking && (
+            <Grid item xs={12} sm={6}>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                {csmStrings.BOOKING}
+              </Typography>
+              <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                {booking._id?.slice(-8)}...
+              </Typography>
+
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                {csmStrings.DRIVER}
+              </Typography>
+              <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                {typeof booking.driver === 'object' ? booking.driver.fullName : ''}
+              </Typography>
+
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                {csmStrings.FROM}
+              </Typography>
+              <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                {new Date(booking.from).toLocaleString()}
+              </Typography>
+
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                {csmStrings.TO}
+              </Typography>
+              <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                {new Date(booking.to).toLocaleString()}
+              </Typography>
+
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                {csmStrings.PRICE_TOTAL}
+              </Typography>
+              <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                {bookcarsHelper.formatPrice(booking.price || 0, commonStrings.CURRENCY, 'en')}
+              </Typography>
+
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                {csmStrings.PRICE_PER_DAY}
+              </Typography>
+              <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                {(() => {
+                  const ms = new Date(booking.to).getTime() - new Date(booking.from).getTime();
+                  const days = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+                  const perDay = (booking.price || 0) / days;
+                  return bookcarsHelper.formatPrice(perDay, commonStrings.CURRENCY, 'en');
+                })()}
+              </Typography>
+            </Grid>
+          )}
+        </Grid>
+      </Grid>
+    </Grid>
+  </CardContent>
+</Card>
+
 
       {/* Car State Report */}
       <CarStateReport

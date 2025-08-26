@@ -5,17 +5,17 @@ const strings = new LocalizedStrings({
   fr: {
     TOTAL: 'Total :',
     DELETE_BOOKING: 'Êtes-vous sûr de vouloir supprimer cette réservation ?',
-    MANAGE_STATE: "Gérer l'état",
+    MANAGE_STATE: "Gérer",
   },
   en: {
     TOTAL: 'Total:',
     DELETE_BOOKING: 'Are you sure you want to delete this booking?',
-    MANAGE_STATE: 'Manage State',
+    MANAGE_STATE: 'Manage',
   },
   es: {
     TOTAL: 'Total:',
     DELETE_BOOKING: '¿Estás seguro de que quieres eliminar esta reserva?',
-    MANAGE_STATE: 'Gestionar estado',
+    MANAGE_STATE: 'Gestionar',
   },
 })
 

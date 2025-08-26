@@ -3,7 +3,7 @@ import * as langHelper from '@/utils/langHelper'
 
 const strings = new LocalizedStrings({
   fr: {
-    TITLE: "Gestion de l'état du véhicule",
+    TITLE: "Gestion Véhicule",
     BACK: 'Retour',
     SUMMARY: 'Résumé',
     CAR: 'Voiture',
@@ -20,7 +20,7 @@ const strings = new LocalizedStrings({
     PRINT: 'Imprimer',
   },
   en: {
-    TITLE: 'Car State Management',
+    TITLE: 'Car Management',
     BACK: 'Back',
     SUMMARY: 'Summary',
     CAR: 'Car',
@@ -37,7 +37,7 @@ const strings = new LocalizedStrings({
     PRINT: 'Print',
   },
   es: {
-    TITLE: 'Gestión del estado del vehículo',
+    TITLE: 'Gestión del vehículo',
     BACK: 'Atrás',
     SUMMARY: 'Resumen',
     CAR: 'Coche',

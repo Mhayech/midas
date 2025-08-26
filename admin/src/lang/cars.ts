@@ -94,6 +94,7 @@ const strings = new LocalizedStrings({
     CAR_RANGE_BUS: 'Bus',
     CAR_RANGE_TRUCK: 'Camion',
     CAR_RANGE_CARAVAN: 'Caravane',
+    MANAGE_STATE: "Gérer l'état",
   },
   en: {
     NEW_CAR: 'New car',
@@ -182,6 +183,7 @@ const strings = new LocalizedStrings({
     CAR_RANGE_BUS: 'Bus',
     CAR_RANGE_TRUCK: 'Truck',
     CAR_RANGE_CARAVAN: 'Caravan',
+    MANAGE_STATE: 'Manage State',
   },
   es: {
     NEW_CAR: 'Nuevo coche',
@@ -269,6 +271,7 @@ const strings = new LocalizedStrings({
     CAR_RANGE_BUS: 'Autobús',
     CAR_RANGE_TRUCK: 'Camión',
     CAR_RANGE_CARAVAN: 'Caravana',
+    MANAGE_STATE: 'Gestionar estado',
   },
 })
 

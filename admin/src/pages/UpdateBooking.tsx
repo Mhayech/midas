@@ -854,12 +854,6 @@ const UpdateBooking = () => {
                   <Button variant="contained" className="btn-primary btn-margin-bottom" size="small" type="submit" disabled={isSubmitting}>
                     {commonStrings.SAVE}
                   </Button>
-                  <Button variant="contained" className="btn-margin-bottom" color="error" size="small" onClick={handleDelete}>
-                    {commonStrings.DELETE}
-                  </Button>
-                  <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={() => navigate('/') }>
-                    {commonStrings.CANCEL}
-                  </Button>
                   {carObj && (
                     <Button 
                       variant="contained"
@@ -870,6 +864,12 @@ const UpdateBooking = () => {
                       {strings.MANAGE_STATE}
                     </Button>
                   )}
+                  <Button variant="contained" className="btn-margin-bottom" color="error" size="small" onClick={handleDelete}>
+                    {commonStrings.DELETE}
+                  </Button>
+                  <Button variant="contained" className="btn-secondary btn-margin-bottom" size="small" onClick={() => navigate('/') }>
+                    {commonStrings.CANCEL}
+                  </Button>
                 </div>
                 
                 {/* Car State Management Button */}
