@@ -27,6 +27,12 @@ const carSchema = new Schema<env.Car>(
       ref: 'Location',
       validate: (value: any): boolean => Array.isArray(value) && value.length > 0,
     },
+    immatriculation: {
+      type: String,
+      required: [true, "can't be blank"],
+      trim: true,
+      index: true,
+    },
 
     // --------- price fields ---------
     dailyPrice: {

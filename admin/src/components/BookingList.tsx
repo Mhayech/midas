@@ -17,7 +17,7 @@ import {
   DialogActions,
   Button,
 } from '@mui/material'
-import { Edit as EditIcon, Delete as DeleteIcon, Check as CheckIcon } from '@mui/icons-material'
+import { Edit as EditIcon, Delete as DeleteIcon, Check as CheckIcon, Assessment as AssessmentIcon } from '@mui/icons-material'
 import { format } from 'date-fns'
 import { fr as dfnsFR, enUS as dfnsENUS } from 'date-fns/locale'
 import * as bookcarsTypes from ':bookcars-types'
@@ -261,6 +261,7 @@ const BookingList = ({
             setSelectedId(row._id || '')
             setopenDeleteDialog(true)
           }
+          const canManageState = !!loggedUser && ((row.supplier as bookcarsTypes.User)._id === loggedUser._id || helper.admin(loggedUser))
 
           return (
             <div>
@@ -269,6 +270,13 @@ const BookingList = ({
                   <EditIcon />
                 </IconButton>
               </Tooltip>
+              {canManageState && (
+                <Tooltip title={strings.MANAGE_STATE}>
+                  <IconButton onClick={() => navigate(`/car-state-management/${(row.car as bookcarsTypes.Car)._id}`)}>
+                    <AssessmentIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
               <Tooltip title={commonStrings.DELETE}>
                 <IconButton onClick={handleDelete}>
                   <DeleteIcon />
@@ -601,6 +609,16 @@ const BookingList = ({
                     >
                       {commonStrings.UPDATE}
                     </Button>
+                    {(((booking.supplier as bookcarsTypes.User)._id === (loggedUser?._id || '')) || helper.admin(loggedUser)) && (
+                      <Button
+                        variant="contained"
+                        className="btn-primary"
+                        size="small"
+                        onClick={() => navigate(`/car-state-management/${(booking.car as bookcarsTypes.Car)._id}`)}
+                      >
+                        {strings.MANAGE_STATE}
+                      </Button>
+                    )}
                     <Button
                       variant="contained"
                       className="btn-secondary"

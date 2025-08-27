@@ -116,6 +116,15 @@ div.car section.car-sec div.car-img div.car-supplier span.car-supplier-logo img 
     text-align: center;
   }
 
+  div.car section.car-sec div.car-info ul.car-info-list li.immatriculation {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+
+  div.car section.car-sec div.car-info ul.car-info-list li.immatriculation div.car-info-list-item {
+    width: fit-content;
+  }
+
   div.car section.car-sec div.car-info ul.car-info-list li.mileage,
   div.car section.car-sec div.car-info ul.car-info-list li.fuel-policy {
     width: 100%;
@@ -252,6 +261,15 @@ div.car section.car-sec div.car-img div.car-supplier span.car-supplier-logo img 
     margin-left: 5px;
     border-radius: 5px;
     text-align: center;
+  }
+
+  div.car section.car-sec div.car-info ul.car-info-list li.immatriculation {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+
+  div.car section.car-sec div.car-info ul.car-info-list li.immatriculation div.car-info-list-item {
+    width: fit-content;
   }
 
   div.car section.car-sec div.car-info ul.car-info-list li.mileage,

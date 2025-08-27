@@ -11,6 +11,7 @@ const strings = new LocalizedStrings({
   fr: {
     NEW_CAR: 'Nouvelle voiture',
     DELETE_CAR: 'Êtes-vous sûr de vouloir supprimer cette voiture ?',
+    IMMATRICULATION: 'Immatriculation',
     CAR_CURRENCY: `${commonStrings.CURRENCY}/jour`,
     FUEL_POLICY: 'Politique carburant',
     DIESEL: 'Diesel',
@@ -99,6 +100,7 @@ const strings = new LocalizedStrings({
   en: {
     NEW_CAR: 'New car',
     DELETE_CAR: 'Are you sure you want to delete this car?',
+    IMMATRICULATION: 'License Plate',
     CAR_CURRENCY: `${commonStrings.CURRENCY}/day`,
     FUEL_POLICY: 'Fuel policy',
     DIESEL: 'Diesel',
@@ -188,6 +190,7 @@ const strings = new LocalizedStrings({
   es: {
     NEW_CAR: 'Nuevo coche',
     DELETE_CAR: '¿Estás seguro de que quieres eliminar este coche?',
+    IMMATRICULATION: 'Matrícula',
     CAR_CURRENCY: `${commonStrings.CURRENCY}/día`,
     FUEL_POLICY: 'Política de combustible',
     DIESEL: 'Diésel',

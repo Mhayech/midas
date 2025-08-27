@@ -516,6 +516,7 @@ const CarList = ({
                           </Tooltip>
                         </li>
                       )}
+
                       <li className="gearbox">
                         <Tooltip title={helper.getGearboxTooltip(car.gearbox)} placement="top">
                           <div className="car-info-list-item">
@@ -524,27 +525,28 @@ const CarList = ({
                           </div>
                         </Tooltip>
                       </li>
-                      {car.seats > 0 && (
-                        <li className="seats">
-                          <Tooltip title={helper.getSeatsTooltip(car.seats)} placement="top">
-                            <div className="car-info-list-item">
-                              <SeatsIcon />
-                              <span className="car-info-list-text">{car.seats}</span>
-                            </div>
-                          </Tooltip>
-                        </li>
-                      )}
-                      {car.doors > 0 && (
-                        <li className="doors">
-                          <Tooltip title={helper.getDoorsTooltip(car.doors)} placement="top">
-                            <div className="car-info-list-item">
-                              <img src={DoorsIcon} alt="" className="car-doors" />
-                              <span className="car-info-list-text">{car.doors}</span>
-                            </div>
-                          </Tooltip>
-                        </li>
-                      )}
-                      {car.aircon && (
+                                              {car.seats > 0 && (
+                          <li className="seats">
+                            <Tooltip title={helper.getSeatsTooltip(car.seats)} placement="top">
+                              <div className="car-info-list-item">
+                                <SeatsIcon />
+                                <span className="car-info-list-text">{car.seats}</span>
+                              </div>
+                            </Tooltip>
+                          </li>
+                        )}
+                        {car.doors > 0 && (
+                          <li className="doors">
+                            <Tooltip title={helper.getDoorsTooltip(car.doors)} placement="top">
+                              <div className="car-info-list-item">
+                                <img src={DoorsIcon} alt="" className="car-doors" />
+                                <span className="car-info-list-text">{car.doors}</span>
+                              </div>
+                            </Tooltip>
+                          </li>
+                        )}
+
+                        {car.aircon && (
                         <li className="aircon">
                           <Tooltip title={strings.AIRCON_TOOLTIP} placement="top">
                             <div className="car-info-list-item">
@@ -573,6 +575,16 @@ const CarList = ({
                           </div>
                         </Tooltip>
                       </li>
+                      {car.immatriculation && (
+                        <li className="immatriculation">
+                          <Tooltip title={strings.IMMATRICULATION} placement="left">
+                            <div className="car-info-list-item">
+                              <InfoIcon />
+                              <span className="car-info-list-text">{`${strings.IMMATRICULATION}${fr ? ' : ' : ': '}${car.immatriculation}`}</span>
+                            </div>
+                          </Tooltip>
+                        </li>
+                      )}
                       {edit && (
                         <>
                           <li className={car.available ? 'car-available' : 'car-unavailable'}>

@@ -200,6 +200,7 @@ export interface CreateCarPayload {
   supplier: string
   minimumAge: number
   locations: string[]
+  immatriculation: string
 
   // price fields
   hourlyPrice: number | null
@@ -478,6 +479,7 @@ export interface Car {
   supplier: User
   minimumAge: number
   locations: Location[]
+  immatriculation: string
 
   // price fields
   dailyPrice: number

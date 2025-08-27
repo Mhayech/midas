@@ -617,6 +617,7 @@ export interface Car extends Document {
   supplier: Types.ObjectId
   minimumAge: number
   locations: Types.ObjectId[]
+  immatriculation: string
 
   hourlyPrice: number | null
   discountedHourlyPrice: number | null
@@ -690,6 +691,7 @@ export interface CarInfo {
   supplier: UserInfo
   minimumAge: number
   locations: Types.ObjectId[]
+  immatriculation: string
   price: number
   deposit: number
   available: boolean

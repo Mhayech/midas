@@ -92,6 +92,7 @@ beforeAll(async () => {
     supplier: SUPPLIER_ID,
     minimumAge: 21,
     locations: [LOCATION_ID],
+    immatriculation: 'DEF456',
     dailyPrice: 78,
     discountedDailyPrice: null,
     hourlyPrice: null,

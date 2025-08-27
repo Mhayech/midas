@@ -73,6 +73,7 @@ const UpdateCar = () => {
       supplier: undefined,
       minimumAge: String(env.MINIMUM_AGE),
       locations: [],
+      immatriculation: '',
       dailyPrice: '',
       discountedDailyPrice: '',
       hourlyPrice: '',
@@ -176,6 +177,7 @@ const UpdateCar = () => {
         supplier: supplier._id!,
         minimumAge: Number.parseInt(data.minimumAge, 10),
         locations: data.locations.map((l) => l._id),
+        immatriculation: data.immatriculation,
         dailyPrice: Number(data.dailyPrice),
         discountedDailyPrice: getPrice(data.discountedDailyPrice!),
         hourlyPrice: getPrice(data.hourlyPrice || ''),
@@ -262,6 +264,7 @@ const UpdateCar = () => {
               setValue('name', _car.name)
               setValue('supplier', _supplier)
               setValue('minimumAge', _car.minimumAge.toString())
+              setValue('immatriculation', _car.immatriculation || '')
               const lcs: Option[] = []
               for (const loc of _car.locations) {
                 const { _id, name: _name } = loc
@@ -402,6 +405,23 @@ const UpdateCar = () => {
                 {errors.minimumAge && (
                   <FormHelperText error>{errors.minimumAge.message}</FormHelperText>
                 )}
+              </FormControl>
+
+              <FormControl fullWidth margin="dense">
+                <TextField
+                  label={strings.IMMATRICULATION}
+                  {...register('immatriculation')}
+                  error={!!errors.immatriculation}
+                  helperText={errors.immatriculation?.message}
+                  required
+                  variant="standard"
+                  autoComplete="off"
+                  onChange={() => {
+                    if (errors.immatriculation) {
+                      clearErrors('immatriculation')
+                    }
+                  }}
+                />
               </FormControl>
 
               <FormControl fullWidth margin="dense">

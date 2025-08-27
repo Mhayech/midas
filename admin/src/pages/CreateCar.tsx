@@ -70,6 +70,7 @@ const CreateCar = () => {
       supplier: undefined,
       minimumAge: String(env.MINIMUM_AGE),
       locations: [],
+      immatriculation: '',
       dailyPrice: '',
       discountedDailyPrice: '',
       hourlyPrice: '',
@@ -167,6 +168,7 @@ const CreateCar = () => {
         supplier: data.supplier?._id!,
         minimumAge: Number.parseInt(data.minimumAge, 10),
         locations: data.locations.map((l) => l._id),
+        immatriculation: data.immatriculation,
         dailyPrice: Number(data.dailyPrice),
         discountedDailyPrice: getPrice(data.discountedDailyPrice || ''),
         hourlyPrice: getPrice(data.hourlyPrice || ''),
@@ -307,6 +309,21 @@ const CreateCar = () => {
               {errors.minimumAge && (
                 <FormHelperText error>{errors.minimumAge.message}</FormHelperText>
               )}
+            </FormControl>
+
+            <FormControl fullWidth margin="dense">
+              <TextField
+                label={`${strings.IMMATRICULATION} `}
+                {...register('immatriculation')}
+                required
+                variant="standard"
+                autoComplete="off"
+                onChange={() => {
+                  if (errors.immatriculation) {
+                    clearErrors('immatriculation')
+                  }
+                }}
+              />
             </FormControl>
 
             <FormControl fullWidth margin="dense">
