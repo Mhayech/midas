@@ -62,11 +62,11 @@ const Home = () => {
   const [openRangeSearchFormDialog, setOpenRangeSearchFormDialog] = useState(false)
   const [videoLoaded, setVideoLoaded] = useState(false)
   const [miniPricePhr, setMiniPricePhr] = useState(2.5)
-  const [miniPricePday, setMiniPricePday] = useState(40)
-  const [midiPricePhr, setMidiPricePhr] = useState(3.5)
-  const [midiPricePday, setMidiPricePday] = useState(50)
+  const [miniPricePday, setMiniPricePday] = useState(120)
+  const [midiPricePhr, setMidiPricePhr] = useState(180)
+  const [midiPricePday, setMidiPricePday] = useState(150)
   const [maxiPricePhr, setMaxiPricePhr] = useState(4.5)
-  const [maxiPricePday, setMaxiPricePday] = useState(80)
+  const [maxiPricePday, setMaxiPricePday] = useState(180)
 
   useEffect(() => {
     const init = async () => {
@@ -285,7 +285,7 @@ const Home = () => {
         </div>
 
         <div className="home-suppliers" style={suppliers.length < 4 ? { margin: 0 } : undefined}>
-          {suppliers.length > 0 && (
+          {suppliers.length > 3 && (
             <>
               <h1>{strings.SUPPLIERS_TITLE}</h1>
               <SupplierCarrousel suppliers={suppliers} />
@@ -293,7 +293,7 @@ const Home = () => {
           )}
         </div>
 
-        {countries.length > 0 && (
+        {countries.length > 3 && (
           <div className="destinations">
             <h1>{strings.DESTINATIONS_TITLE}</h1>
             <div className="tabs">
@@ -361,11 +361,7 @@ const Home = () => {
                 <span>{carsStrings.CAR_RANGE_MINI}</span>
                 <ul>
                   <li>
-                    <span className="price">{bookcarsHelper.formatPrice(miniPricePhr, commonStrings.CURRENCY, language)}</span>
-                    <span className="unit"> · phr</span>
-                  </li>
-                  <li>
-                    <span className="price">{bookcarsHelper.formatPrice(miniPricePday, commonStrings.CURRENCY, language)}</span>
+                    <span className="price">{bookcarsHelper.formatPrice(miniPricePday, '', language)}&nbsp;{commonStrings.CURRENCY}</span>
                     <span className="unit"> · pday</span>
                   </li>
                 </ul>
@@ -410,11 +406,7 @@ const Home = () => {
                 <span>{carsStrings.CAR_RANGE_MIDI}</span>
                 <ul>
                   <li>
-                    <span className="price">{bookcarsHelper.formatPrice(midiPricePhr, commonStrings.CURRENCY, language)}</span>
-                    <span className="unit"> · phr</span>
-                  </li>
-                  <li>
-                    <span className="price">{bookcarsHelper.formatPrice(midiPricePday, commonStrings.CURRENCY, language)}</span>
+                    <span className="price">{bookcarsHelper.formatPrice(midiPricePday, '', language)}&nbsp;{commonStrings.CURRENCY}</span>
                     <span className="unit"> · pday</span>
                   </li>
                 </ul>
@@ -458,11 +450,7 @@ const Home = () => {
                 <span>{carsStrings.CAR_RANGE_MAXI}</span>
                 <ul>
                   <li>
-                    <span className="price">{bookcarsHelper.formatPrice(maxiPricePhr, commonStrings.CURRENCY, language)}</span>
-                    <span className="unit"> · phr</span>
-                  </li>
-                  <li>
-                    <span className="price">{bookcarsHelper.formatPrice(maxiPricePday, commonStrings.CURRENCY, language)}</span>
+                    <span className="price">{bookcarsHelper.formatPrice(maxiPricePday, '', language)}&nbsp;{commonStrings.CURRENCY}</span>
                     <span className="unit"> · pday</span>
                   </li>
                 </ul>

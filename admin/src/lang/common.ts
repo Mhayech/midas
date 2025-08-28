@@ -93,6 +93,11 @@ const strings = new LocalizedStrings({
     BLACKLISTED: 'Liste noire',
     BLACKLISTED_TOOLTIP: "Les utilisateurs mis sur liste noire n'ont plus accès à la plateforme.",
     FIELD_NOT_VALID: 'Veuillez respecter le format requis',
+    DRIVER_CONTRACT: 'Contrat de conducteur',
+    UPLOAD_CONTRACT: 'Charger le contrat...',
+    DRIVER_CONTRACT_REQUIRED: 'Contrat de conducteur requis',
+    VIEW_CONTRACT: 'Voir le contrat',
+    DELETE_CONTRACT_CONFIRM: 'Êtes-vous sûr de vouloir supprimer le contrat ?',
   },
   en: {
     GENERIC_ERROR: 'An unhandled error occurred.',
@@ -184,6 +189,11 @@ const strings = new LocalizedStrings({
     BLACKLISTED: 'Blacklisted',
     BLACKLISTED_TOOLTIP: 'Users who are blacklisted no longer have access to the platform.',
     FIELD_NOT_VALID: 'Please respect the required format',
+    DRIVER_CONTRACT: 'Driver Contract',
+    UPLOAD_CONTRACT: 'Upload contract...',
+    DRIVER_CONTRACT_REQUIRED: 'Driver contract required',
+    VIEW_CONTRACT: 'View contract',
+    DELETE_CONTRACT_CONFIRM: 'Are you sure you want to delete the contract?',
   },
   es: {
     GENERIC_ERROR: 'Se ha producido un error no controlado.',
@@ -276,6 +286,11 @@ const strings = new LocalizedStrings({
     BLACKLISTED: 'Lista negra',
     BLACKLISTED_TOOLTIP: 'Los usuarios en la lista negra ya no tienen acceso a la plataforma.',
     FIELD_NOT_VALID: 'Por favor respete el formato requerido',
+    DRIVER_CONTRACT: 'Contrato de conductor',
+    UPLOAD_CONTRACT: 'Subir contrato...',
+    DRIVER_CONTRACT_REQUIRED: 'Se requiere contrato de conductor',
+    VIEW_CONTRACT: 'Ver contrato',
+    DELETE_CONTRACT_CONFIRM: '¿Está seguro de que desea eliminar el contrato?',
   },
 })
 
