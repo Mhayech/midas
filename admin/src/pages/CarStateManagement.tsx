@@ -175,11 +175,17 @@ const CarStateManagement = () => {
         </Box>
       </Box>
 
+      {/* Title outside the card */}
+      <Typography 
+        variant="h4" 
+        component="h1" 
+        sx={{ mb: 3 }}
+      >
+        {csmStrings.TITLE}
+      </Typography>
+
 {/* Summary Card */}
 <Card sx={{ mb: 3 }} className="csm-hero">
-  <Typography variant="h4" component="h1" sx={{ mt: 0, mb: 1 }}>
-    {csmStrings.TITLE}
-  </Typography>
 
   <CardContent sx={{ pt: 1 }}>
     <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>

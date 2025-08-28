@@ -17,7 +17,6 @@ import {
   Check as CheckIcon,
   Clear as UncheckIcon,
   LocationOn as LocationIcon,
-  Assessment as AssessmentIcon,
   Info as InfoIcon,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
@@ -372,14 +371,6 @@ const Car = () => {
                 </Button>
                 <Button variant="contained" className="btn-margin-bottom" color="error" size="small" onClick={handleDelete}>
                   {commonStrings.DELETE}
-                </Button>
-                <Button 
-                  variant="contained"
-                  className="btn-margin-bottom"
-                  size="small"
-                  onClick={() => navigate(`/car-state-management/${car._id}`)}
-                >
-                  {strings.MANAGE_STATE}
                 </Button>
               </section>
             )}
