@@ -19,8 +19,11 @@ import {
   Paper,
   IconButton,
   Tooltip,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material'
 import Grid from '@mui/material/GridLegacy'
+import { SelectChangeEvent } from '@mui/material/Select'
 import {
   Edit as EditIcon,
   Visibility as ViewIcon,
@@ -73,6 +76,60 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create')
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [downloading, setDownloading] = useState(false)
+  // Tunisian-oriented, realistic grouped checklist
+  const checklistGroups: { key: string; label: string; items: string[] }[] = [
+    {
+      key: 'exterior',
+      label: csrStrings.GROUP_EXTERIOR,
+      items: [
+        csrStrings.ITEM_BODY_PANELS,
+        csrStrings.ITEM_WINDSHIELD,
+        csrStrings.ITEM_LIGHTS,
+        csrStrings.ITEM_TIRES,
+        csrStrings.ITEM_SPARE_TIRE,
+        csrStrings.ITEM_SIDE_MIRRORS,
+      ],
+    },
+    {
+      key: 'interior',
+      label: csrStrings.GROUP_INTERIOR,
+      items: [
+        csrStrings.ITEM_SEATS_UPHOLSTERY,
+        csrStrings.ITEM_SEATBELTS,
+        csrStrings.ITEM_CLEANLINESS_ODOR,
+      ],
+    },
+    {
+      key: 'electronics',
+      label: csrStrings.GROUP_ELECTRONICS,
+      items: [
+        csrStrings.ITEM_AC,
+        csrStrings.ITEM_RADIO_BT,
+        csrStrings.ITEM_GPS_NAV,
+      ],
+    },
+  ]
+
+  const defaultIncludedItems = checklistGroups
+    .flatMap((g) => g.items.map((n) => `[${g.label}] ${n}`))
+
+  // Helpers to normalize persisted group labels across locales
+  const GROUP_LABELS: Record<string, string[]> = {
+    exterior: ['Exterior', 'Extérieur', 'Exterior', csrStrings.GROUP_EXTERIOR],
+    interior: ['Interior', 'Intérieur', 'Interior', csrStrings.GROUP_INTERIOR],
+    electronics: ['Electronics & Comfort', 'Électronique & Confort', 'Electrónica y confort', csrStrings.GROUP_ELECTRONICS],
+  }
+
+  const getGroupKeyFromName = (fullName: string): 'exterior' | 'interior' | 'electronics' | undefined => {
+    const m = fullName.match(/^\[(.*?)\]\s/)
+    if (!m) return undefined
+    const raw = (m[1] || '').toLowerCase()
+    for (const key of Object.keys(GROUP_LABELS)) {
+      if (GROUP_LABELS[key as keyof typeof GROUP_LABELS].some((s) => s?.toLowerCase() === raw)) return key as any
+    }
+    return undefined
+  }
+  const [includedItems, setIncludedItems] = useState<bookcarsTypes.IncludedItem[]>([])
 
   const {
     control,
@@ -97,6 +154,15 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
   useEffect(() => {
     loadCarStates()
   }, [car._id, booking?._id])
+
+  // Initialize included items defaults when opening create form
+  useEffect(() => {
+    if (openForm && formMode === 'create') {
+      setIncludedItems(
+        defaultIncludedItems.map((name) => ({ name, isPresent: true, condition: 'good', notes: '' }))
+      )
+    }
+  }, [openForm, formMode])
 
   const loadCarStates = async () => {
     try {
@@ -162,12 +228,14 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
         customerNotes: data.customerNotes,
         admin: currentUser._id, // Use actual authenticated user ID
         photos,
+        includedItems,
       }
 
       await CarStateService.create(payload)
       setOpenForm(false)
       reset()
       setPhotoFile(null)
+      setIncludedItems([])
       loadCarStates()
       onStateChange?.()
     } catch (error) {
@@ -217,6 +285,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
         customerNotes: data.customerNotes,
         admin: currentUser._id, // Use actual authenticated user ID
         photos,
+        includedItems,
       }
 
       await CarStateService.update(payload)
@@ -224,6 +293,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
       setEditingState(null)
       reset()
       setPhotoFile(null)
+      setIncludedItems([])
       loadCarStates()
       onStateChange?.()
     } catch (error) {
@@ -252,6 +322,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
       adminNotes: state.adminNotes,
       customerNotes: state.customerNotes,
     })
+    setIncludedItems(state.includedItems || [])
     setOpenForm(true)
   }
 
@@ -290,12 +361,13 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
   const loadImageAsDataUrl = async (url?: string): Promise<string | undefined> => {
     if (!url) return undefined
     try {
-      const tempUrl = toAbsoluteUrl(url) || url
-      let response = await fetch(tempUrl, { mode: 'cors' })
+      // Try permanent CDN first
+      const carsUrl = helper.isValidURL(url) ? url : bookcarsHelper.joinURL(env.CDN_CARS, url)
+      let response = await fetch(carsUrl, { mode: 'cors' })
       if (!response.ok) {
-        // fallback to permanent cars CDN
-        const carsUrl = helper.isValidURL(url) ? url : bookcarsHelper.joinURL(env.CDN_CARS, url)
-        response = await fetch(carsUrl, { mode: 'cors' })
+        // fallback to temp CDN
+        const tempUrl = toAbsoluteUrl(url) || url
+        response = await fetch(tempUrl, { mode: 'cors' })
       }
       const blob = await response.blob()
       return await new Promise<string>((resolve, reject) => {
@@ -429,6 +501,61 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
         margin: [0, 8, 0, 0],
       }
 
+      const formatIncludedItem = (present?: boolean, condition?: string) => {
+        if (present == null && !condition) return '—'
+        const label = present ? 'P' : 'A'
+        const color = present ? '#2e7d32' : '#d32f2f'
+        const cond = condition ? ` · ${formatCondition(condition)}` : ''
+        return { text: `${label}${cond}` , color }
+      }
+
+      const buildIncludedItemsGroupTables = () => {
+        const content: any[] = []
+        // Use canonical keys to group regardless of locale
+        for (const group of checklistGroups) {
+          const label = group.label
+          const names = new Set<string>()
+          ;(beforeState?.includedItems || []).filter(i => getGroupKeyFromName(i.name) === 'exterior' && group.key === 'exterior' || getGroupKeyFromName(i.name) === 'interior' && group.key === 'interior' || getGroupKeyFromName(i.name) === 'electronics' && group.key === 'electronics').forEach(i => names.add(i.name))
+          ;(afterState?.includedItems || []).filter(i => getGroupKeyFromName(i.name) === 'exterior' && group.key === 'exterior' || getGroupKeyFromName(i.name) === 'interior' && group.key === 'interior' || getGroupKeyFromName(i.name) === 'electronics' && group.key === 'electronics').forEach(i => names.add(i.name))
+          if (names.size === 0) continue
+          // Counts
+          const total = names.size
+          const prePresent = Array.from(names).reduce((acc, n) => {
+            const b = (beforeState?.includedItems || []).find(i => i.name === n)
+            return acc + (b?.isPresent ? 1 : 0)
+          }, 0)
+          const postPresent = Array.from(names).reduce((acc, n) => {
+            const a = (afterState?.includedItems || []).find(i => i.name === n)
+            return acc + (a?.isPresent ? 1 : 0)
+          }, 0)
+
+          const rows: any[] = []
+          rows.push([{ text: 'Item', style: 'tableHeader' }, { text: 'Pre', style: 'tableHeader' }, { text: 'Post', style: 'tableHeader' }])
+          for (const n of Array.from(names)) {
+            const itemLabel = n.replace(/^\[[^\]]+\]\s*/, '')
+            const b = (beforeState?.includedItems || []).find(i => i.name === n)
+            const a = (afterState?.includedItems || []).find(i => i.name === n)
+            rows.push([
+              itemLabel,
+              formatIncludedItem(b?.isPresent, b?.condition),
+              formatIncludedItem(a?.isPresent, a?.condition),
+            ])
+          }
+          content.push(
+            { text: `${label}  (Pre: ${prePresent}/${total} · Post: ${postPresent}/${total})`, style: 'subTitle', margin: [0, 6, 0, 2] },
+            {
+              table: { widths: ['*', 70, 70], body: rows },
+              layout: {
+                fillColor: (rowIndex: number) => (rowIndex % 2 === 1 ? '#fafafa' : null),
+                hLineColor: () => '#e5e7eb',
+                vLineColor: () => '#e5e7eb',
+              },
+            }
+          )
+        }
+        return content
+      }
+
       const notesSection = {
         columns: [
           {
@@ -512,9 +639,14 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
           comparisonTable,
           notesSection,
           { text: csrStrings.PRE_RENTAL_TITLE, style: 'section', margin: [0, 8, 0, 4] },
-          beforeThumbs.length ? photoGrid('', beforeThumbs) : { text: 'No photos', italics: true, color: '#6b7280' },
-          { text: csrStrings.POST_RENTAL_TITLE, style: 'section', margin: [0, 8, 0, 4] },
-          afterThumbs.length ? photoGrid('', afterThumbs) : { text: 'No photos', italics: true, color: '#6b7280' },
+          { text: csrStrings.INCLUDED_ITEMS, style: 'section' },
+          ...buildIncludedItemsGroupTables(),
+          // Place photos immediately after included items and remove the extra drop-off section header
+          { text: 'Photos', style: 'section', margin: [0, 8, 0, 4] },
+          ...(beforeThumbs.length || afterThumbs.length ? [
+            photoGrid(csrStrings.PRE_RENTAL_TITLE, beforeThumbs),
+            photoGrid(csrStrings.POST_RENTAL_TITLE, afterThumbs),
+          ] : [{ text: 'No photos', italics: true, color: '#6b7280' }]),
         ],
         styles: {
           title: { fontSize: 16, bold: true, margin: [0, 0, 0, 2] },
@@ -535,12 +667,10 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
     }
   }
 
-  // Expose PDF generator to parent so the button can live in the summary header
   useEffect(() => {
     if (registerPdfHandler) {
       registerPdfHandler(() => { void generatePdf() })
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [registerPdfHandler, car?._id, booking?._id, location?._id])
 
   return (
@@ -647,6 +777,44 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                         <Typography variant="body2" color="textSecondary">{csrStrings.NO_PHOTO}</Typography>
                       )}
                     </Grid>
+                    {beforeState.includedItems && beforeState.includedItems.length > 0 && (
+                      <Grid item xs={12}>
+                        <Divider sx={{ my: 1 }} />
+                        <details>
+                          <summary style={{ cursor: 'pointer' }}>{csrStrings.INCLUDED_ITEMS}</summary>
+                          <Box mt={1}>
+                            {checklistGroups.map((g) => {
+                              const items = (beforeState.includedItems || []).filter((i) => getGroupKeyFromName(i.name) === g.key)
+                              if (!items.length) return null
+                              return (
+                                <Box key={`b-group-${g.key}`} sx={{ mb: 1.5 }}>
+                                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>{g.label}</Typography>
+                                  <Grid container spacing={1}>
+                                    {items.map((i, idx) => (
+                                      <Grid key={`b-inc-${g.key}-${idx}`} item xs={12} sm={6}>
+                                        <Grid container alignItems="center" sx={{ p: 1, border: '1px solid #eee', borderRadius: 1 }}>
+                                          <Grid item xs={8}>
+                                            <Typography variant="body2" sx={{ pr: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                              {i.name.replace(/^\[[^\]]+\]\s*/, '')}
+                                            </Typography>
+                                          </Grid>
+                                          <Grid item xs={4}>
+                                            <Box display="flex" gap={1} justifyContent="flex-end">
+                                              <Chip size="small" label={i.isPresent ? 'P' : 'A'} color={i.isPresent ? 'success' : 'error'} sx={{ minWidth: 28, justifyContent: 'center' }} />
+                                              <Chip size="small" label={formatCondition(i.condition as any)} variant="outlined" sx={{ minWidth: 72, justifyContent: 'center' }} />
+                                            </Box>
+                                          </Grid>
+                                        </Grid>
+                                      </Grid>
+                                    ))}
+                                  </Grid>
+                                </Box>
+                              )
+                            })}
+                          </Box>
+                        </details>
+                      </Grid>
+                    )}
                     <Grid item xs={12}>
                       <Divider sx={{ my: 1 }} />
                       <Typography variant="body2" color="textSecondary">{csrStrings.ADMIN_NOTES}</Typography>
@@ -758,6 +926,44 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                         <Typography variant="body2" color="textSecondary">{csrStrings.NO_PHOTO}</Typography>
                       )}
                     </Grid>
+                    {afterState.includedItems && afterState.includedItems.length > 0 && (
+                      <Grid item xs={12}>
+                        <Divider sx={{ my: 1 }} />
+                        <details>
+                          <summary style={{ cursor: 'pointer' }}>{csrStrings.INCLUDED_ITEMS}</summary>
+                          <Box mt={1}>
+                            {checklistGroups.map((g) => {
+                              const items = (afterState.includedItems || []).filter((i) => getGroupKeyFromName(i.name) === g.key)
+                              if (!items.length) return null
+                              return (
+                                <Box key={`a-group-${g.key}`} sx={{ mb: 1.5 }}>
+                                  <Typography variant="subtitle2" sx={{ mb: 0.5 }}>{g.label}</Typography>
+                                  <Grid container spacing={1}>
+                                    {items.map((i, idx) => (
+                                      <Grid key={`a-inc-${g.key}-${idx}`} item xs={12} sm={6}>
+                                        <Grid container alignItems="center" sx={{ p: 1, border: '1px solid #eee', borderRadius: 1 }}>
+                                          <Grid item xs={8}>
+                                            <Typography variant="body2" sx={{ pr: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                              {i.name.replace(/^\[[^\]]+\]\s*/, '')}
+                                            </Typography>
+                                          </Grid>
+                                          <Grid item xs={4}>
+                                            <Box display="flex" gap={1} justifyContent="flex-end">
+                                              <Chip size="small" label={i.isPresent ? 'P' : 'A'} color={i.isPresent ? 'success' : 'error'} sx={{ minWidth: 28, justifyContent: 'center' }} />
+                                              <Chip size="small" label={formatCondition(i.condition as any)} variant="outlined" sx={{ minWidth: 72, justifyContent: 'center' }} />
+                                            </Box>
+                                          </Grid>
+                                        </Grid>
+                                      </Grid>
+                                    ))}
+                                  </Grid>
+                                </Box>
+                              )
+                            })}
+                          </Box>
+                        </details>
+                      </Grid>
+                    )}
                     <Grid item xs={12}>
                       <Divider sx={{ my: 1 }} />
                       <Typography variant="body2" color="textSecondary">{csrStrings.ADMIN_NOTES}</Typography>
@@ -917,6 +1123,76 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                   )}
                 />
               </Grid>
+
+              {/* Included Items Checklist - grouped */}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="subtitle1">Inspection Checklist</Typography>
+              </Grid>
+              {checklistGroups.map((group) => (
+                <Grid key={group.key} item xs={12}>
+                  <Typography variant="subtitle2" sx={{ mt: 1, mb: 0.5 }}>{group.label}</Typography>
+                  <Grid container spacing={1}>
+                    {group.items.map((label) => {
+                      const index = includedItems.findIndex((i) => i.name === `[${group.label}] ${label}`)
+                      const item = index >= 0 ? includedItems[index] : { name: `[${group.label}] ${label}`, isPresent: true, condition: 'good' as const }
+                      return (
+                        <Grid key={label} item xs={12} md={6}>
+                          <Grid container spacing={1} alignItems="center">
+                            <Grid item xs={6}>
+                              <Typography variant="body2">{label}</Typography>
+                            </Grid>
+                            <Grid item xs={3}>
+                              <FormControlLabel
+                                control={
+                                  <Checkbox
+                                    size="small"
+                                    checked={!!item.isPresent}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                      const copy = [...includedItems]
+                                      if (index >= 0) {
+                                        copy[index] = { ...copy[index], isPresent: e.target.checked }
+                                      } else {
+                                        copy.push({ ...item, isPresent: e.target.checked })
+                                      }
+                                      setIncludedItems(copy)
+                                    }}
+                                  />
+                                }
+                                label="Present"
+                              />
+                            </Grid>
+                            <Grid item xs={3}>
+                              <FormControl size="small" fullWidth>
+                                <InputLabel>Condition</InputLabel>
+                                <Select
+                                  value={item.condition}
+                                  label="Condition"
+                                  onChange={(e: SelectChangeEvent) => {
+                                    const copy = [...includedItems]
+                                    if (index >= 0) {
+                                      copy[index] = { ...copy[index], condition: e.target.value as any }
+                                    } else {
+                                      copy.push({ ...item, condition: e.target.value as any })
+                                    }
+                                    setIncludedItems(copy)
+                                  }}
+                                >
+                                  <MenuItem value="excellent">Excellent</MenuItem>
+                                  <MenuItem value="good">Good</MenuItem>
+                                  <MenuItem value="fair">Fair</MenuItem>
+                                  <MenuItem value="poor">Poor</MenuItem>
+                                  <MenuItem value="missing">Missing</MenuItem>
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                          </Grid>
+                        </Grid>
+                      )
+                    })}
+                  </Grid>
+                </Grid>
+              ))}
               <Grid item xs={12} md={6}>
                 <Controller
                   name="bodyCondition"
