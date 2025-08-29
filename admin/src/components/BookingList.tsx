@@ -272,7 +272,7 @@ const BookingList = ({
               </Tooltip>
               {canManageState && (
                 <Tooltip title={strings.MANAGE_STATE}>
-                  <IconButton onClick={() => navigate(`/car-state-management/${(row.car as bookcarsTypes.Car)._id}`)}>
+                  <IconButton onClick={() => navigate(`/car-state-management/booking/${row._id}`)}>
                     <AssessmentIcon />
                   </IconButton>
                 </Tooltip>
@@ -614,7 +614,7 @@ const BookingList = ({
                         variant="contained"
                         className="btn-primary"
                         size="small"
-                        onClick={() => navigate(`/car-state-management/${(booking.car as bookcarsTypes.Car)._id}`)}
+                        onClick={() => navigate(`/car-state-management/booking/${booking._id}`)}
                       >
                         {strings.MANAGE_STATE}
                       </Button>

@@ -74,9 +74,9 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
   const [openForm, setOpenForm] = useState(false)
   const [editingState, setEditingState] = useState<bookcarsTypes.CarStateInfo | null>(null)
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create')
-  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoFiles, setPhotoFiles] = useState<File[]>([])
+  const [existingPhotos, setExistingPhotos] = useState<bookcarsTypes.CarStatePhoto[]>([])
   const [downloading, setDownloading] = useState(false)
-  // Tunisian-oriented, realistic grouped checklist
   const checklistGroups: { key: string; label: string; items: string[] }[] = [
     {
       key: 'exterior',
@@ -113,7 +113,6 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
   const defaultIncludedItems = checklistGroups
     .flatMap((g) => g.items.map((n) => `[${g.label}] ${n}`))
 
-  // Helpers to normalize persisted group labels across locales
   const GROUP_LABELS: Record<string, string[]> = {
     exterior: ['Exterior', 'Extérieur', 'Exterior', csrStrings.GROUP_EXTERIOR],
     interior: ['Interior', 'Intérieur', 'Interior', csrStrings.GROUP_INTERIOR],
@@ -155,7 +154,6 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
     loadCarStates()
   }, [car._id, booking?._id])
 
-  // Initialize included items defaults when opening create form
   useEffect(() => {
     if (openForm && formMode === 'create') {
       setIncludedItems(
@@ -197,17 +195,21 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
         return
       }
 
-      // Upload photo if provided
       let photos: bookcarsTypes.CarStatePhoto[] | undefined
-      if (photoFile) {
+      if (photoFiles.length > 0) {
         try {
-          const tempUrl = await CarService.createImage(photoFile)
-          photos = [{
-            url: tempUrl,
-            caption: `${data.stateType} photo`,
-            uploadedAt: new Date(),
-            uploadedBy: currentUser._id,
-          } as unknown as bookcarsTypes.CarStatePhoto]
+          const uploadedPhotos = await Promise.all(
+            photoFiles.map(async (file) => {
+              const tempUrl = await CarService.createImage(file)
+              return {
+                url: tempUrl,
+                caption: `${data.stateType} photo`,
+                uploadedAt: new Date(),
+                uploadedBy: currentUser._id,
+              } as unknown as bookcarsTypes.CarStatePhoto
+            })
+          )
+          photos = uploadedPhotos
         } catch (e) {
           console.error('Photo upload failed', e)
         }
@@ -226,7 +228,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
         interiorCondition: data.interiorCondition,
         adminNotes: data.adminNotes,
         customerNotes: data.customerNotes,
-        admin: currentUser._id, // Use actual authenticated user ID
+        admin: currentUser._id,
         photos,
         includedItems,
       }
@@ -234,7 +236,8 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
       await CarStateService.create(payload)
       setOpenForm(false)
       reset()
-      setPhotoFile(null)
+      setPhotoFiles([])
+      setExistingPhotos([])
       setIncludedItems([])
       loadCarStates()
       onStateChange?.()
@@ -253,19 +256,23 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
         return
       }
 
-      // Upload new photo if provided
-      let photos = editingState.photos
-      if (photoFile) {
+      let photos = existingPhotos
+      if (photoFiles.length > 0) {
         try {
-          const tempUrl = await CarService.createImage(photoFile)
+          const uploadedPhotos = await Promise.all(
+            photoFiles.map(async (file) => {
+              const tempUrl = await CarService.createImage(file)
+              return {
+                url: tempUrl,
+                caption: `${data.stateType} photo`,
+                uploadedAt: new Date(),
+                uploadedBy: currentUser._id,
+              } as unknown as bookcarsTypes.CarStatePhoto
+            })
+          )
           photos = [
-            ...(editingState.photos || []),
-            {
-              url: tempUrl,
-              caption: `${data.stateType} photo`,
-              uploadedAt: new Date(),
-              uploadedBy: currentUser._id,
-            } as unknown as bookcarsTypes.CarStatePhoto,
+            ...existingPhotos,
+            ...uploadedPhotos,
           ]
         } catch (e) {
           console.error('Photo upload failed', e)
@@ -283,7 +290,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
         interiorCondition: data.interiorCondition,
         adminNotes: data.adminNotes,
         customerNotes: data.customerNotes,
-        admin: currentUser._id, // Use actual authenticated user ID
+        admin: currentUser._id, 
         photos,
         includedItems,
       }
@@ -292,7 +299,8 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
       setOpenForm(false)
       setEditingState(null)
       reset()
-      setPhotoFile(null)
+      setPhotoFiles([])
+      setExistingPhotos([])
       setIncludedItems([])
       loadCarStates()
       onStateChange?.()
@@ -305,6 +313,8 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
     setFormMode('create')
     setEditingState(null)
     reset()
+    setExistingPhotos([])
+    setPhotoFiles([])
     setOpenForm(true)
   }
 
@@ -323,6 +333,8 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
       customerNotes: state.customerNotes,
     })
     setIncludedItems(state.includedItems || [])
+    setExistingPhotos(state.photos || [])
+    setPhotoFiles([])
     setOpenForm(true)
   }
 
@@ -425,13 +437,13 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
       const beforeThumbs: string[] = []
       const afterThumbs: string[] = []
       if (beforeState?.photos) {
-        for (const p of beforeState.photos.slice(0, 2)) {
+        for (const p of beforeState.photos) {
           const dataUrl = await loadImageAsDataUrl(typeof p.url === 'string' ? p.url : undefined)
           if (dataUrl) beforeThumbs.push(dataUrl)
         }
       }
       if (afterState?.photos) {
-        for (const p of afterState.photos.slice(0, 2)) {
+        for (const p of afterState.photos) {
           const dataUrl = await loadImageAsDataUrl(typeof p.url === 'string' ? p.url : undefined)
           if (dataUrl) afterThumbs.push(dataUrl)
         }
@@ -641,7 +653,6 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
           { text: csrStrings.PRE_RENTAL_TITLE, style: 'section', margin: [0, 8, 0, 4] },
           { text: csrStrings.INCLUDED_ITEMS, style: 'section' },
           ...buildIncludedItemsGroupTables(),
-          // Place photos immediately after included items and remove the extra drop-off section header
           { text: 'Photos', style: 'section', margin: [0, 8, 0, 4] },
           ...(beforeThumbs.length || afterThumbs.length ? [
             photoGrid(csrStrings.PRE_RENTAL_TITLE, beforeThumbs),
@@ -758,18 +769,42 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                     <Grid item xs={12}>
                       {beforeState.photos && beforeState.photos.length > 0 ? (
                         <Box display="flex" gap={1.2} flexWrap="wrap" mt={1}>
+                          <Typography variant="body2" color="textSecondary" sx={{ width: '100%', mb: 1 }}>
+                            Photos ({beforeState.photos.length} total)
+                          </Typography>
                           {beforeState.photos.map((p, idx) => {
                             const filename = typeof p.url === 'string' ? p.url : undefined
                             const src = toAbsoluteUrl(filename) || ''
                             const fallback = filename ? bookcarsHelper.joinURL(env.CDN_CARS, filename) : ''
                             return (
-                              <img
-                                key={idx}
-                                src={src}
-                                alt={p.caption || ''}
-                                className="csr-thumb"
-                                onError={(e) => { const t = e.target as HTMLImageElement; if (fallback && t.src !== fallback) t.src = fallback }}
-                              />
+                              <Box key={idx} position="relative">
+                                <img
+                                  src={src}
+                                  alt={p.caption || `Photo ${idx + 1}`}
+                                  className="csr-thumb"
+                                  onError={(e) => { 
+                                    const t = e.target as HTMLImageElement; 
+                                    if (fallback && t.src !== fallback) {
+                                      t.src = fallback 
+                                    } else {
+                                      console.error('Failed to load image:', src, 'fallback:', fallback)
+                                    }
+                                  }}
+                                  onLoad={() => console.log('Image loaded successfully:', src)}
+                                />
+                                <Typography variant="caption" sx={{ 
+                                  position: 'absolute', 
+                                  bottom: 4, 
+                                  left: 4, 
+                                  backgroundColor: 'rgba(0,0,0,0.7)', 
+                                  color: 'white', 
+                                  padding: '2px 6px', 
+                                  borderRadius: '4px',
+                                  fontSize: '10px'
+                                }}>
+                                  {idx + 1}
+                                </Typography>
+                              </Box>
                             )
                           })}
                         </Box>
@@ -907,18 +942,42 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                     <Grid item xs={12}>
                       {afterState.photos && afterState.photos.length > 0 ? (
                         <Box display="flex" gap={1.2} flexWrap="wrap" mt={1}>
+                          <Typography variant="body2" color="textSecondary" sx={{ width: '100%', mb: 1 }}>
+                            Photos ({afterState.photos.length} total)
+                          </Typography>
                           {afterState.photos.map((p, idx) => {
                             const filename = typeof p.url === 'string' ? p.url : undefined
                             const src = toAbsoluteUrl(filename) || ''
                             const fallback = filename ? bookcarsHelper.joinURL(env.CDN_CARS, filename) : ''
                             return (
-                              <img
-                                key={idx}
-                                src={src}
-                                alt={p.caption || ''}
-                                className="csr-thumb"
-                                onError={(e) => { const t = (e.target as HTMLImageElement); if (fallback && t.src !== fallback) t.src = fallback }}
-                              />
+                              <Box key={idx} position="relative">
+                                <img
+                                  src={src}
+                                  alt={p.caption || `Photo ${idx + 1}`}
+                                  className="csr-thumb"
+                                  onError={(e) => { 
+                                    const t = e.target as HTMLImageElement; 
+                                    if (fallback && t.src !== fallback) {
+                                      t.src = fallback 
+                                    } else {
+                                      console.error('Failed to load image:', src, 'fallback:', fallback)
+                                    }
+                                  }}
+                                  onLoad={() => console.log('Image loaded successfully:', src)}
+                                />
+                                <Typography variant="caption" sx={{ 
+                                  position: 'absolute', 
+                                  bottom: 4, 
+                                  left: 4, 
+                                  backgroundColor: 'rgba(0,0,0,0.7)', 
+                                  color: 'white', 
+                                  padding: '2px 6px', 
+                                  borderRadius: '4px',
+                                  fontSize: '10px'
+                                }}>
+                                  {idx + 1}
+                                </Typography>
+                              </Box>
                             )
                           })}
                         </Box>
@@ -1066,28 +1125,90 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                     <input
                       type="file"
                       accept="image/*"
+                      multiple
                       hidden
                       onChange={(e) => {
-                        const file = e.target.files && e.target.files[0]
-                        setPhotoFile(file || null)
+                        const files = e.target.files ? Array.from(e.target.files) : []
+                        setPhotoFiles(files)
                       }}
                     />
                   </Button>
-                  {photoFile && (
-                    <Typography variant="body2" color="textSecondary">{photoFile.name}</Typography>
+                  {(photoFiles.length > 0 || existingPhotos.length > 0) && (
+                    <Typography variant="body2" color="textSecondary">
+                      {photoFiles.length + existingPhotos.length} photo(s) total
+                    </Typography>
                   )}
                 </Box>
               </Grid>
-              {photoFile && (
+              {(photoFiles.length > 0 || existingPhotos.length > 0) && (
                 <Grid item xs={12}>
                   <Box mt={1}>
-                    <Typography variant="body2" color="textSecondary">Preview</Typography>
-                    <Box mt={1}>
-                      <img 
-                        src={URL.createObjectURL(photoFile)} 
-                        alt="preview" 
-                        className="csr-preview"
-                      />
+                    <Typography variant="body2" color="textSecondary">
+                      Photos ({existingPhotos.length} existing, {photoFiles.length} new)
+                    </Typography>
+                    <Box mt={1} display="flex" gap={1} flexWrap="wrap">
+                      {/* Existing photos */}
+                      {existingPhotos.map((photo, index) => {
+                        const filename = typeof photo.url === 'string' ? photo.url : undefined
+                        const src = toAbsoluteUrl(filename) || ''
+                        const fallback = filename ? bookcarsHelper.joinURL(env.CDN_CARS, filename) : ''
+                        return (
+                          <Box key={`existing-${index}`} position="relative">
+                            <img 
+                              src={src}
+                              alt={photo.caption || `existing-${index}`} 
+                              className="csr-preview"
+                              style={{ maxWidth: '150px', maxHeight: '150px', objectFit: 'cover' }}
+                              onError={(e) => { 
+                                const t = e.target as HTMLImageElement; 
+                                if (fallback && t.src !== fallback) t.src = fallback 
+                              }}
+                            />
+                            <IconButton
+                              size="small"
+                              sx={{
+                                position: 'absolute',
+                                top: 4,
+                                right: 4,
+                                backgroundColor: 'rgba(255, 0, 0, 0.8)',
+                                color: 'white',
+                                '&:hover': { backgroundColor: 'rgba(255, 0, 0, 0.9)' }
+                              }}
+                              onClick={() => {
+                                setExistingPhotos(existingPhotos.filter((_, i) => i !== index))
+                              }}
+                            >
+                              <Typography variant="caption" sx={{ fontSize: '12px', fontWeight: 'bold' }}>×</Typography>
+                            </IconButton>
+                          </Box>
+                        )
+                      })}
+                      {/* New photos */}
+                      {photoFiles.map((file, index) => (
+                        <Box key={`new-${index}`} position="relative">
+                          <img 
+                            src={URL.createObjectURL(file)} 
+                            alt={`preview-${index}`} 
+                            className="csr-preview"
+                            style={{ maxWidth: '150px', maxHeight: '150px', objectFit: 'cover' }}
+                          />
+                          <IconButton
+                            size="small"
+                            sx={{
+                              position: 'absolute',
+                              top: 4,
+                              right: 4,
+                              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                              '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.9)' }
+                            }}
+                            onClick={() => {
+                              setPhotoFiles(photoFiles.filter((_, i) => i !== index))
+                            }}
+                          >
+                            <Typography variant="caption" sx={{ fontSize: '12px', fontWeight: 'bold' }}>×</Typography>
+                          </IconButton>
+                        </Box>
+                      ))}
                     </Box>
                   </Box>
                 </Grid>

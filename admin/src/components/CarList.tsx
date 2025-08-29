@@ -24,7 +24,6 @@ import {
   Visibility as ViewIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Assessment as AssessmentIcon,
   Info as InfoIcon,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
@@ -693,11 +692,6 @@ const CarList = ({
                           <Tooltip title={commonStrings.UPDATE}>
                             <IconButton onClick={() => navigate(`/update-car?cr=${car._id}`)}>
                               <EditIcon />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title={strings.MANAGE_STATE}>
-                            <IconButton onClick={() => navigate(`/car-state-management/${car._id}`)}>
-                              <AssessmentIcon />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title={commonStrings.DELETE}>

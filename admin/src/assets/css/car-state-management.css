@@ -10,4 +10,24 @@
 	box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }
 
+/* Hover effects to match existing elements */
+.csm-hero {
+	transition: all 0.3s ease;
+}
+
+.csm-hero:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Button hover effects */
+.MuiButton-root {
+	transition: all 0.3s ease !important;
+}
+
+.MuiButton-root:hover {
+	transform: translateY(-1px) !important;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
 
