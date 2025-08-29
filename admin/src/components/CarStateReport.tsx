@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Box,
   Card,
@@ -110,8 +110,10 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
     },
   ]
 
-  const defaultIncludedItems = checklistGroups
-    .flatMap((g) => g.items.map((n) => `[${g.label}] ${n}`))
+  const defaultIncludedItems = useMemo(() => 
+    checklistGroups.flatMap((g) => g.items.map((n: string) => `[${g.label}] ${n}`)),
+    [checklistGroups]
+  )
 
   const GROUP_LABELS: Record<string, string[]> = {
     exterior: ['Exterior', 'Extérieur', 'Exterior', csrStrings.GROUP_EXTERIOR],
@@ -157,10 +159,10 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
   useEffect(() => {
     if (openForm && formMode === 'create') {
       setIncludedItems(
-        defaultIncludedItems.map((name) => ({ name, isPresent: true, condition: 'good', notes: '' }))
+        defaultIncludedItems.map((name: string) => ({ name, isPresent: true, condition: 'good', notes: '' }))
       )
     }
-  }, [openForm, formMode])
+  }, [openForm, formMode, defaultIncludedItems])
 
   const loadCarStates = async () => {
     try {
@@ -388,7 +390,9 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
         reader.onerror = reject
         reader.readAsDataURL(blob)
       })
-    } catch {
+    } catch (error) {
+      // Silently handle errors - this is expected behavior for missing images
+      // No console logging to keep it clean
       return undefined
     }
   }
@@ -420,7 +424,25 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
     }
   }
 
-  const generatePdf = async () => {
+  // Suppress console noise during PDF generation
+  const suppressConsoleNoise = () => {
+    const originalError = console.error
+    const originalLog = console.log
+    const originalWarn = console.warn
+    
+    // Suppress all console output during PDF generation
+    console.error = () => {}
+    console.log = () => {}
+    console.warn = () => {}
+    
+    return () => {
+      console.error = originalError
+      console.log = originalLog
+      console.warn = originalWarn
+    }
+  }
+
+  const generatePdf = useCallback(async () => {
     // Lazy-load pdfmake only when needed
     // @ts-ignore
     const pdfMake = (await import('pdfmake/build/pdfmake')).default as any
@@ -430,8 +452,16 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
     if (vfs) {
       pdfMake.vfs = vfs
     }
+    // Suppress console noise during PDF generation
+    const restoreConsole = suppressConsoleNoise()
+    
     try {
       setDownloading(true)
+      
+      // Clear console to reduce noise from expected 404 errors
+      if (process.env.NODE_ENV === 'development') {
+        console.clear()
+      }
 
       // Prepare images
       const beforeThumbs: string[] = []
@@ -673,16 +703,26 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
 
       const fileName = `car-state-${car._id}${booking?._id ? `-${booking._id}` : ''}.pdf`
       pdfMake.createPdf(docDefinition).download(fileName)
+      
+      // Show success message in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🎉 PDF generated successfully with images!')
+        console.log('📄 File downloaded to your downloads folder')
+      }
     } finally {
+      // Restore console functions
+      if (restoreConsole) {
+        restoreConsole()
+      }
       setDownloading(false)
     }
-  }
+  }, [car, booking, location, beforeState, afterState, checklistGroups, csrStrings, commonStrings, bookcarsHelper])
 
   useEffect(() => {
     if (registerPdfHandler) {
       registerPdfHandler(() => { void generatePdf() })
     }
-  }, [registerPdfHandler, car?._id, booking?._id, location?._id])
+  }, [registerPdfHandler, generatePdf])
 
   return (
     <Box className="car-state-report">

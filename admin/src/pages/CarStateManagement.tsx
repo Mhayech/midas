@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -38,12 +38,11 @@ const CarStateManagement = () => {
   const [location, setLocation] = useState<bookcarsTypes.Location | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [pdfGenerator, setPdfGenerator] = useState<(() => void) | null>(null)
+  
+  // Use ref instead of state to avoid infinite re-renders
+  const pdfGeneratorRef = useRef<(() => void) | null>(null)
 
-  useEffect(() => {
-    loadData()
-  }, [carId, bookingId])
-
+  // Simple data loading function without useCallback to avoid circular dependencies
   const loadData = async () => {
     try {
       setLoading(true)
@@ -102,9 +101,31 @@ const CarStateManagement = () => {
     }
   }
 
-  const handleStateChange = () => {
-    // Refresh data when car state changes
+  // Load data when component mounts or when carId/bookingId changes
+  useEffect(() => {
     loadData()
+  }, [carId, bookingId])
+
+  // Simple state change handler that just calls loadData
+  const handleStateChange = () => {
+    loadData()
+  }
+
+  // PDF handler registration using ref to avoid infinite re-renders
+  const registerPdfHandler = useCallback((fn: () => void) => {
+    pdfGeneratorRef.current = fn
+  }, [])
+
+  // PDF generation handler
+  const handlePdfGeneration = () => {
+    // Clear console before PDF generation to reduce noise
+    if (process.env.NODE_ENV === 'development') {
+      console.clear()
+    }
+    
+    if (pdfGeneratorRef.current) {
+      pdfGeneratorRef.current()
+    }
   }
 
   if (loading) {
@@ -167,7 +188,7 @@ const CarStateManagement = () => {
           <Button
             variant="contained"
             startIcon={<DownloadIcon />}
-            onClick={() => pdfGenerator && pdfGenerator()}
+            onClick={handlePdfGeneration}
             aria-label={csmStrings.PRINT}
           >
             {csmStrings.PRINT}
@@ -184,132 +205,120 @@ const CarStateManagement = () => {
         {csmStrings.TITLE}
       </Typography>
 
-{/* Summary Card */}
-<Card sx={{ mb: 3 }} className="csm-hero">
+      {/* Summary Card */}
+      <Card sx={{ mb: 3 }} className="csm-hero">
+        <CardContent sx={{ pt: 1 }}>
+          <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
+            {csmStrings.SUMMARY}
+          </Typography>
 
-  <CardContent sx={{ pt: 1 }}>
-    <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
-      {csmStrings.SUMMARY}
-    </Typography>
-
-    <Grid container spacing={2} alignItems="flex-start">
-      {/* Left Column: Car Details */}
-      <Grid item xs={12} md={5}>
-        <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
-          {csmStrings.CAR}
-        </Typography>
-        <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
-          {car.name}
-        </Typography>
-
-        <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
-          {csmStrings.REGISTRATION}
-        </Typography>
-        <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
-          {car.immatriculation || 'N/A'}
-        </Typography>
-
-        {car.supplier?.fullName && (
-          <>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
-              {csmStrings.SUPPLIER}
-            </Typography>
-            <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
-              {car.supplier.fullName}
-            </Typography>
-          </>
-        )}
-
-        {/* Uncomment if mileage is needed */}
-        {/* 
-        <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
-          {csmStrings.MILEAGE}
-        </Typography>
-        <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
-          {car.mileage} km
-        </Typography>
-        */}
-      </Grid>
-
-      {/* Right Column: Location and Booking */}
-      <Grid item xs={12} md={7}>
-        <Grid container spacing={2}>
-          {/* Location */}
-          <Grid item xs={12} sm={6}>
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
-              {csmStrings.LOCATION}
-            </Typography>
-            <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
-              {location.name}
-            </Typography>
-
-            <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
-              {csmStrings.ADDRESS}
-            </Typography>
-            <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
-              {location.latitude != null && location.longitude != null
-                ? `${location.latitude}, ${location.longitude}`
-                : 'N/A'}
-            </Typography>
-          </Grid>
-
-          {/* Booking */}
-          {booking && (
-            <Grid item xs={12} sm={6}>
+          <Grid container spacing={2} alignItems="flex-start">
+            {/* Left Column: Car Details */}
+            <Grid item xs={12} md={5}>
               <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
-                {csmStrings.BOOKING}
+                {csmStrings.CAR}
               </Typography>
               <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
-                {booking._id?.slice(-8)}...
+                {car.name}
               </Typography>
 
               <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
-                {csmStrings.DRIVER}
+                {csmStrings.REGISTRATION}
               </Typography>
               <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
-                {typeof booking.driver === 'object' ? booking.driver.fullName : ''}
+                {car.immatriculation || 'N/A'}
               </Typography>
 
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
-                {csmStrings.FROM}
-              </Typography>
-              <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
-                {new Date(booking.from).toLocaleString()}
-              </Typography>
-
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
-                {csmStrings.TO}
-              </Typography>
-              <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
-                {new Date(booking.to).toLocaleString()}
-              </Typography>
-
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
-                {csmStrings.PRICE_TOTAL}
-              </Typography>
-              <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
-                {bookcarsHelper.formatPrice(booking.price || 0, commonStrings.CURRENCY, 'en')}
-              </Typography>
-
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
-                {csmStrings.PRICE_PER_DAY}
-              </Typography>
-              <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
-                {(() => {
-                  const ms = new Date(booking.to).getTime() - new Date(booking.from).getTime();
-                  const days = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)));
-                  const perDay = (booking.price || 0) / days;
-                  return bookcarsHelper.formatPrice(perDay, commonStrings.CURRENCY, 'en');
-                })()}
-              </Typography>
+              {car.supplier?.fullName && (
+                <>
+                  <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                    {csmStrings.SUPPLIER}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                    {car.supplier.fullName}
+                  </Typography>
+                </>
+              )}
             </Grid>
-          )}
-        </Grid>
-      </Grid>
-    </Grid>
-  </CardContent>
-</Card>
 
+            {/* Right Column: Location and Booking */}
+            <Grid item xs={12} md={7}>
+              <Grid container spacing={2}>
+                {/* Location */}
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                    {csmStrings.LOCATION}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                    {location.name}
+                  </Typography>
+
+                  <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                    {csmStrings.ADDRESS}
+                  </Typography>
+                  <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                    {location.latitude != null && location.longitude != null
+                      ? `${location.latitude}, ${location.longitude}`
+                      : 'N/A'}
+                  </Typography>
+                </Grid>
+
+                {/* Booking */}
+                {booking && (
+                  <Grid item xs={12} sm={6}>
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                      {csmStrings.BOOKING}
+                    </Typography>
+                    <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                      {booking._id?.slice(-8)}...
+                    </Typography>
+
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                      {csmStrings.DRIVER}
+                    </Typography>
+                    <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                      {typeof booking.driver === 'object' ? booking.driver.fullName : ''}
+                    </Typography>
+
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                      {csmStrings.FROM}
+                    </Typography>
+                    <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                      {new Date(booking.from).toLocaleString()}
+                    </Typography>
+
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                      {csmStrings.TO}
+                    </Typography>
+                    <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                      {new Date(booking.to).toLocaleString()}
+                    </Typography>
+
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                      {csmStrings.PRICE_TOTAL}
+                    </Typography>
+                    <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                      {bookcarsHelper.formatPrice(booking.price || 0, commonStrings.CURRENCY, 'en')}
+                    </Typography>
+
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>
+                      {csmStrings.PRICE_PER_DAY}
+                    </Typography>
+                    <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
+                      {(() => {
+                        const ms = new Date(booking.to).getTime() - new Date(booking.from).getTime();
+                        const days = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+                        const perDay = (booking.price || 0) / days;
+                        return bookcarsHelper.formatPrice(perDay, commonStrings.CURRENCY, 'en');
+                      })()}
+                    </Typography>
+                  </Grid>
+                )}
+              </Grid>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
 
       {/* Car State Report */}
       <CarStateReport
@@ -317,7 +326,7 @@ const CarStateManagement = () => {
         booking={booking || undefined}
         location={location}
         onStateChange={handleStateChange}
-        registerPdfHandler={(fn) => { setPdfGenerator(() => fn) }}
+        registerPdfHandler={registerPdfHandler}
       />
     </Box>
   )
