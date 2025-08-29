@@ -30,6 +30,7 @@ import Backdrop from '@/components/SimpleBackdrop'
 import Avatar from '@/components/Avatar'
 import DatePicker from '@/components/DatePicker'
 import DriverLicense from '@/components/DriverLicense'
+import DriverContract from '@/components/DriverContract'
 import { schema, FormFields } from '@/models/UserForm'
 
 import '@/assets/css/create-user.css'
@@ -44,6 +45,7 @@ const CreateUser = () => {
   const [avatar, setAvatar] = useState('')
   const [avatarError, setAvatarError] = useState(false)
   const [license, setLicense] = useState<string | undefined>()
+  const [driverContract, setDriverContract] = useState<string | undefined>()
 
   const {
     control,
@@ -97,11 +99,12 @@ const CreateUser = () => {
       if (avatar) {
         await UserService.deleteTempAvatar(avatar)
       }
-
       if (license) {
         await UserService.deleteTempLicense(license)
       }
-
+      if (driverContract) {
+        await UserService.deleteTempDriverContract(driverContract)
+      }
       navigate('/users')
     } catch {
       navigate('/users')
@@ -152,16 +155,17 @@ const CreateUser = () => {
         helper.error()
         return
       }
-
       if (type === bookcarsTypes.UserType.Supplier && !avatar) {
         setAvatarError(true)
         setFormError(false)
         return
       }
+  // Removed check: allow user creation even if driverContract is not uploaded
 
       const language = UserService.getLanguage()
       const supplier = admin ? undefined : user._id
 
+      // Only include driverContract if a contract was uploaded
       const payload: bookcarsTypes.CreateUserPayload = {
         email: data.email,
         phone: data.phone || '',
@@ -174,6 +178,7 @@ const CreateUser = () => {
         language,
         supplier,
         license,
+        ...(driverContract ? { driverContract } : {}),
         minimumRentalDays: data.minimumRentalDays ? Number(data.minimumRentalDays) : undefined,
         priceChangeRate: data.priceChangeRate ? Number(data.priceChangeRate) : undefined,
         supplierCarLimit: data.supplierCarLimit ? Number(data.supplierCarLimit) : undefined,
@@ -319,6 +324,13 @@ const CreateUser = () => {
                     className="driver-license-field"
                     onUpload={(filename: string) => {
                       setLicense(filename)
+                    }}
+                  />
+
+                  <DriverContract
+                    className="driver-contract-field"
+                    onUpload={(filename: string) => {
+                      setDriverContract(filename)
                     }}
                   />
                 </>

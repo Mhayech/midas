@@ -121,6 +121,9 @@ const userSchema = new Schema<env.User>(
     license: {
       type: String,
     },
+    driverContract:{
+      type: String,
+    },
     minimumRentalDays: {
       type: Number,
     },

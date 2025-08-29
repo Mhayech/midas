@@ -35,6 +35,10 @@ const routes = {
   updateLicense: '/api/update-license/:id',
   deleteLicense: '/api/delete-license/:id',
   deleteTempLicense: '/api/delete-temp-license/:file',
+  createDriverContract: '/api/create-driver-contract',
+  updateDriverContract: '/api/update-driver-contract/:id',
+  deleteDriverContract: '/api/delete-driver-contract/:id',
+  deleteTempDriverContract: '/api/delete-temp-driver-contract/:file',
 }
 
 export default routes

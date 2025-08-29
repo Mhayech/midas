@@ -42,5 +42,9 @@ routes.route(routeNames.createLicense).post([multer({ storage: multer.memoryStor
 routes.route(routeNames.updateLicense).post([authJwt.verifyToken, multer({ storage: multer.memoryStorage() }).single('file')], userController.updateLicense)
 routes.route(routeNames.deleteLicense).post(authJwt.verifyToken, userController.deleteLicense)
 routes.route(routeNames.deleteTempLicense).post(userController.deleteTempLicense)
+routes.route(routeNames.createDriverContract).post([multer({ storage: multer.memoryStorage() }).single('file')], userController.createDriverContract)
+routes.route(routeNames.updateDriverContract).post([authJwt.verifyToken, multer({ storage: multer.memoryStorage() }).single('file')], userController.updateDriverContract)
+routes.route(routeNames.deleteDriverContract).post(authJwt.verifyToken, userController.deleteDriverContract)
+routes.route(routeNames.deleteTempDriverContract).post(userController.deleteTempDriverContract)
 
 export default routes

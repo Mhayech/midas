@@ -569,6 +569,81 @@ export const deleteTempLicense = (file: string): Promise<number> =>
     .then((res) => res.status)
 
 /**
+ * Create temporary driver contract.
+ *
+ * @param {Blob} file
+ * @returns {Promise<string>}
+ */
+export const createDriverContract = (file: Blob): Promise<string> => {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  return axiosInstance
+    .post(
+      '/api/create-driver-contract',
+      formData,
+      {
+        withCredentials: true,
+        headers: { 'Content-Type': 'multipart/form-data' }
+      },
+    )
+    .then((res) => res.data)
+}
+
+/**
+ * Update driver contract.
+ *
+ * @param {string} userId
+ * @param {Blob} file
+ * @returns {Promise<bookcarsTypes.Response<string>>}
+ */
+export const updateDriverContract = (userId: string, file: Blob): Promise<bookcarsTypes.Response<string>> => {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  return axiosInstance
+    .post(
+      `/api/update-driver-contract/${userId}`,
+      formData,
+      {
+        withCredentials: true,
+        headers: { 'Content-Type': 'multipart/form-data' }
+      },
+    )
+    .then((res) => ({ status: res.status, data: res.data }))
+}
+
+/**
+ * Delete driver contract.
+ *
+ * @param {string} userId
+ * @returns {Promise<number>}
+ */
+export const deleteDriverContract = (userId: string): Promise<number> =>
+  axiosInstance
+    .post(
+      `/api/delete-driver-contract/${userId}`,
+      null,
+      { withCredentials: true }
+    )
+    .then((res) => res.status)
+
+/**
+* Delete a temporary driver contract file.
+*
+* @param {string} file
+* @returns {Promise<number>}
+*/
+export const deleteTempDriverContract = (file: string): Promise<number> =>
+  axiosInstance
+    .post(
+      `/api/delete-temp-driver-contract/${encodeURIComponent(file)}`,
+      null,
+      { withCredentials: true }
+    )
+    .then((res) => res.status)
+
+/**
 * Get client IP.
 *
 * @async

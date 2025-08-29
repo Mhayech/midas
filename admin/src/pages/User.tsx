@@ -198,6 +198,14 @@ const User = () => {
                 </Link>
               </div>
             )}
+            {user.driverContract && (
+              <div className="license">
+                <span>{commonStrings.DRIVER_CONTRACT}</span>
+                <Link href={bookcarsHelper.joinURL(env.CDN_CONTRACTS, user.driverContract)} target="_blank">
+                  {user.driverContract}
+                </Link>
+              </div>
+            )}
             <div className="user-actions">
               {edit && (
                 <Tooltip title={commonStrings.UPDATE}>

@@ -31,6 +31,7 @@ import Backdrop from '@/components/SimpleBackdrop'
 import Avatar from '@/components/Avatar'
 import DatePicker from '@/components/DatePicker'
 import DriverLicense from '@/components/DriverLicense'
+import DriverContract from '@/components/DriverContract'
 import { schema, FormFields } from '@/models/UserForm'
 
 import '@/assets/css/update-user.css'
@@ -375,6 +376,8 @@ const UpdateUser = () => {
                   </FormControl>
 
                   <DriverLicense user={user} className="driver-license-field" />
+
+                  <DriverContract user={user} className="driver-license-field" />
                 </>
               )}
 

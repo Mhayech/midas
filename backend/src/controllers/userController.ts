@@ -223,6 +223,19 @@ export const create = async (req: Request, res: Response) => {
       }
     }
 
+    // driver contract
+    if (body.driverContract && user.type === bookcarsTypes.UserType.User) {
+      const driverContract = path.join(env.CDN_TEMP_CONTRACTS, body.driverContract)
+      if (await helper.pathExists(driverContract)) {
+        const filename = `${user._id}${path.extname(body.driverContract)}`
+        const newPath = path.join(env.CDN_CONTRACTS, filename)
+
+        await asyncFs.rename(driverContract, newPath)
+        user.driverContract = filename
+        await user.save()
+      }
+    }
+
     if (body.password) {
       res.sendStatus(200)
       return
@@ -1149,6 +1162,7 @@ export const getUser = async (req: Request, res: Response) => {
       customerId: 1,
       licenseRequired: 1,
       license: 1,
+      driverContract: 1,
       minimumRentalDays: 1,
       priceChangeRate: 1,
       supplierCarLimit: 1,
@@ -1539,6 +1553,13 @@ export const deleteUsers = async (req: Request, res: Response) => {
           }
         }
 
+        if (user.driverContract) {
+          const file = path.join(env.CDN_CONTRACTS, user.driverContract)
+          if (await helper.pathExists(file)) {
+            await asyncFs.unlink(file)
+          }
+        }
+
         if (user.type === bookcarsTypes.UserType.Supplier) {
           const additionalDrivers = (
             await Booking
@@ -1547,7 +1568,7 @@ export const deleteUsers = async (req: Request, res: Response) => {
               )
               .select('_additionalDriver -_id')
               .lean()
-          ).map((b) => b._additionalDriver)
+          ).map((b: any) => b._additionalDriver)
           await AdditionalDriver.deleteMany({ _id: { $in: additionalDrivers } })
           await Booking.deleteMany({ supplier: id })
           const cars = await Car.find({ supplier: id })
@@ -1701,6 +1722,38 @@ export const createLicense = async (req: Request, res: Response) => {
   }
 }
 
+
+/** Upload a Driver Contract to temp folder.
+ * 
+ * @export
+ * @async
+ * @param {Request} req
+ * @param {Response} res
+ * @returns {unknown}
+ * 
+ */
+
+export const createDriverContract = async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      throw new Error('req.file not found')
+    }
+    if (!req.file.originalname.includes('.')) {
+      throw new Error('File extension not found')
+    }
+    const filename = `${nanoid()}${path.extname(req.file.originalname)}`
+    const filepath = path.join(env.CDN_TEMP_CONTRACTS, filename)
+
+    await asyncFs.writeFile(filepath, req.file.buffer)
+    res.json(filename)
+  } catch (err) {
+    logger.error(`[user.createDriverContract] ${i18n.t('DB_ERROR')}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
+
+
 /**
 * Update a license.
 *
@@ -1754,6 +1807,60 @@ export const updateLicense = async (req: Request, res: Response) => {
 }
 
 /**
+* Update a Driver Contract.
+*
+* @export
+* @async
+* @param {Request} req
+* @param {Response} res
+* @returns {unknown}
+*/
+
+export const updateDriverContract = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const { file } = req
+
+  try {
+    if (!file) {
+      throw new Error('req.file not found')
+    }
+    if (!file.originalname.includes('.')) {
+      throw new Error('File extension not found')
+    }
+    if (!helper.isValidObjectId(id)) {
+      throw new Error('User Id not valid')
+    }
+
+    const user = await User.findOne({ _id: id, type: bookcarsTypes.UserType.User })
+
+    if (user) {
+      if (user.driverContract) {
+        const driverContractFile = path.join(env.CDN_CONTRACTS, user.driverContract)
+        if (await helper.pathExists(driverContractFile)) {
+          await asyncFs.unlink(driverContractFile)
+        }
+      }
+
+      const filename = `${user.id}${path.extname(file.originalname)}`
+      const filepath = path.join(env.CDN_CONTRACTS, filename)
+
+      await asyncFs.writeFile(filepath, file.buffer)
+
+      user.driverContract = filename
+      await user.save()
+      res.json(filename)
+      return
+    }
+
+    res.sendStatus(204)
+  } catch (err) {
+    logger.error(`[user.updateDriverContract] ${i18n.t('DB_ERROR')} ${id}`, err)
+    res.status(400).send(i18n.t('DB_ERROR') + err)
+  }
+}
+
+
+/**
 * Delete a license.
 *
 * @export
@@ -1793,6 +1900,45 @@ export const deleteLicense = async (req: Request, res: Response) => {
 }
 
 /**
+* Delete a license.
+*
+* @export
+* @async
+* @param {Request} req
+* @param {Response} res
+* @returns {unknown}
+*/
+export const deleteDriverContract = async (req: Request, res: Response) => {
+  const { id } = req.params
+
+  try {
+    if (!helper.isValidObjectId(id)) {
+      throw new Error('User Id not valid')
+    }
+
+    const user = await User.findOne({ _id: id, type: bookcarsTypes.UserType.User })
+
+    if (user) {
+      if (user.driverContract) {
+        const driverContractFile = path.join(env.CDN_CONTRACTS, user.driverContract)
+        if (await helper.pathExists(driverContractFile)) {
+          await asyncFs.unlink(driverContractFile)
+        }
+        user.driverContract = null
+      }
+
+      await user.save()
+      res.sendStatus(200)
+      return
+    }
+    res.sendStatus(204)
+  } catch (err) {
+    logger.error(`[user.deleteDriverContract] ${i18n.t('DB_ERROR')} ${id}`, err)
+    res.status(400).send(i18n.t('DB_ERROR') + err)
+  }
+}
+
+/**
 * Delete a temp license.
 *
 * @export
@@ -1819,3 +1965,32 @@ export const deleteTempLicense = async (req: Request, res: Response) => {
     res.status(400).send(i18n.t('ERROR') + err)
   }
 }
+
+/**
+* Delete a temp license.
+*
+* @export
+* @async
+* @param {Request} req
+* @param {Response} res
+* @returns {*}
+*/
+export const deleteTempDriverContract = async (req: Request, res: Response) => {
+  const { file } = req.params
+
+  try {
+    if (!file.includes('.')) {
+      throw new Error('Filename not valid')
+    }
+    const driverContractFile = path.join(env.CDN_TEMP_CONTRACTS, file)
+    if (await helper.pathExists(driverContractFile)) {
+      await asyncFs.unlink(driverContractFile)
+    }
+
+    res.sendStatus(200)
+  } catch (err) {
+    logger.error(`[user.deleteTempDriverContract] ${i18n.t('DB_ERROR')} ${file}`, err)
+    res.status(400).send(i18n.t('ERROR') + err)
+  }
+}
+
