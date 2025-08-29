@@ -160,14 +160,12 @@ const CreateUser = () => {
         setFormError(false)
         return
       }
-      if (driver && !driverContract) {
-        setFormError(true)
-        return
-      }
+  // Removed check: allow user creation even if driverContract is not uploaded
 
       const language = UserService.getLanguage()
       const supplier = admin ? undefined : user._id
 
+      // Only include driverContract if a contract was uploaded
       const payload: bookcarsTypes.CreateUserPayload = {
         email: data.email,
         phone: data.phone || '',
@@ -180,7 +178,7 @@ const CreateUser = () => {
         language,
         supplier,
         license,
-        driverContract,
+        ...(driverContract ? { driverContract } : {}),
         minimumRentalDays: data.minimumRentalDays ? Number(data.minimumRentalDays) : undefined,
         priceChangeRate: data.priceChangeRate ? Number(data.priceChangeRate) : undefined,
         supplierCarLimit: data.supplierCarLimit ? Number(data.supplierCarLimit) : undefined,

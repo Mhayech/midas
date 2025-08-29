@@ -39,7 +39,12 @@ const CarStateManagement = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pdfGenerator, setPdfGenerator] = useState<(() => void) | null>(null)
+  const pdfHandlerRef = React.useRef<(fn: () => void) => void>();
 
+  // Memoize the handler registration function
+  const registerPdfHandler = React.useCallback((fn: () => void) => {
+    setPdfGenerator(() => fn);
+  }, []);
   useEffect(() => {
     loadData()
   }, [carId, bookingId])
@@ -317,7 +322,7 @@ const CarStateManagement = () => {
         booking={booking || undefined}
         location={location}
         onStateChange={handleStateChange}
-        registerPdfHandler={(fn) => { setPdfGenerator(() => fn) }}
+        registerPdfHandler={registerPdfHandler}
       />
     </Box>
   )

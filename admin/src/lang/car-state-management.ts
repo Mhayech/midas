@@ -18,6 +18,7 @@ const strings = new LocalizedStrings({
     PRICE_TOTAL: 'Total',
     PRICE_PER_DAY: 'Prix par jour',
     PRINT: 'Imprimer',
+    SUPPLIER: 'Fournisseur',
   },
   en: {
     TITLE: 'Car Management',
@@ -35,6 +36,7 @@ const strings = new LocalizedStrings({
     PRICE_TOTAL: 'Total',
     PRICE_PER_DAY: 'Price per day',
     PRINT: 'Print',
+    SUPPLIER: 'Supplier',
   },
   es: {
     TITLE: 'Gestión del vehículo',
@@ -52,6 +54,7 @@ const strings = new LocalizedStrings({
     PRICE_TOTAL: 'Total',
     PRICE_PER_DAY: 'Precio por día',
     PRINT: 'Imprimir',
+    SUPPLIER: 'Proveedor',
   },
 })
 
