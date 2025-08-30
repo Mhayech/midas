@@ -143,6 +143,7 @@ const CreateUser = () => {
           setError('email', { message: commonStrings.EMAIL_ALREADY_REGISTERED })
           return false
         }
+        return true
       }
       return false
     }
@@ -155,6 +156,12 @@ const CreateUser = () => {
         helper.error()
         return
       }
+      
+      const emailValid = await validateEmail(data.email)
+      if (!emailValid) {
+        return
+      }
+      
       if (type === bookcarsTypes.UserType.Supplier && !avatar) {
         setAvatarError(true)
         setFormError(false)

@@ -95,7 +95,7 @@ const CarStateManagement = () => {
 
     } catch (err) {
       console.error('Error loading data:', err)
-      setError('Failed to load data. Please try again.')
+      setError(csmStrings.FAILED_TO_LOAD_DATA)
     } finally {
       setLoading(false)
     }
@@ -147,7 +147,7 @@ const CarStateManagement = () => {
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate(-1)}
         >
-          Go Back
+          {csmStrings.GO_BACK}
         </Button>
       </Box>
     )
@@ -157,14 +157,14 @@ const CarStateManagement = () => {
     return (
       <Box>
         <Alert severity="warning" sx={{ mb: 2 }}>
-          Car or location information not found.
+          {csmStrings.CAR_OR_LOCATION_NOT_FOUND}
         </Alert>
         <Button
           variant="outlined"
           startIcon={<ArrowBackIcon />}
           onClick={() => navigate(-1)}
         >
-          Go Back
+          {csmStrings.GO_BACK}
         </Button>
       </Box>
     )
@@ -226,7 +226,7 @@ const CarStateManagement = () => {
                 {csmStrings.REGISTRATION}
               </Typography>
               <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
-                {car.immatriculation || 'N/A'}
+                {car.immatriculation || csmStrings.N_A}
               </Typography>
 
               {car.supplier?.fullName && (
@@ -258,8 +258,8 @@ const CarStateManagement = () => {
                   </Typography>
                   <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
                     {location.latitude != null && location.longitude != null
-                      ? `${location.latitude}, ${location.longitude}`
-                      : 'N/A'}
+                      ? csmStrings.COORDINATES_FORMAT.replace('{latitude}', location.latitude.toString()).replace('{longitude}', location.longitude.toString())
+                      : csmStrings.N_A}
                   </Typography>
                 </Grid>
 
@@ -270,7 +270,7 @@ const CarStateManagement = () => {
                       {csmStrings.BOOKING}
                     </Typography>
                     <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
-                      {booking._id?.slice(-8)}...
+                      {csmStrings.BOOKING_ID_FORMAT.replace('{id}', booking._id?.slice(-8) || '')}
                     </Typography>
 
                     <Typography variant="body2" color="textSecondary" sx={{ mb: 0 }}>

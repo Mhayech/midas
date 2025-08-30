@@ -205,7 +205,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
               const tempUrl = await CarService.createImage(file)
               return {
                 url: tempUrl,
-                caption: `${data.stateType} photo`,
+                caption: csrStrings.PHOTO_CAPTION_FORMAT.replace('{stateType}', data.stateType),
                 uploadedAt: new Date(),
                 uploadedBy: currentUser._id,
               } as unknown as bookcarsTypes.CarStatePhoto
@@ -266,7 +266,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
               const tempUrl = await CarService.createImage(file)
               return {
                 url: tempUrl,
-                caption: `${data.stateType} photo`,
+                caption: csrStrings.PHOTO_CAPTION_FORMAT.replace('{stateType}', data.stateType),
                 uploadedAt: new Date(),
                 uploadedBy: currentUser._id,
               } as unknown as bookcarsTypes.CarStatePhoto
@@ -352,10 +352,10 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
 
   const formatCondition = (condition: string) => {
     switch (condition) {
-      case 'excellent': return 'Excellent'
-      case 'good': return 'Good'
-      case 'fair': return 'Fair'
-      case 'poor': return 'Poor'
+      case 'excellent': return csrStrings.EXCELLENT
+      case 'good': return csrStrings.GOOD
+      case 'fair': return csrStrings.FAIR
+      case 'poor': return csrStrings.POOR
       default: return condition
     }
   }
@@ -724,6 +724,34 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
     }
   }, [registerPdfHandler, generatePdf])
 
+  const getTranslatedItemName = (itemName: string) => {
+    // Remove the group prefix and find the matching translation key
+    const cleanName = itemName.replace(/^\[[^\]]+\]\s*/, '')
+    
+    const frenchToKeyMap: { [key: string]: string } = {
+      // Exterior items
+      'Panneaux de carrosserie': csrStrings.ITEM_BODY_PANELS,
+      'Feux (avant/arrière/clignotants)': csrStrings.ITEM_LIGHTS,
+      'Roue de secours': csrStrings.ITEM_SPARE_TIRE,
+      'Pare-brise': csrStrings.ITEM_WINDSHIELD,
+      'Pneus (usure/pression)': csrStrings.ITEM_TIRES,
+      'Rétroviseurs latéraux': csrStrings.ITEM_SIDE_MIRRORS,
+      
+      // Interior items
+      'Sellerie des sièges': csrStrings.ITEM_SEATS_UPHOLSTERY,
+      'Propreté & odeur': csrStrings.ITEM_CLEANLINESS_ODOR,
+      'Ceintures de sécurité': csrStrings.ITEM_SEATBELTS,
+      
+      // Electronics items
+      'Climatisation': csrStrings.ITEM_AC,
+      'GPS/Navigation': csrStrings.ITEM_GPS_NAV,
+      'Radio/Bluetooth': csrStrings.ITEM_RADIO_BT,
+    }
+    
+    // Return the translated text if we have a mapping, otherwise return the original
+    return frenchToKeyMap[cleanName] || cleanName
+  }
+
   return (
     <Box className="car-state-report">
       {/* Header */}
@@ -810,7 +838,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                       {beforeState.photos && beforeState.photos.length > 0 ? (
                         <Box display="flex" gap={1.2} flexWrap="wrap" mt={1}>
                           <Typography variant="body2" color="textSecondary" sx={{ width: '100%', mb: 1 }}>
-                            Photos ({beforeState.photos.length} total)
+                            {csrStrings.PHOTOS_COUNT_TOTAL.replace('{count}', beforeState.photos.length.toString())}
                           </Typography>
                           {beforeState.photos.map((p, idx) => {
                             const filename = typeof p.url === 'string' ? p.url : undefined
@@ -820,7 +848,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                               <Box key={idx} position="relative">
                                 <img
                                   src={src}
-                                  alt={p.caption || `Photo ${idx + 1}`}
+                                  alt={p.caption || csrStrings.PHOTO_NUMBER.replace('{number}', (idx + 1).toString())}
                                   className="csr-thumb"
                                   onError={(e) => { 
                                     const t = e.target as HTMLImageElement; 
@@ -870,12 +898,12 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                                         <Grid container alignItems="center" sx={{ p: 1, border: '1px solid #eee', borderRadius: 1 }}>
                                           <Grid item xs={8}>
                                             <Typography variant="body2" sx={{ pr: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                              {i.name.replace(/^\[[^\]]+\]\s*/, '')}
+                                              {getTranslatedItemName(i.name)}
                                             </Typography>
                                           </Grid>
                                           <Grid item xs={4}>
                                             <Box display="flex" gap={1} justifyContent="flex-end">
-                                              <Chip size="small" label={i.isPresent ? 'P' : 'A'} color={i.isPresent ? 'success' : 'error'} sx={{ minWidth: 28, justifyContent: 'center' }} />
+                                              <Chip size="small" label={i.isPresent ? csrStrings.PRESENT_SHORT : csrStrings.ABSENT_SHORT} color={i.isPresent ? 'success' : 'error'} sx={{ minWidth: 28, justifyContent: 'center' }} />
                                               <Chip size="small" label={formatCondition(i.condition as any)} variant="outlined" sx={{ minWidth: 72, justifyContent: 'center' }} />
                                             </Box>
                                           </Grid>
@@ -983,7 +1011,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                       {afterState.photos && afterState.photos.length > 0 ? (
                         <Box display="flex" gap={1.2} flexWrap="wrap" mt={1}>
                           <Typography variant="body2" color="textSecondary" sx={{ width: '100%', mb: 1 }}>
-                            Photos ({afterState.photos.length} total)
+                            {csrStrings.PHOTOS_COUNT_TOTAL.replace('{count}', afterState.photos.length.toString())}
                           </Typography>
                           {afterState.photos.map((p, idx) => {
                             const filename = typeof p.url === 'string' ? p.url : undefined
@@ -993,7 +1021,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                               <Box key={idx} position="relative">
                                 <img
                                   src={src}
-                                  alt={p.caption || `Photo ${idx + 1}`}
+                                  alt={p.caption || csrStrings.PHOTO_NUMBER.replace('{number}', (idx + 1).toString())}
                                   className="csr-thumb"
                                   onError={(e) => { 
                                     const t = e.target as HTMLImageElement; 
@@ -1043,12 +1071,12 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                                         <Grid container alignItems="center" sx={{ p: 1, border: '1px solid #eee', borderRadius: 1 }}>
                                           <Grid item xs={8}>
                                             <Typography variant="body2" sx={{ pr: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                              {i.name.replace(/^\[[^\]]+\]\s*/, '')}
+                                              {getTranslatedItemName(i.name)}
                                             </Typography>
                                           </Grid>
                                           <Grid item xs={4}>
                                             <Box display="flex" gap={1} justifyContent="flex-end">
-                                              <Chip size="small" label={i.isPresent ? 'P' : 'A'} color={i.isPresent ? 'success' : 'error'} sx={{ minWidth: 28, justifyContent: 'center' }} />
+                                              <Chip size="small" label={i.isPresent ? csrStrings.PRESENT_SHORT : csrStrings.ABSENT_SHORT} color={i.isPresent ? 'success' : 'error'} sx={{ minWidth: 28, justifyContent: 'center' }} />
                                               <Chip size="small" label={formatCondition(i.condition as any)} variant="outlined" sx={{ minWidth: 72, justifyContent: 'center' }} />
                                             </Box>
                                           </Grid>
@@ -1108,7 +1136,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
       {/* Form Dialog */}
       <Dialog open={openForm} onClose={() => setOpenForm(false)} maxWidth="md" fullWidth className="car-state-dialog">
         <DialogTitle>
-          {formMode === 'create' ? 'Create Car State' : 'Edit Car State'}
+          {formMode === 'create' ? csrStrings.CREATE_CAR_STATE : csrStrings.EDIT_CAR_STATE}
         </DialogTitle>
         <form onSubmit={handleSubmit(formMode === 'create' ? handleCreateState : handleEditState)}>
           <DialogContent>
@@ -1119,10 +1147,10 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                   control={control}
                   render={({ field }) => (
                     <FormControl fullWidth>
-                      <InputLabel>State Type</InputLabel>
-                      <Select {...field} label="State Type">
-                        <MenuItem value={bookcarsTypes.CarState.PreRental}>Pre-Rental</MenuItem>
-                        <MenuItem value={bookcarsTypes.CarState.PostRental}>Post-Rental</MenuItem>
+                      <InputLabel>{csrStrings.STATE_TYPE}</InputLabel>
+                      <Select {...field} label={csrStrings.STATE_TYPE}>
+                        <MenuItem value={bookcarsTypes.CarState.PreRental}>{csrStrings.PRE_RENTAL_STATE}</MenuItem>
+                        <MenuItem value={bookcarsTypes.CarState.PostRental}>{csrStrings.POST_RENTAL_STATE}</MenuItem>
                       </Select>
                     </FormControl>
                   )}
@@ -1136,7 +1164,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                     <TextField
                       {...field}
                       fullWidth
-                      label="Date"
+                      label={csrStrings.DATE}
                       type="date"
                       InputLabelProps={{ shrink: true }}
                     />
@@ -1151,7 +1179,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                     <TextField
                       {...field}
                       fullWidth
-                      label="Time"
+                      label={csrStrings.TIME}
                       type="time"
                       InputLabelProps={{ shrink: true }}
                     />
@@ -1175,7 +1203,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                   </Button>
                   {(photoFiles.length > 0 || existingPhotos.length > 0) && (
                     <Typography variant="body2" color="textSecondary">
-                      {photoFiles.length + existingPhotos.length} photo(s) total
+                      {csrStrings.PHOTOS_TOTAL_COUNT.replace('{count}', (photoFiles.length + existingPhotos.length).toString())}
                     </Typography>
                   )}
                 </Box>
@@ -1183,9 +1211,9 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
               {(photoFiles.length > 0 || existingPhotos.length > 0) && (
                 <Grid item xs={12}>
                   <Box mt={1}>
-                    <Typography variant="body2" color="textSecondary">
-                      Photos ({existingPhotos.length} existing, {photoFiles.length} new)
-                    </Typography>
+                                            <Typography variant="body2" color="textSecondary">
+                          {csrStrings.PHOTOS_EXISTING_NEW.replace('{existing}', existingPhotos.length.toString()).replace('{new}', photoFiles.length.toString())}
+                        </Typography>
                     <Box mt={1} display="flex" gap={1} flexWrap="wrap">
                       {/* Existing photos */}
                       {existingPhotos.map((photo, index) => {
@@ -1196,7 +1224,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                           <Box key={`existing-${index}`} position="relative">
                             <img 
                               src={src}
-                              alt={photo.caption || `existing-${index}`} 
+                                                                alt={photo.caption || csrStrings.PHOTO_PREVIEW.replace('{index}', index.toString())} 
                               className="csr-preview"
                               style={{ maxWidth: '150px', maxHeight: '150px', objectFit: 'cover' }}
                               onError={(e) => { 
@@ -1228,7 +1256,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                         <Box key={`new-${index}`} position="relative">
                           <img 
                             src={URL.createObjectURL(file)} 
-                            alt={`preview-${index}`} 
+                                                              alt={csrStrings.PHOTO_PREVIEW.replace('{index}', index.toString())} 
                             className="csr-preview"
                             style={{ maxWidth: '150px', maxHeight: '150px', objectFit: 'cover' }}
                           />
@@ -1261,7 +1289,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                     <TextField
                       {...field}
                       fullWidth
-                      label="Mileage (km)"
+                      label={csrStrings.MILEAGE_KM_LABEL}
                       type="number"
                       onChange={(e) => field.onChange(Number(e.target.value))}
                     />
@@ -1276,7 +1304,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                     <TextField
                       {...field}
                       fullWidth
-                      label="Fuel Level (%)"
+                      label={csrStrings.FUEL_LEVEL_PERCENT_LABEL}
                       type="number"
                       inputProps={{ min: 0, max: 100 }}
                       onChange={(e) => field.onChange(Number(e.target.value))}
@@ -1288,7 +1316,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
               {/* Included Items Checklist - grouped */}
               <Grid item xs={12}>
                 <Divider sx={{ my: 1 }} />
-                <Typography variant="subtitle1">Inspection Checklist</Typography>
+                <Typography variant="subtitle1">{csrStrings.INSPECTION_CHECKLIST}</Typography>
               </Grid>
               {checklistGroups.map((group) => (
                 <Grid key={group.key} item xs={12}>
@@ -1320,15 +1348,15 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                                     }}
                                   />
                                 }
-                                label="Present"
+                                label={csrStrings.PRESENT}
                               />
                             </Grid>
                             <Grid item xs={3}>
                               <FormControl size="small" fullWidth>
-                                <InputLabel>Condition</InputLabel>
+                                <InputLabel>{csrStrings.CONDITION}</InputLabel>
                                 <Select
                                   value={item.condition}
-                                  label="Condition"
+                                  label={csrStrings.CONDITION}
                                   onChange={(e: SelectChangeEvent) => {
                                     const copy = [...includedItems]
                                     if (index >= 0) {
@@ -1339,11 +1367,11 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                                     setIncludedItems(copy)
                                   }}
                                 >
-                                  <MenuItem value="excellent">Excellent</MenuItem>
-                                  <MenuItem value="good">Good</MenuItem>
-                                  <MenuItem value="fair">Fair</MenuItem>
-                                  <MenuItem value="poor">Poor</MenuItem>
-                                  <MenuItem value="missing">Missing</MenuItem>
+                                  <MenuItem value="excellent">{csrStrings.EXCELLENT}</MenuItem>
+                                  <MenuItem value="good">{csrStrings.GOOD}</MenuItem>
+                                  <MenuItem value="fair">{csrStrings.FAIR}</MenuItem>
+                                  <MenuItem value="poor">{csrStrings.POOR}</MenuItem>
+                                  <MenuItem value="missing">{csrStrings.MISSING}</MenuItem>
                                 </Select>
                               </FormControl>
                             </Grid>
@@ -1360,12 +1388,12 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                   control={control}
                   render={({ field }) => (
                     <FormControl fullWidth>
-                      <InputLabel>Body Condition</InputLabel>
-                      <Select {...field} label="Body Condition">
-                        <MenuItem value="excellent">Excellent</MenuItem>
-                        <MenuItem value="good">Good</MenuItem>
-                        <MenuItem value="fair">Fair</MenuItem>
-                        <MenuItem value="poor">Poor</MenuItem>
+                      <InputLabel>{csrStrings.BODY_CONDITION}</InputLabel>
+                      <Select {...field} label={csrStrings.BODY_CONDITION}>
+                        <MenuItem value="excellent">{csrStrings.EXCELLENT}</MenuItem>
+                        <MenuItem value="good">{csrStrings.GOOD}</MenuItem>
+                        <MenuItem value="fair">{csrStrings.FAIR}</MenuItem>
+                        <MenuItem value="poor">{csrStrings.POOR}</MenuItem>
                       </Select>
                     </FormControl>
                   )}
@@ -1377,12 +1405,12 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                   control={control}
                   render={({ field }) => (
                     <FormControl fullWidth>
-                      <InputLabel>Interior Condition</InputLabel>
-                      <Select {...field} label="Interior Condition">
-                        <MenuItem value="excellent">Excellent</MenuItem>
-                        <MenuItem value="good">Good</MenuItem>
-                        <MenuItem value="fair">Fair</MenuItem>
-                        <MenuItem value="poor">Poor</MenuItem>
+                      <InputLabel>{csrStrings.INTERIOR_CONDITION}</InputLabel>
+                      <Select {...field} label={csrStrings.INTERIOR_CONDITION}>
+                        <MenuItem value="excellent">{csrStrings.EXCELLENT}</MenuItem>
+                        <MenuItem value="good">{csrStrings.GOOD}</MenuItem>
+                        <MenuItem value="fair">{csrStrings.FAIR}</MenuItem>
+                        <MenuItem value="poor">{csrStrings.POOR}</MenuItem>
                       </Select>
                     </FormControl>
                   )}
@@ -1396,7 +1424,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                     <TextField
                       {...field}
                       fullWidth
-                      label="Admin Notes"
+                      label={csrStrings.ADMIN_NOTES}
                       multiline
                       rows={3}
                     />
@@ -1411,7 +1439,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                     <TextField
                       {...field}
                       fullWidth
-                      label="Customer Notes"
+                      label={csrStrings.CUSTOMER_NOTES}
                       multiline
                       rows={3}
                     />
@@ -1421,13 +1449,13 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
             </Grid>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpenForm(false)}>Cancel</Button>
+            <Button onClick={() => setOpenForm(false)}>{csrStrings.CANCEL}</Button>
             <Button 
               type="submit" 
               variant="contained" 
               disabled={isSubmitting}
             >
-              {formMode === 'create' ? 'Create' : 'Update'}
+              {formMode === 'create' ? csrStrings.CREATE : csrStrings.UPDATE}
             </Button>
           </DialogActions>
         </form>
