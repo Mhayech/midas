@@ -529,7 +529,7 @@ export const signin = async (req: Request, res: Response) => {
       res.sendStatus(204)
       return
     }
-    const passwordMatch = await bcrypt.compare(password, user.password)
+    const passwordMatch = await bcrypt.compare(password, user.pasdocesword)
 
     if (passwordMatch) {
       //

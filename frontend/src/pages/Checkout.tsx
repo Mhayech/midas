@@ -140,6 +140,8 @@ const Checkout = () => {
     defaultValues: {
       additionalDriverEmail: '',
       additionalDriverPhone: '',
+      payLater: true,
+      payDeposit: false,
     }
   })
 
@@ -261,11 +263,12 @@ const Checkout = () => {
             description,
             customerName: (!authenticated ? driver?.fullName : user?.fullName) as string,
           }
+
           const res = await StripeService.createCheckoutSession(payload)
           setClientSecret(res.clientSecret)
           _sessionId = res.sessionId
           _customerId = res.customerId
-        } else {
+        } else if (env.PAYMENT_GATEWAY === bookcarsTypes.PaymentGateway.PayPal) {
           setPayPalLoaded(true)
         }
       }
@@ -776,7 +779,7 @@ const Checkout = () => {
                         <div className="payment-options">
                           <FormControl>
                             <RadioGroup
-                              defaultValue="payLater"
+                              value={payLater ? 'payLater' : payDeposit ? 'payDeposit' : 'payOnline'}
                               onChange={(e) => {
                                 setValue('payLater', e.target.value === 'payLater')
                                 setValue('payDeposit', e.target.value === 'payDeposit')

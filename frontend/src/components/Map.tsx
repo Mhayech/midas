@@ -87,7 +87,7 @@ const Map = ({
   onSelelectPickUpLocation,
   // onSelelectDropOffLocation,
 }: MapProps) => {
-  const _initialZoom = initialZoom || 5.5
+  const _initialZoom = initialZoom || 10
   const [zoom, setZoom] = useState(_initialZoom)
   const map = useRef<L.Map | null>(null)
 

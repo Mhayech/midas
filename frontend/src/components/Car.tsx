@@ -247,7 +247,7 @@ const Car = ({
                 </Tooltip>
               </li>
             )}
-            {car.immatriculation && (
+            {/* {car.immatriculation && (
               <li className="immatriculation">
                 <Tooltip title={strings.IMMATRICULATION} placement="top">
                   <div className="car-info-list-item">
@@ -256,7 +256,7 @@ const Car = ({
                   </div>
                 </Tooltip>
               </li>
-            )}
+            )} */}
             <li className="gearbox">
               <Tooltip title={helper.getGearboxTooltip(car.gearbox)} placement="top">
                 <div className="car-info-list-item">

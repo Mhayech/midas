@@ -498,15 +498,15 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
 
       const summaryTableBody: any[] = [
         [
-          { text: 'Car', style: 'meta' },
+          { text: csrStrings.CAR, style: 'meta' },
           { text: car.name, style: 'value' },
-          { text: 'Registration', style: 'meta' },
-          { text: (car as any).registration || 'N/A', style: 'value' },
+          { text: csrStrings.REGISTRATION, style: 'meta' },
+          { text: car.immatriculation || 'N/A', style: 'value' },
         ],
         [
-          { text: 'Location', style: 'meta' },
+          { text: csrStrings.LOCATION, style: 'meta' },
           { text: location.name || '—', style: 'value' },
-          { text: 'Coordinates', style: 'meta' },
+          { text: csrStrings.COORDINATES, style: 'meta' },
           { text: (location.latitude != null && location.longitude != null) ? `${location.latitude}, ${location.longitude}` : 'N/A', style: 'value' },
         ],
       ]
@@ -514,15 +514,15 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
       if (booking) {
         summaryTableBody.push(
           [
-            { text: 'Booking', style: 'meta' },
+            { text: csrStrings.BOOKING, style: 'meta' },
             { text: `${booking._id?.slice(-8)}…`, style: 'value' },
-            { text: 'Driver', style: 'meta' },
+            { text: csrStrings.DRIVER, style: 'meta' },
             { text: typeof booking.driver === 'object' ? booking.driver.fullName : '—', style: 'value' },
           ],
           [
-            { text: 'From', style: 'meta' },
+            { text: csrStrings.FROM, style: 'meta' },
             { text: new Date(booking.from).toLocaleString(), style: 'value' },
-            { text: 'To', style: 'meta' },
+            { text: csrStrings.TO, style: 'meta' },
             { text: new Date(booking.to).toLocaleString(), style: 'value' },
           ],
         )
@@ -532,11 +532,11 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
         table: {
           widths: ['*', 'auto', 'auto'],
           body: [
-            [{ text: 'Metric', style: 'tableHeader' }, { text: 'Pre-Rental', style: 'tableHeader' }, { text: 'Post-Rental', style: 'tableHeader' }],
-            ['Mileage (km)', beforeState?.mileage ?? '—', afterState?.mileage ?? '—'],
-            ['Fuel Level (%)', beforeState?.fuelLevel ?? '—', afterState?.fuelLevel ?? '—'],
-            ['Body', { stack: [buildConditionChip(formatCondition(beforeState?.bodyCondition || ''), conditionColorHex(beforeState?.bodyCondition))] }, { stack: [buildConditionChip(formatCondition(afterState?.bodyCondition || ''), conditionColorHex(afterState?.bodyCondition))] }],
-            ['Interior', { stack: [buildConditionChip(formatCondition(beforeState?.interiorCondition || ''), conditionColorHex(beforeState?.interiorCondition))] }, { stack: [buildConditionChip(formatCondition(afterState?.interiorCondition || ''), conditionColorHex(afterState?.interiorCondition))] }],
+            [{ text: csrStrings.METRIC, style: 'tableHeader' }, { text: csrStrings.PRE_RENTAL_TITLE, style: 'tableHeader' }, { text: csrStrings.POST_RENTAL_TITLE, style: 'tableHeader' }],
+            [csrStrings.MILEAGE_KM, beforeState?.mileage ?? '—', afterState?.mileage ?? '—'],
+            [csrStrings.FUEL_LEVEL_PERCENT, beforeState?.fuelLevel ?? '—', afterState?.fuelLevel ?? '—'],
+            [csrStrings.BODY, { stack: [buildConditionChip(formatCondition(beforeState?.bodyCondition || ''), conditionColorHex(beforeState?.bodyCondition))] }, { stack: [buildConditionChip(formatCondition(afterState?.bodyCondition || ''), conditionColorHex(afterState?.bodyCondition))] }],
+            [csrStrings.INTERIOR, { stack: [buildConditionChip(formatCondition(beforeState?.interiorCondition || ''), conditionColorHex(beforeState?.interiorCondition))] }, { stack: [buildConditionChip(formatCondition(afterState?.interiorCondition || ''), conditionColorHex(afterState?.interiorCondition))] }],
           ],
         },
         layout: 'lightHorizontalLines' as const,
@@ -572,7 +572,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
           }, 0)
 
           const rows: any[] = []
-          rows.push([{ text: 'Item', style: 'tableHeader' }, { text: 'Pre', style: 'tableHeader' }, { text: 'Post', style: 'tableHeader' }])
+          rows.push([{ text: 'Item', style: 'tableHeader' }, { text: csrStrings.PRE, style: 'tableHeader' }, { text: csrStrings.POST, style: 'tableHeader' }])
           for (const n of Array.from(names)) {
             const itemLabel = n.replace(/^\[[^\]]+\]\s*/, '')
             const b = (beforeState?.includedItems || []).find(i => i.name === n)
@@ -962,7 +962,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
           <Card className="csr-card">
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6" color="secondary">{csrStrings.POST_RENTAL_TITLE}</Typography>
+                <Typography variant="h6">{csrStrings.POST_RENTAL_TITLE}</Typography>
                 {afterState && (
                   <IconButton size="small" onClick={() => openEditForm(afterState)}>
                     <EditIcon />
