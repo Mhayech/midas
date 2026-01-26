@@ -36,7 +36,7 @@ const SupplierSelectList = ({
 
   useEffect(() => {
     const _value = multiple ? value : [value]
-    if (value && !bookcarsHelper.arrayEqual(selectedOptions, _value)) {
+    if (value && !bookcarsHelper.arrayEqual(selectedOptions, _value as bookcarsTypes.Option[])) {
       setSelectedOptions(_value as bookcarsTypes.Option[])
     }
   }, [value, multiple, selectedOptions])

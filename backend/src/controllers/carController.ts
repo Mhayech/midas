@@ -581,8 +581,12 @@ export const getCars = async (req: Request, res: Response) => {
     const $match: mongoose.FilterQuery<bookcarsTypes.Car> = {
       $and: [
         { name: { $regex: keyword, $options: options } },
-        { supplier: { $in: suppliers } },
       ],
+    }
+    
+    // Only add supplier filter if suppliers array is not empty
+    if (suppliers && suppliers.length > 0) {
+      $match.$and!.push({ supplier: { $in: suppliers } })
     }
 
     if (fuelPolicy) {
@@ -624,17 +628,8 @@ export const getCars = async (req: Request, res: Response) => {
       $match.$and!.push({ deposit: { $lte: deposit } })
     }
 
-    if (Array.isArray(availability)) {
-      if (availability.length === 1 && availability[0] === bookcarsTypes.Availablity.Available) {
-        $match.$and!.push({ available: true })
-      } else if (availability.length === 1
-        && availability[0] === bookcarsTypes.Availablity.Unavailable) {
-        $match.$and!.push({ available: false })
-      } else if (availability.length === 0) {
-        res.json([{ resultData: [], pageInfo: [] }])
-        return
-      }
-    }
+    // Note: Availability filter is applied AFTER calculating real-time availability
+    // (see post-processing below)
 
     if (ranges) {
       $match.$and!.push({ range: { $in: ranges } })
@@ -707,6 +702,12 @@ export const getCars = async (req: Request, res: Response) => {
       { collation: { locale: env.DEFAULT_LANGUAGE, strength: 2 } },
     )
 
+    logger.info(`[car.getCars] Aggregation returned ${data[0]?.resultData?.length || 0} cars`)
+    if (data[0]?.resultData?.length > 0) {
+      const firstCar = data[0].resultData[0]
+      logger.info(`[car.getCars] First car sample: ${JSON.stringify({ _id: firstCar._id, name: firstCar.name, hasSupplier: !!firstCar.supplier })}`)
+    }
+
     // const data = await Car.aggregate(
     //   [
     //     { $match },
@@ -755,9 +756,84 @@ export const getCars = async (req: Request, res: Response) => {
     // )
 
     for (const car of data[0].resultData) {
-      const { _id, fullName, avatar } = car.supplier
-      car.supplier = { _id, fullName, avatar }
+      // Log if car is missing _id
+      if (!car._id) {
+        logger.warn(`[car.getCars] Car returned without _id: ${JSON.stringify({ name: car.name, supplier: car.supplier })}`)
+      }
+      
+      // Ensure supplier exists before destructuring
+      if (car.supplier && car.supplier._id) {
+        const { _id, fullName, avatar } = car.supplier
+        car.supplier = { _id, fullName, avatar }
+      } else {
+        logger.warn(`[car.getCars] Car ${car._id} (${car.name}) has missing or invalid supplier`)
+        // Set a placeholder to avoid errors
+        car.supplier = { _id: null, fullName: 'Unknown', avatar: null }
+      }
     }
+
+    // Check if cars have active bookings (for availability indicator)
+    const now = new Date()
+    let filteredResults = data[0].resultData
+    const carIds = filteredResults.map((car: any) => car._id)
+        
+    logger.info(`[car.getCars] Checking ${carIds.length} cars for active bookings`)
+        
+    const activeBookings = await Booking.find({
+      car: { $in: carIds },
+      status: { $in: [bookcarsTypes.BookingStatus.Paid, bookcarsTypes.BookingStatus.Reserved, bookcarsTypes.BookingStatus.Deposit] },
+      to: { $gte: now },
+    })
+      .select('car to status')
+      .lean()
+    
+    logger.info(`[car.getCars] Found ${activeBookings.length} active bookings`)
+    if (activeBookings.length > 0) {
+      const bookingDetails = activeBookings.map((b: any) => ({ car: b.car, to: b.to, status: b.status }))
+      logger.info(`[car.getCars] Active bookings: ${JSON.stringify(bookingDetails)}`)
+    }
+    
+    const bookedCarIds = new Set(activeBookings.map((booking: any) => booking.car.toString()))
+    
+    // Group cars by name to check if ALL units of a model are rented
+    const carsByName = new Map<string, any[]>()
+    for (const car of filteredResults) {
+      if (!carsByName.has(car.name)) {
+        carsByName.set(car.name, [])
+      }
+      carsByName.get(car.name)!.push(car)
+    }
+    
+    // Add hasActiveBooking and allUnitsRented flags to each car
+    for (const car of filteredResults) {
+      car.hasActiveBooking = bookedCarIds.has(car._id.toString())
+          
+      // Check if ALL units of this car model are currently rented
+      const sameModelCars = carsByName.get(car.name) || []
+      const totalUnits = sameModelCars.length
+      const rentedUnits = sameModelCars.filter((c: any) => bookedCarIds.has(c._id.toString())).length
+          
+      car.allUnitsRented = totalUnits > 0 && rentedUnits === totalUnits
+      car.availableUnits = totalUnits - rentedUnits
+      car.totalUnits = totalUnits
+          
+      logger.info(`[car.getCars] Car ${car.name} (${car._id}): hasActiveBooking=${car.hasActiveBooking}, allUnitsRented=${car.allUnitsRented}, units=${car.availableUnits}/${car.totalUnits}`)
+    }
+
+    // Apply real-time availability filter AFTER calculating allUnitsRented
+    if (Array.isArray(availability)) {
+      if (availability.length === 1 && availability[0] === bookcarsTypes.Availablity.Available) {
+        // Show only cars that are marked available AND have at least one unit not rented
+        filteredResults = filteredResults.filter((car: any) => car.available && !car.allUnitsRented)
+      } else if (availability.length === 1 && availability[0] === bookcarsTypes.Availablity.Unavailable) {
+        // Show cars that are either marked unavailable OR all units are rented
+        filteredResults = filteredResults.filter((car: any) => !car.available || car.allUnitsRented)
+      }
+    }
+
+    // Update response with filtered results
+    data[0].resultData = filteredResults
+    data[0].pageInfo[0].totalRecords = filteredResults.length
 
     res.json(data)
   } catch (err) {
@@ -784,45 +860,113 @@ export const getBookingCars = async (req: Request, res: Response) => {
     const options = 'i'
     const page = Number.parseInt(req.params.page, 10)
     const size = Number.parseInt(req.params.size, 10)
+    const { from, to } = body
 
-    const cars = await Car.aggregate(
-      [
+    logger.info(`[car.getBookingCars] Called with supplier=${body.supplier}, location=${body.pickupLocation}, from=${from}, to=${to}`)
+
+    const aggregationPipeline: mongoose.PipelineStage[] = [
+      {
+        $lookup: {
+          from: 'User',
+          let: { userId: '$supplier' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$_id', '$$userId'] },
+              },
+            },
+          ],
+          as: 'supplier',
+        },
+      },
+      { $unwind: { path: '$supplier', preserveNullAndEmptyArrays: false } },
+      {
+        $match: {
+          $and: [
+            { 'supplier._id': supplier },
+            { locations: pickupLocation },
+            { available: true },
+            { name: { $regex: keyword, $options: options } },
+          ],
+        },
+      },
+    ]
+
+    // Add booking overlap check if dates are provided
+    if (from && to) {
+      aggregationPipeline.push(
         {
           $lookup: {
-            from: 'User',
-            let: { userId: '$supplier' },
+            from: 'Booking',
+            let: { carId: '$_id' },
             pipeline: [
               {
                 $match: {
-                  $expr: { $eq: ['$_id', '$$userId'] },
+                  $expr: {
+                    $and: [
+                      { $eq: ['$car', '$$carId'] },
+                      {
+                        // Match only bookings that overlap with the requested rental period
+                        $not: [
+                          {
+                            $or: [
+                              // Booking ends before rental period starts → no overlap
+                              { $lt: ['$to', new Date(from)] },
+                              // Booking starts after rental period ends → no overlap
+                              { $gt: ['$from', new Date(to)] },
+                            ],
+                          },
+                        ],
+                      },
+                      {
+                        // Only check Paid, Reserved and Deposit bookings
+                        $in: [
+                          '$status',
+                          [
+                            bookcarsTypes.BookingStatus.Paid,
+                            bookcarsTypes.BookingStatus.Reserved,
+                            bookcarsTypes.BookingStatus.Deposit,
+                          ],
+                        ],
+                      },
+                    ],
+                  },
                 },
               },
             ],
-            as: 'supplier',
+            as: 'overlappingBookings',
           },
         },
-        { $unwind: { path: '$supplier', preserveNullAndEmptyArrays: false } },
         {
+          // Exclude cars with overlapping bookings
           $match: {
-            $and: [
-              { 'supplier._id': supplier },
-              { locations: pickupLocation },
-              { available: true }, { name: { $regex: keyword, $options: options } },
-            ],
+            $expr: {
+              $eq: [{ $size: '$overlappingBookings' }, 0],
+            },
           },
         },
-        { $sort: { name: 1, _id: 1 } },
-        { $skip: (page - 1) * size },
-        { $limit: size },
-      ],
-      { collation: { locale: env.DEFAULT_LANGUAGE, strength: 2 } },
+      )
+    }
+
+    aggregationPipeline.push(
+      { $sort: { name: 1, _id: 1 } },
+      { $skip: (page - 1) * size },
+      { $limit: size },
     )
+
+    const cars = await Car.aggregate(aggregationPipeline, { collation: { locale: env.DEFAULT_LANGUAGE, strength: 2 } })
+
+    logger.info(`[car.getBookingCars] Aggregation returned ${cars.length} cars`)
+    if (cars.length > 0) {
+      logger.info(`[car.getBookingCars] First car: ${JSON.stringify({ _id: cars[0]._id, name: cars[0].name, hasSupplier: !!cars[0].supplier })}`)
+    }
 
     for (const car of cars) {
       const { _id, fullName, avatar, priceChangeRate } = car.supplier
       car.supplier = { _id, fullName, avatar, priceChangeRate }
     }
 
+    logger.info(`[car.getBookingCars] Returning ${cars.length} cars to client`)
     res.json(cars)
   } catch (err) {
     logger.error(`[car.getBookingCars] ${i18n.t('DB_ERROR')} ${req.query.s}`, err)
@@ -1164,6 +1308,100 @@ export const getFrontendCars = async (req: Request, res: Response) => {
     res.json(data)
   } catch (err) {
     logger.error(`[car.getFrontendCars] ${i18n.t('DB_ERROR')} ${req.query.s}`, err)
+    res.status(400).send(i18n.t('DB_ERROR') + err)
+  }
+}
+
+/**
+ * Get car inventory grouped by name with availability stats.
+ *
+ * @export
+ * @async
+ * @param {Request} req
+ * @param {Response} res
+ * @returns {unknown}
+ */
+export const getCarInventory = async (req: Request, res: Response) => {
+  try {
+    const { supplier } = req.query
+
+    // Build filter
+    const filter: any = {}
+    if (supplier) {
+      filter.supplier = new mongoose.Types.ObjectId(supplier as string)
+    }
+
+    // Get all cars
+    const cars = await Car.find(filter)
+      .populate<{ supplier: env.User }>('supplier')
+      .lean()
+
+    // Get current date for booking checks
+    const now = new Date()
+
+    // Get active bookings (paid or reserved)
+    const activeBookings = await Booking.find({
+      status: { $in: [bookcarsTypes.BookingStatus.Paid, bookcarsTypes.BookingStatus.Reserved] },
+      to: { $gte: now },
+    })
+      .select('car from to')
+      .lean()
+
+    // Create a map of car IDs to active booking counts
+    const bookingCountMap = new Map<string, number>()
+    activeBookings.forEach((booking) => {
+      const carId = booking.car.toString()
+      bookingCountMap.set(carId, (bookingCountMap.get(carId) || 0) + 1)
+    })
+
+    // Group cars by name
+    const inventoryMap = new Map<string, any>()
+
+    cars.forEach((car) => {
+      const carId = car._id.toString()
+      const rentedCount = bookingCountMap.get(carId) || 0
+      const isAvailable = car.available && !car.fullyBooked && !car.comingSoon
+
+      if (!inventoryMap.has(car.name)) {
+        inventoryMap.set(car.name, {
+          name: car.name,
+          supplier: car.supplier,
+          image: car.image,
+          type: car.type,
+          gearbox: car.gearbox,
+          seats: car.seats,
+          totalUnits: 0,
+          availableUnits: 0,
+          rentedUnits: 0,
+          unavailableUnits: 0,
+          cars: [],
+        })
+      }
+
+      const inventory = inventoryMap.get(car.name)
+      inventory.totalUnits += 1
+      inventory.cars.push({
+        _id: car._id,
+        immatriculation: car.immatriculation,
+        available: isAvailable,
+        rented: rentedCount > 0,
+      })
+
+      if (rentedCount > 0) {
+        inventory.rentedUnits += 1
+      } else if (isAvailable) {
+        inventory.availableUnits += 1
+      } else {
+        inventory.unavailableUnits += 1
+      }
+    })
+
+    // Convert map to array and sort by name
+    const inventory = Array.from(inventoryMap.values()).sort((a, b) => a.name.localeCompare(b.name))
+
+    res.json(inventory)
+  } catch (err) {
+    logger.error(`[car.getCarInventory] ${i18n.t('DB_ERROR')}`, err)
     res.status(400).send(i18n.t('DB_ERROR') + err)
   }
 }

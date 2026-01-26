@@ -472,6 +472,20 @@ export const SENTRY_DSN_BACKEND = __env__('BC_SENTRY_DSN_BACKEND', ENABLE_SENTRY
 export const SENTRY_TRACES_SAMPLE_RATE = Number.parseFloat(__env__('BC_SENTRY_TRACES_SAMPLE_RATE', false, '1.0'))
 
 /**
+ * FleetIsSafe API base URL.
+ * 
+ * @type {string}
+ */
+export const FLEETISSAFE_API_URL = __env__('BC_FLEETISSAFE_API_URL', false, 'https://fleetissafe.com/api/integration')
+
+/**
+ * FleetIsSafe API bearer token for authentication.
+ * 
+ * @type {string}
+ */
+export const FLEETISSAFE_API_TOKEN = __env__('BC_FLEETISSAFE_API_TOKEN', false)
+
+/**
  * User Document.
  *
  * @export
@@ -486,6 +500,9 @@ export interface User extends Document {
   phone?: string
   password?: string
   birthDate?: Date
+  cinNumber?: string
+  driverLicenseNumber?: string
+  driverLicenseIssueDate?: Date
   verified?: boolean
   verifiedAt?: Date
   active?: boolean
@@ -498,7 +515,7 @@ export interface User extends Document {
   blacklisted?: boolean
   payLater?: boolean
   customerId?: string
-  contracts?: bookcarsTypes.Contract[]
+  contracts?: bookcarsTypes.UserContract[]
   licenseRequired?: boolean
   license?: string | null
   driverContract?: string | null
@@ -567,6 +584,7 @@ export interface AdditionalDriver {
  */
 export interface Booking extends Document {
   _id: Types.ObjectId
+  bookingNumber?: string
   supplier: Types.ObjectId
   car: Types.ObjectId
   driver: Types.ObjectId
@@ -590,6 +608,13 @@ export interface Booking extends Document {
   expireAt?: Date
   isDeposit: boolean
   paypalOrderId?: string
+  createdBy?: Types.ObjectId
+  approvalRequired?: boolean
+  approvedBy?: Types.ObjectId
+  approvedAt?: Date
+  rejectedBy?: Types.ObjectId
+  rejectedAt?: Date
+  approvalNotes?: string
 }
 
 /**
@@ -722,6 +747,7 @@ export interface CarInfo {
  */
 export interface BookingInfo {
   _id?: Types.ObjectId
+  bookingNumber?: string
   supplier: UserInfo
   car: Car
   driver: UserInfo
@@ -886,6 +912,23 @@ export interface PushToken extends Document {
 export interface Token extends Document {
   user: Types.ObjectId
   token: string
+  expireAt?: Date
+}
+
+/**
+ * OTP Document.
+ *
+ * @export
+ * @interface Otp
+ * @typedef {Otp}
+ * @extends {Document}
+ */
+export interface Otp extends Document {
+  user: Types.ObjectId
+  otp: string
+  attempts: number
+  maxAttempts: number
+  verified: boolean
   expireAt?: Date
 }
 

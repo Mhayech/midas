@@ -147,7 +147,7 @@ const DriverContract = ({
           </>
         )}
       </div>
-      <input id="upload-driver-contract" type="file" hidden onChange={handleChange} />
+      <input id="upload-driver-contract" type="file" accept="image/*" hidden onChange={handleChange} />
     </div>
   )
 }

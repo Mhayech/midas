@@ -49,6 +49,7 @@ import * as helper from '@/utils/helper'
 import { useNotificationContext, NotificationContextType } from '@/context/NotificationContext'
 import { useUserContext, UserContextType } from '@/context/UserContext'
 
+import Logo from '@/assets/img/logo.png'
 import '@/assets/css/header.css'
 
 const flagHeight = 28
@@ -344,7 +345,9 @@ const Header = ({
                   <MenuIcon />
                 </IconButton>
 
-                <Button onClick={() => navigate('/')} className="logo">{env.WEBSITE_NAME}</Button>
+                <Button onClick={() => navigate('/')} className="logo">
+                  <img src={Logo} alt="MIDAS Rent A Car" className="logo-img" />
+                </Button>
 
                 {!env.isMobile && headerTitle && <div className="header-title">{headerTitle}</div>}
               </>

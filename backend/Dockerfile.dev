@@ -20,10 +20,28 @@ WORKDIR /bookcars/backend
 
 COPY ./backend/package*.json ./
 
+# Install dependencies (including puppeteer which will download chromium)
 RUN npm install --force && \
     npm cache clean --force
 
 FROM node:lts-alpine
+
+# Install Chromium and dependencies for Puppeteer
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    freetype-dev \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    font-noto \
+    font-noto-arabic
+
+# Tell Puppeteer to skip installing Chromium and use the installed package
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
 WORKDIR /bookcars/backend
 
 COPY --from=build /bookcars/backend/node_modules ./node_modules

@@ -13,7 +13,9 @@ import {
   List,
   ListItemIcon,
   ListItemText,
-  ListItem
+  ListItemButton,
+  Divider,
+  Box
 } from '@mui/material'
 import {
   Menu as MenuIcon,
@@ -34,6 +36,10 @@ import {
   CalendarMonth as SchedulerIcon,
   AccountBalance as BankDetailsIcon,
   MonetizationOn as PricingIcon,
+  Assessment as FinancialReportsIcon,
+  Assessment as AssessmentIcon,
+  Event as EventIcon,
+  Description as DescriptionIcon,
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import * as bookcarsTypes from ':bookcars-types'
@@ -292,137 +298,466 @@ const Header = ({
 
   return !hidden && (
     <div style={classes.grow} className="header">
-      <AppBar position="fixed" sx={{ bgcolor: '#121212' }}>
-        <Toolbar className="toolbar">
+      <AppBar 
+        position="fixed" 
+        sx={{ 
+          background: 'linear-gradient(135deg, #2F5233 0%, #4A7C4E 100%)',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        }}
+      >
+        <Toolbar className="toolbar" sx={{ minHeight: '70px !important' }}>
           {isLoaded && isSignedIn && (
-            <IconButton edge="start" sx={classes.menuButton} color="inherit" aria-label="open drawer" onClick={handleSideMenuOpen}>
+            <IconButton 
+              edge="start" 
+              sx={{ 
+                ...classes.menuButton,
+                bgcolor: 'rgba(255, 255, 255, 0.1)',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.2)',
+                }
+              }} 
+              color="inherit" 
+              aria-label="open drawer" 
+              onClick={handleSideMenuOpen}
+            >
               <MenuIcon />
             </IconButton>
           )}
           <>
-            <Drawer open={isSideMenuOpen} onClose={handleSideMenuClose} className="menu  side-menu">
-              <List sx={classes.list}>
-                <ListItem
-                  onClick={() => {
-                    navigate('/')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><DashboardIcon /></ListItemIcon>
-                  <ListItemText primary={strings.DASHBOARD} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/scheduler')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><SchedulerIcon /></ListItemIcon>
-                  <ListItemText primary={strings.SCHEDULER} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/suppliers')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><SuppliersIcon /></ListItemIcon>
-                  <ListItemText primary={strings.COMPANIES} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/countries')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><CountriesIcon /></ListItemIcon>
-                  <ListItemText primary={strings.COUNTRIES} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/locations')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><LocationsIcon /></ListItemIcon>
-                  <ListItemText primary={strings.LOCATIONS} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/cars')
-                    handleSideMenuClose()
-                  }}
-                >
-                  <ListItemIcon><CarsIcon /></ListItemIcon>
-                  <ListItemText primary={strings.CARS} />
-                </ListItem>
+            <Drawer 
+              open={isSideMenuOpen} 
+              onClose={handleSideMenuClose} 
+              className="menu side-menu"
+              PaperProps={{
+                sx: {
+                  background: 'linear-gradient(180deg, #2F5233 0%, #1E3522 100%)',
+                  color: '#fff',
+                  width: 280,
+                }
+              }}
+            >
+              <Box sx={{ p: 3, textAlign: 'center', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                <Typography variant="h5" sx={{ fontWeight: 700, color: '#D4AF37', mb: 0.5 }}>
+                  Midas Rent
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                  Admin Dashboard
+                </Typography>
+              </Box>
+              <List sx={{ ...classes.list, px: 1, py: 2 }}>
+                {/* Dashboard - hidden from Accountant and Agency Staff */}
+                {!helper.accountant(currentUser) && !helper.agencyStaff(currentUser) && (
+                  <ListItemButton
+                    onClick={() => {
+                      navigate('/')
+                      handleSideMenuClose()
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(212, 175, 55, 0.15)',
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: '#D4AF37', minWidth: 40 }}>
+                      <DashboardIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={strings.DASHBOARD} 
+                      primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                  </ListItemButton>
+                )}
                 
-                <ListItem
+                {/* Scheduler - hidden from Accountant only, visible to Agency Staff */}
+                {!helper.accountant(currentUser) && (
+                  <ListItemButton
+                    onClick={() => {
+                      navigate('/scheduler')
+                      handleSideMenuClose()
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(212, 175, 55, 0.15)',
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: '#D4AF37', minWidth: 40 }}>
+                      <SchedulerIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={strings.SCHEDULER} 
+                      primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                  </ListItemButton>
+                )}
+                
+                {/* Suppliers - hidden from Accountant and Staff */}
+                {!helper.accountant(currentUser) && !helper.agencyStaff(currentUser) && (
+                  <ListItemButton
+                    onClick={() => {
+                      navigate('/suppliers')
+                      handleSideMenuClose()
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(212, 175, 55, 0.15)',
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: '#D4AF37', minWidth: 40 }}>
+                      <SuppliersIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={strings.COMPANIES} 
+                      primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                  </ListItemButton>
+                )}
+                
+                {/* Countries - hidden from Accountant */}
+                {!helper.accountant(currentUser) && (
+                  <ListItemButton
+                    onClick={() => {
+                      navigate('/countries')
+                      handleSideMenuClose()
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(212, 175, 55, 0.15)',
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: '#D4AF37', minWidth: 40 }}>
+                      <CountriesIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={strings.COUNTRIES} 
+                      primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                  </ListItemButton>
+                )}
+                
+                {/* Locations - hidden from Accountant */}
+                {!helper.accountant(currentUser) && (
+                  <ListItemButton
+                    onClick={() => {
+                      navigate('/locations')
+                      handleSideMenuClose()
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(212, 175, 55, 0.15)',
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: '#D4AF37', minWidth: 40 }}>
+                      <LocationsIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={strings.LOCATIONS} 
+                      primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                  </ListItemButton>
+                )}
+                
+                {/* Cars - hidden from Accountant, visible to Agency Staff */}
+                {!helper.accountant(currentUser) && (
+                  <ListItemButton
+                    onClick={() => {
+                      navigate('/cars')
+                      handleSideMenuClose()
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(212, 175, 55, 0.15)',
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: '#D4AF37', minWidth: 40 }}>
+                      <CarsIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={strings.CARS} 
+                      primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                  </ListItemButton>
+                )}
+                
+                {/* Bookings - hidden from Accountant, visible to Agency Staff */}
+                {!helper.accountant(currentUser) && (
+                  <ListItemButton
+                    onClick={() => {
+                      navigate('/bookings')
+                      handleSideMenuClose()
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(212, 175, 55, 0.15)',
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: '#D4AF37', minWidth: 40 }}>
+                      <EventIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={strings.BOOKINGS} 
+                      primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                  </ListItemButton>
+                )}
+
+                {/* Contracts - visible to Accountant, Admin, and Staff */}
+                {(helper.admin(currentUser) || helper.accountant(currentUser) || helper.agencyStaff(currentUser)) && (
+                  <ListItemButton
+                    onClick={() => {
+                      navigate('/contracts')
+                      handleSideMenuClose()
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(212, 175, 55, 0.15)',
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: '#D4AF37', minWidth: 40 }}>
+                      <DescriptionIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={strings.CONTRACTS} 
+                      primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                  </ListItemButton>
+                )}
+                
+                {/* Users - Staff can create Drivers only, Accountant cannot access */}
+                {!helper.accountant(currentUser) && (
+                  <ListItemButton
+                    onClick={() => {
+                      navigate('/users')
+                      handleSideMenuClose()
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(212, 175, 55, 0.15)',
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: '#D4AF37', minWidth: 40 }}>
+                      <UsersIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={strings.USERS} 
+                      primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                  </ListItemButton>
+                )}
+                
+                {/* Pricing - hidden from Accountant */}
+                {!helper.accountant(currentUser) && (
+                  <ListItemButton
+                    onClick={() => {
+                      navigate('/pricing')
+                      handleSideMenuClose()
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(212, 175, 55, 0.15)',
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: '#D4AF37', minWidth: 40 }}>
+                      <PricingIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={strings.PRICING} 
+                      primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                  </ListItemButton>
+                )}
+                
+                {/* Financial Reports - visible to Accountant and Admin only, hidden from Staff */}
+                {!helper.agencyStaff(currentUser) && (
+                  <ListItemButton
                   onClick={() => {
-                    navigate('/users')
+                    navigate('/financial-reports')
                     handleSideMenuClose()
                   }}
-                >
-                  <ListItemIcon><UsersIcon /></ListItemIcon>
-                  <ListItemText primary={strings.USERS} />
-                </ListItem>
-                <ListItem
-                  onClick={() => {
-                    navigate('/pricing')
-                    handleSideMenuClose()
+                  sx={{
+                    borderRadius: 2,
+                    mb: 0.5,
+                    '&:hover': {
+                      bgcolor: 'rgba(212, 175, 55, 0.15)',
+                    }
                   }}
                 >
-                  <ListItemIcon><PricingIcon /></ListItemIcon>
-                  <ListItemText primary={strings.PRICING} />
-                </ListItem>
-                {bankDetails?.showBankDetailsPage && (
-                  <ListItem
+                  <ListItemIcon sx={{ color: '#D4AF37', minWidth: 40 }}>
+                    <FinancialReportsIcon />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={strings.FINANCIAL_REPORTS} 
+                    primaryTypographyProps={{ fontWeight: 600 }}
+                  />
+                </ListItemButton>
+                )}
+                
+                {/* Staff Activity - Only visible to Admin */}
+                {helper.admin(currentUser) && (
+                  <ListItemButton
+                    onClick={() => {
+                      navigate('/staff-activity')
+                      handleSideMenuClose()
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(212, 175, 55, 0.15)',
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: '#D4AF37', minWidth: 40 }}>
+                      <AssessmentIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={strings.STAFF_ACTIVITY} 
+                      primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                  </ListItemButton>
+                )}
+                {bankDetails?.showBankDetailsPage && !helper.agencyStaff(currentUser) && (
+                  <ListItemButton
                     onClick={() => {
                       navigate('/bank-details')
                       handleSideMenuClose()
                     }}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(212, 175, 55, 0.15)',
+                      }
+                    }}
                   >
-                    <ListItemIcon><BankDetailsIcon /></ListItemIcon>
-                    <ListItemText primary={strings.BANK_DETAILS} />
-                  </ListItem>
+                    <ListItemIcon sx={{ color: '#D4AF37', minWidth: 40 }}>
+                      <BankDetailsIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={strings.BANK_DETAILS} 
+                      primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                  </ListItemButton>
                 )}
-                <ListItem
+                
+                {/* Settings - hidden from Staff and Accountant */}
+                {!helper.accountant(currentUser) && !helper.agencyStaff(currentUser) && (
+                  <ListItemButton
+                    onClick={() => {
+                      navigate('/settings')
+                      handleSideMenuClose()
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      mb: 0.5,
+                      '&:hover': {
+                        bgcolor: 'rgba(212, 175, 55, 0.15)',
+                      }
+                    }}
+                  >
+                    <ListItemIcon sx={{ color: '#D4AF37', minWidth: 40 }}>
+                      <SettingsIcon />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={strings.SETTINGS} 
+                      primaryTypographyProps={{ fontWeight: 600 }}
+                    />
+                  </ListItemButton>
+                )}
+              </List>
+              <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.1)', my: 1 }} />
+              <List sx={{ px: 1 }}>
+                <ListItemButton
                   onClick={() => {
-                    navigate('/settings')
+                    navigate('/about')
                     handleSideMenuClose()
                   }}
+                  sx={{
+                    borderRadius: 2,
+                    mb: 0.5,
+                    '&:hover': {
+                      bgcolor: 'rgba(212, 175, 55, 0.15)',
+                    }
+                  }}
                 >
-                  <ListItemIcon><SettingsIcon /></ListItemIcon>
-                  <ListItemText primary={strings.SETTINGS} />
-                </ListItem>
+                  <ListItemIcon sx={{ color: 'rgba(255, 255, 255, 0.7)', minWidth: 40 }}>
+                    <AboutIcon />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={strings.ABOUT}
+                    primaryTypographyProps={{ fontWeight: 500, fontSize: '0.9rem' }}
+                  />
+                </ListItemButton>
+                <ListItemButton
+                  onClick={() => {
+                    navigate('/tos')
+                    handleSideMenuClose()
+                  }}
+                  sx={{
+                    borderRadius: 2,
+                    mb: 0.5,
+                    '&:hover': {
+                      bgcolor: 'rgba(212, 175, 55, 0.15)',
+                    }
+                  }}
+                >
+                  <ListItemIcon sx={{ color: 'rgba(255, 255, 255, 0.7)', minWidth: 40 }}>
+                    <TosIcon />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={strings.TOS}
+                    primaryTypographyProps={{ fontWeight: 500, fontSize: '0.9rem' }}
+                  />
+                </ListItemButton>
+                <ListItemButton
+                  onClick={() => {
+                    navigate('/contact')
+                    handleSideMenuClose()
+                  }}
+                  sx={{
+                    borderRadius: 2,
+                    '&:hover': {
+                      bgcolor: 'rgba(212, 175, 55, 0.15)',
+                    }
+                  }}
+                >
+                  <ListItemIcon sx={{ color: 'rgba(255, 255, 255, 0.7)', minWidth: 40 }}>
+                    <MailIcon />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={strings.CONTACT}
+                    primaryTypographyProps={{ fontWeight: 500, fontSize: '0.9rem' }}
+                  />
+                </ListItemButton>
               </List>
-              <ListItem
-                onClick={() => {
-                  navigate('/about')
-                  handleSideMenuClose()
-                }}
-              >
-                <ListItemIcon><AboutIcon /></ListItemIcon>
-                <ListItemText primary={strings.ABOUT} />
-              </ListItem>
-              <ListItem
-                onClick={() => {
-                  navigate('/tos')
-                  handleSideMenuClose()
-                }}
-              >
-                <ListItemIcon><TosIcon /></ListItemIcon>
-                <ListItemText primary={strings.TOS} />
-              </ListItem>
-              <ListItem
-                onClick={() => {
-                  navigate('/contact')
-                  handleSideMenuClose()
-                }}
-              >
-                <ListItemIcon><MailIcon /></ListItemIcon>
-                <ListItemText primary={strings.CONTACT} />
-              </ListItem>
             </Drawer>
           </>
           <div style={classes.grow} />
@@ -435,7 +770,22 @@ const Header = ({
               </IconButton>
             )}
             {isLoaded && (
-              <Button variant="contained" startIcon={<LanguageIcon />} onClick={handleLangMenuOpen} disableElevation className="btn-primary">
+              <Button 
+                variant="contained" 
+                startIcon={<LanguageIcon />} 
+                onClick={handleLangMenuOpen} 
+                disableElevation 
+                className="btn-primary"
+                sx={{
+                  bgcolor: 'rgba(255, 255, 255, 0.15)',
+                  '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.25)',
+                  },
+                  borderRadius: 2,
+                  px: 2,
+                  fontWeight: 600,
+                }}
+              >
                 {lang?.label}
               </Button>
             )}
@@ -447,7 +797,22 @@ const Header = ({
           </div>
           <div className="header-mobile">
             {!isSignedIn && (
-              <Button variant="contained" startIcon={<LanguageIcon />} onClick={handleLangMenuOpen} disableElevation className="btn-primary">
+              <Button 
+                variant="contained" 
+                startIcon={<LanguageIcon />} 
+                onClick={handleLangMenuOpen} 
+                disableElevation 
+                className="btn-primary"
+                sx={{
+                  bgcolor: 'rgba(255, 255, 255, 0.15)',
+                  '&:hover': {
+                    bgcolor: 'rgba(255, 255, 255, 0.25)',
+                  },
+                  borderRadius: 2,
+                  px: 2,
+                  fontWeight: 600,
+                }}
+              >
                 {lang?.label}
               </Button>
             )}

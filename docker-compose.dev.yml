@@ -52,7 +52,12 @@ services:
       - 3001:3001
     volumes:
       - ./admin:/bookcars/admin
+      - ./packages:/bookcars/packages
       - /bookcars/admin/node_modules
+      - /bookcars/packages/bookcars-types/node_modules
+      - /bookcars/packages/bookcars-helper/node_modules
+      - /bookcars/packages/disable-react-devtools/node_modules
+      - /bookcars/packages/currency-converter/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
@@ -70,7 +75,13 @@ services:
       - 8443:443
     volumes:
       - ./frontend:/bookcars/frontend
+      - ./packages:/bookcars/packages
       - /bookcars/frontend/node_modules
+      - /bookcars/packages/bookcars-types/node_modules
+      - /bookcars/packages/bookcars-helper/node_modules
+      - /bookcars/packages/disable-react-devtools/node_modules
+      - /bookcars/packages/currency-converter/node_modules
+      - /bookcars/packages/reactjs-social-login/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true

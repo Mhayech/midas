@@ -16,10 +16,12 @@ import Notification from '../models/Notification'
 import NotificationCounter from '../models/NotificationCounter'
 import PushToken from '../models/PushToken'
 import AdditionalDriver from '../models/AdditionalDriver'
+import Contract from '../models/Contract'
 import * as helper from '../utils/helper'
 import * as mailHelper from '../utils/mailHelper'
 import * as env from '../config/env.config'
 import * as logger from '../utils/logger'
+import * as contractService from '../services/contractService'
 import stripeAPI from '../payment/stripe'
 
 /**
@@ -33,16 +35,164 @@ import stripeAPI from '../payment/stripe'
  */
 export const create = async (req: Request, res: Response) => {
   try {
-    const { body }: { body: bookcarsTypes.UpsertBookingPayload } = req
+    const { body }: { body: bookcarsTypes.UpsertBookingPayload & { userId?: string } } = req
+    
+    // Validate: Check if car is already booked during the requested period
+    const { car, from, to } = body.booking
+    const requestedFrom = new Date(from)
+    const requestedTo = new Date(to)
+    
+    // Find overlapping bookings for this car
+    // A booking overlaps if it doesn't end before the new booking starts
+    // AND it doesn't start after the new booking ends
+    const overlappingBookings = await Booking.find({
+      car,
+      status: {
+        $in: [
+          bookcarsTypes.BookingStatus.Paid,
+          bookcarsTypes.BookingStatus.Reserved,
+          bookcarsTypes.BookingStatus.Deposit,
+          bookcarsTypes.BookingStatus.PendingApproval,
+        ],
+      },
+      $or: [
+        {
+          // Existing booking overlaps with requested period
+          from: { $lt: requestedTo },
+          to: { $gt: requestedFrom },
+        },
+      ],
+    })
+      .select('from to status')
+      .lean()
+
+    if (overlappingBookings.length > 0) {
+      const conflictingBooking = overlappingBookings[0]
+      const conflictFrom = new Date(conflictingBooking.from).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+      const conflictTo = new Date(conflictingBooking.to).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+
+      logger.info(
+        `[booking.create] Booking conflict detected for car ${car}: ` +
+          `Requested ${requestedFrom.toISOString()} to ${requestedTo.toISOString()}, ` +
+          `but car is already booked ${conflictingBooking.from} to ${conflictingBooking.to}`,
+      )
+
+      res.status(409).send({
+        message: `This car is already booked from ${conflictFrom} to ${conflictTo}. Please select different dates or another car.`,
+        conflictingPeriod: {
+          from: conflictingBooking.from,
+          to: conflictingBooking.to,
+        },
+      })
+      return
+    }
+
     if (body.booking.additionalDriver) {
       const additionalDriver = new AdditionalDriver(body.additionalDriver)
       await additionalDriver.save()
       body.booking._additionalDriver = additionalDriver._id.toString()
     }
 
+    // Check if created by Agency Staff
+    let requiresApproval = false
+    let notifyAdmin = false
+    
+    if (body.userId) {
+      const creator = await User.findById(body.userId)
+      if (creator && creator.type === bookcarsTypes.UserType.AgencyStaff) {
+        body.booking.createdBy = body.userId
+        
+        // Only require approval if status is Paid
+        if (body.booking.status === bookcarsTypes.BookingStatus.Paid) {
+          body.booking.approvalRequired = true
+          body.booking.status = bookcarsTypes.BookingStatus.PendingApproval
+          requiresApproval = true
+        } else {
+          // For non-Paid bookings, just notify admin (no approval needed)
+          notifyAdmin = true
+        }
+      }
+    }
+
     const booking = new Booking(body.booking)
 
     await booking.save()
+
+    // Generate contract only if not requiring approval and booking is paid
+    if (!requiresApproval && booking.status === bookcarsTypes.BookingStatus.Paid) {
+      try {
+        const contractService = await import('../services/contractService.js')
+        await contractService.generateContract(booking)
+        logger.info(`Contract auto-generated for new booking: ${booking._id}`)
+      } catch (contractErr) {
+        logger.error(`Failed to generate contract for new booking ${booking._id}:`, contractErr)
+        // Don't fail booking creation if contract generation fails
+      }
+    }
+
+    // Notify admin if requires approval OR if Staff created a non-Paid booking
+    if (requiresApproval || notifyAdmin) {
+      const admin = !!env.ADMIN_EMAIL && (await User.findOne({ email: env.ADMIN_EMAIL, type: bookcarsTypes.UserType.Admin }))
+      if (admin) {
+        i18n.locale = admin.language
+        const creator = await User.findById(body.userId)
+        
+        let message: string
+        let subject: string
+        
+        if (requiresApproval) {
+          message = `${creator?.fullName || 'Agency Staff'} created booking ${booking._id} with Paid status requiring approval.`
+          subject = 'Booking Approval Required'
+        } else {
+          message = `${creator?.fullName || 'Agency Staff'} created booking ${booking._id} with status: ${booking.status}.`
+          subject = 'New Booking Created by Staff'
+        }
+        
+        const notification = new Notification({
+          user: admin._id,
+          message,
+          booking: booking._id,
+        })
+        await notification.save()
+
+        let counter = await NotificationCounter.findOne({ user: admin._id })
+        if (counter) {
+          if (typeof counter.count === 'number') {
+            counter.count += 1
+          } else {
+            counter.count = 1
+          }
+          await counter.save()
+        } else {
+          counter = new NotificationCounter({ user: admin._id, count: 1 })
+          await counter.save()
+        }
+
+        if (admin.enableEmailNotifications) {
+          const mailOptions: nodemailer.SendMailOptions = {
+            from: env.SMTP_FROM,
+            to: admin.email,
+            subject,
+            html: `<p>
+              ${i18n.t('HELLO')}${admin.fullName},<br><br>
+              ${message}<br><br>
+              ${helper.joinURL(env.ADMIN_HOST, requiresApproval ? 'bookings?approvals=true' : `booking?b=${booking._id}`)}<br><br>
+              ${i18n.t('REGARDS')}<br>
+            </p>`,
+          }
+          await mailHelper.sendMail(mailOptions)
+        }
+      }
+    }
+
     res.json(booking)
   } catch (err) {
     logger.error(`[booking.create] ${i18n.t('DB_ERROR')} ${JSON.stringify(req.body)}`, err)
@@ -346,6 +496,18 @@ export const checkout = async (req: Request, res: Response) => {
       //   await Car.updateOne({ _id: booking.car }, { fullyBooked: false })
       // }
 
+      // Generate contract for paid bookings
+      if (booking.status === bookcarsTypes.BookingStatus.Paid) {
+        try {
+          const contractService = await import('../services/contractService.js')
+          await contractService.generateContract(booking)
+          logger.info(`Contract auto-generated for checkout booking: ${booking._id}`)
+        } catch (contractErr) {
+          logger.error(`Failed to generate contract for checkout booking ${booking._id}:`, contractErr)
+          // Don't fail checkout if contract generation fails
+        }
+      }
+
       // Send confirmation email to customer
       if (!(await confirm(user, supplier, booking, body.payLater))) {
         res.sendStatus(400)
@@ -580,12 +742,87 @@ export const update = async (req: Request, res: Response) => {
 
       await booking.save()
 
+      // Check if status changed to Paid for a Staff-created booking
+      if (previousStatus !== status && status === bookcarsTypes.BookingStatus.Paid && booking.createdBy) {
+        // Check if booking was created by Agency Staff
+        const creator = await User.findById(booking.createdBy)
+        if (creator && creator.type === bookcarsTypes.UserType.AgencyStaff) {
+          // Set booking to require approval
+          booking.approvalRequired = true
+          booking.status = bookcarsTypes.BookingStatus.PendingApproval
+          await booking.save()
+
+          // Notify admin
+          const admin = !!env.ADMIN_EMAIL && (await User.findOne({ email: env.ADMIN_EMAIL, type: bookcarsTypes.UserType.Admin }))
+          if (admin) {
+            i18n.locale = admin.language
+            const message = `${creator.fullName || 'Agency Staff'} changed booking ${booking._id} status to Paid, requiring approval.`
+            
+            const notification = new Notification({
+              user: admin._id,
+              message,
+              booking: booking._id,
+            })
+            await notification.save()
+
+            let counter = await NotificationCounter.findOne({ user: admin._id })
+            if (counter) {
+              if (typeof counter.count === 'number') {
+                counter.count += 1
+              } else {
+                counter.count = 1
+              }
+              await counter.save()
+            } else {
+              counter = new NotificationCounter({ user: admin._id, count: 1 })
+              await counter.save()
+            }
+
+            if (admin.enableEmailNotifications) {
+              try {
+                const mailOptions: nodemailer.SendMailOptions = {
+                  from: env.SMTP_FROM,
+                  to: admin.email,
+                  subject: 'Booking Approval Required',
+                  html: `<p>
+                    ${i18n.t('HELLO')}${admin.fullName},<br><br>
+                    ${message}<br><br>
+                    ${helper.joinURL(env.ADMIN_HOST, 'bookings?approvals=true')}<br><br>
+                    ${i18n.t('REGARDS')}<br>
+                  </p>`,
+                }
+                await mailHelper.sendMail(mailOptions)
+              } catch (mailErr) {
+                logger.error(`Failed to send approval email to admin: ${mailErr}`)
+                // Don't fail the booking update if email fails
+              }
+            }
+          }
+        }
+      }
+
       if (previousStatus !== status) {
         // notify driver
         await notifyDriver(booking)
       }
 
-      res.json(booking)
+      // Populate related fields before returning
+      const populatedBooking = await Booking.findById(booking._id)
+        .populate<{ supplier: env.User }>('supplier')
+        .populate<{ car: env.Car }>({
+          path: 'car',
+          populate: {
+            path: 'supplier',
+            model: 'User'
+          }
+        })
+        .populate<{ driver: env.User }>('driver')
+        .populate<{ pickupLocation: env.Location }>('pickupLocation')
+        .populate<{ dropOffLocation: env.Location }>('dropOffLocation')
+        .populate<{ _additionalDriver: env.AdditionalDriver }>('_additionalDriver')
+        .lean()
+
+      res.json(populatedBooking)
       return
     }
 
@@ -620,6 +857,19 @@ export const updateStatus = async (req: Request, res: Response) => {
     for (const booking of bookings) {
       if (booking.status !== status) {
         await notifyDriver(booking)
+        
+        // Generate contract automatically when booking status changes to Paid
+        if (status === bookcarsTypes.BookingStatus.Paid && booking.status !== bookcarsTypes.BookingStatus.Paid) {
+          try {
+            // Import contract service dynamically to avoid circular dependency
+            const contractService = await import('../services/contractService.js')
+            await contractService.generateContract(booking)
+            logger.info(`Contract auto-generated for booking: ${booking._id}`)
+          } catch (contractErr) {
+            logger.error(`Failed to generate contract for booking ${booking._id}:`, contractErr)
+            // Don't fail the entire status update if contract generation fails
+          }
+        }
       }
     }
 
@@ -649,7 +899,22 @@ export const deleteBookings = async (req: Request, res: Response) => {
       _additionalDriver: { $ne: null },
     })
 
+    // Delete associated contracts first
+    const contracts = await Contract.find({ booking: { $in: ids } }).lean()
+    for (const contract of contracts) {
+      try {
+        await contractService.deleteContract(contract._id!.toString())
+        logger.info(`[booking.deleteBookings] Deleted contract ${contract.contractNumber} for booking ${contract.booking}`)
+      } catch (err) {
+        logger.error(`[booking.deleteBookings] Failed to delete contract ${contract._id}:`, err)
+        // Continue with other deletions even if one fails
+      }
+    }
+
+    // Delete bookings
     await Booking.deleteMany({ _id: { $in: ids } })
+    
+    // Delete additional drivers
     const additionalDivers = bookings.map((booking) => new mongoose.Types.ObjectId(booking._additionalDriver))
     await AdditionalDriver.deleteMany({ _id: { $in: additionalDivers } })
 
@@ -723,6 +988,9 @@ export const getBooking = async (req: Request, res: Response) => {
         },
       })
       .populate<{ _additionalDriver: env.AdditionalDriver }>('_additionalDriver')
+      .populate<{ createdBy: env.User }>('createdBy')
+      .populate<{ approvedBy: env.User }>('approvedBy')
+      .populate<{ rejectedBy: env.User }>('rejectedBy')
       .lean()
 
     if (booking) {
@@ -1086,6 +1354,350 @@ export const cancelBooking = async (req: Request, res: Response) => {
     res.sendStatus(204)
   } catch (err) {
     logger.error(`[booking.cancelBooking] ${i18n.t('DB_ERROR')} ${id}`, err)
+    res.status(400).send(i18n.t('DB_ERROR') + err)
+  }
+}
+
+/**
+ * Approve a booking (admin only).
+ *
+ * @export
+ * @async
+ * @param {Request} req
+ * @param {Response} res
+ * @returns {unknown}
+ */
+export const approveBooking = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const { body }: { body: { userId: string; notes?: string } } = req
+
+  try {
+    if (!helper.isValidObjectId(id)) {
+      throw new Error('Invalid booking ID')
+    }
+
+    const booking = await Booking.findById(id)
+    if (!booking) {
+      logger.info(`Booking ${id} not found`)
+      res.sendStatus(204)
+      return
+    }
+
+    // Check if booking requires approval
+    if (!booking.approvalRequired) {
+      res.status(400).send('Booking does not require approval')
+      return
+    }
+
+    // Update booking with approval info
+    booking.approvalRequired = false
+    booking.approvedBy = new mongoose.Types.ObjectId(body.userId)
+    booking.approvedAt = new Date()
+    if (body.notes) {
+      booking.approvalNotes = body.notes
+    }
+    
+    // Keep the original status from PendingApproval (it was Paid before approval)
+    if (booking.status === bookcarsTypes.BookingStatus.PendingApproval) {
+      booking.status = bookcarsTypes.BookingStatus.Paid
+    }
+
+    await booking.save()
+
+    // Generate contract since booking is now approved and Paid
+    if (booking.status === bookcarsTypes.BookingStatus.Paid) {
+      try {
+        const contractService = await import('../services/contractService.js')
+        await contractService.generateContract(booking)
+        logger.info(`Contract generated for approved booking: ${booking._id}`)
+      } catch (contractErr) {
+        logger.error(`Failed to generate contract for approved booking ${booking._id}:`, contractErr)
+      }
+    }
+
+    // Notify creator
+    if (booking.createdBy) {
+      const creator = await User.findById(booking.createdBy)
+      if (creator) {
+        i18n.locale = creator.language
+        const message = i18n.t('BOOKING_APPROVED_MESSAGE', { bookingId: booking._id })
+        
+        // In-app notification (always sent)
+        const notification = new Notification({
+          user: creator._id,
+          message,
+          booking: booking._id,
+        })
+        await notification.save()
+
+        // Update notification counter
+        let counter = await NotificationCounter.findOne({ user: creator._id })
+        if (counter) {
+          if (typeof counter.count === 'number') {
+            counter.count += 1
+          } else {
+            counter.count = 1
+          }
+          await counter.save()
+        } else {
+          counter = new NotificationCounter({ user: creator._id, count: 1 })
+          await counter.save()
+        }
+
+        // Email notification (only if enabled)
+        if (creator.enableEmailNotifications) {
+          const mailOptions: nodemailer.SendMailOptions = {
+            from: env.SMTP_FROM,
+            to: creator.email,
+            subject: i18n.t('BOOKING_APPROVED_SUBJECT'),
+            html: `<p>
+              ${i18n.t('HELLO')}${creator.fullName},<br><br>
+              ${i18n.t('BOOKING_APPROVED_MESSAGE', { bookingId: booking._id })}<br><br>
+              ${body.notes ? `${i18n.t('ADMIN_NOTES')}: ${body.notes}<br><br>` : ''}
+              ${helper.joinURL(env.ADMIN_HOST, `booking?b=${booking._id}`)}<br><br>
+              ${i18n.t('REGARDS')}<br>
+            </p>`,
+          }
+          await mailHelper.sendMail(mailOptions)
+        }
+      }
+    }
+
+    res.json(booking)
+  } catch (err) {
+    logger.error(`[booking.approveBooking] ${i18n.t('DB_ERROR')} ${id}`, err)
+    res.status(400).send(i18n.t('DB_ERROR') + err)
+  }
+}
+
+/**
+ * Reject a booking (admin only).
+ *
+ * @export
+ * @async
+ * @param {Request} req
+ * @param {Response} res
+ * @returns {unknown}
+ */
+export const rejectBooking = async (req: Request, res: Response) => {
+  const { id } = req.params
+  const { body }: { body: { userId: string; notes?: string } } = req
+
+  try {
+    if (!helper.isValidObjectId(id)) {
+      throw new Error('Invalid booking ID')
+    }
+
+    const booking = await Booking.findById(id)
+    if (!booking) {
+      logger.info(`Booking ${id} not found`)
+      res.sendStatus(204)
+      return
+    }
+
+    // Check if booking requires approval
+    if (!booking.approvalRequired) {
+      res.status(400).send('Booking does not require approval')
+      return
+    }
+
+    // Update booking with rejection info
+    booking.approvalRequired = false
+    booking.rejectedBy = new mongoose.Types.ObjectId(body.userId)
+    booking.rejectedAt = new Date()
+    if (body.notes) {
+      booking.approvalNotes = body.notes
+    }
+    booking.status = bookcarsTypes.BookingStatus.Cancelled
+
+    await booking.save()
+
+    // Notify creator
+    if (booking.createdBy) {
+      const creator = await User.findById(booking.createdBy)
+      if (creator) {
+        i18n.locale = creator.language
+        const message = i18n.t('BOOKING_REJECTED_MESSAGE', { bookingId: booking._id })
+        
+        // In-app notification (always sent)
+        const notification = new Notification({
+          user: creator._id,
+          message,
+          booking: booking._id,
+        })
+        await notification.save()
+
+        // Update notification counter
+        let counter = await NotificationCounter.findOne({ user: creator._id })
+        if (counter) {
+          if (typeof counter.count === 'number') {
+            counter.count += 1
+          } else {
+            counter.count = 1
+          }
+          await counter.save()
+        } else {
+          counter = new NotificationCounter({ user: creator._id, count: 1 })
+          await counter.save()
+        }
+
+        // Email notification (only if enabled)
+        if (creator.enableEmailNotifications) {
+          const mailOptions: nodemailer.SendMailOptions = {
+            from: env.SMTP_FROM,
+            to: creator.email,
+            subject: i18n.t('BOOKING_REJECTED_SUBJECT'),
+            html: `<p>
+              ${i18n.t('HELLO')}${creator.fullName},<br><br>
+              ${i18n.t('BOOKING_REJECTED_MESSAGE', { bookingId: booking._id })}<br><br>
+              ${body.notes ? `${i18n.t('ADMIN_NOTES')}: ${body.notes}<br><br>` : ''}
+              ${i18n.t('REGARDS')}<br>
+            </p>`,
+          }
+          await mailHelper.sendMail(mailOptions)
+        }
+      }
+    }
+
+    res.json(booking)
+  } catch (err) {
+    logger.error(`[booking.rejectBooking] ${i18n.t('DB_ERROR')} ${id}`, err)
+    res.status(400).send(i18n.t('DB_ERROR') + err)
+  }
+}
+
+/**
+ * Get bookings pending approval.
+ *
+ * @export
+ * @async
+ * @param {Request} req
+ * @param {Response} res
+ * @returns {unknown}
+ */
+export const getPendingApprovals = async (req: Request, res: Response) => {
+  try {
+    const bookings = await Booking.find({ 
+      approvalRequired: true,
+      status: bookcarsTypes.BookingStatus.PendingApproval 
+    })
+      .populate<{ supplier: env.User }>('supplier')
+      .populate<{ car: env.Car }>('car')
+      .populate<{ driver: env.User }>('driver')
+      .populate<{ pickupLocation: env.Location }>('pickupLocation')
+      .populate<{ dropOffLocation: env.Location }>('dropOffLocation')
+      .populate<{ createdBy: env.User }>('createdBy')
+      .sort({ createdAt: -1 })
+      .lean()
+
+    res.json(bookings)
+  } catch (err) {
+    logger.error(`[booking.getPendingApprovals] ${i18n.t('DB_ERROR')}`, err)
+    res.status(400).send(i18n.t('DB_ERROR') + err)
+  }
+}
+
+/**
+ * Get staff activity and performance metrics.
+ *
+ * @export
+ * @async
+ * @param {Request} req
+ * @param {Response} res
+ * @returns {unknown}
+ */
+export const getStaffActivity = async (req: Request, res: Response) => {
+  try {
+    // Get all agency staff users
+    const staffMembers = await User.find({ 
+      type: bookcarsTypes.UserType.AgencyStaff,
+      verified: true 
+    }).lean()
+
+    // Calculate date ranges
+    const now = new Date()
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()))
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+
+    const staffActivity = await Promise.all(
+      staffMembers.map(async (staff) => {
+        // Get all bookings created by this staff member
+        const allBookings = await Booking.find({ createdBy: staff._id }).lean()
+        
+        // Today's bookings
+        const todayBookings = allBookings.filter(
+          (b: any) => new Date(b.createdAt) >= startOfToday
+        )
+        
+        // This week's bookings
+        const weekBookings = allBookings.filter(
+          (b: any) => new Date(b.createdAt) >= startOfWeek
+        )
+        
+        // This month's bookings
+        const monthBookings = allBookings.filter(
+          (b: any) => new Date(b.createdAt) >= startOfMonth
+        )
+
+        // Calculate approval metrics
+        const approved = allBookings.filter(
+          (b: any) => b.approvedBy && !b.rejectedBy
+        ).length
+        const rejected = allBookings.filter(
+          (b: any) => b.rejectedBy
+        ).length
+        const pending = allBookings.filter(
+          (b: any) => b.status === bookcarsTypes.BookingStatus.PendingApproval
+        ).length
+
+        // Calculate revenue from approved/paid bookings
+        const revenue = allBookings
+          .filter((b: any) => 
+            b.status === bookcarsTypes.BookingStatus.Paid || 
+            b.status === bookcarsTypes.BookingStatus.Reserved
+          )
+          .reduce((sum: number, b: any) => sum + (b.price || 0), 0)
+
+        return {
+          staff: {
+            _id: staff._id,
+            fullName: staff.fullName,
+            email: staff.email,
+            avatar: staff.avatar,
+          },
+          metrics: {
+            total: allBookings.length,
+            today: todayBookings.length,
+            thisWeek: weekBookings.length,
+            thisMonth: monthBookings.length,
+            approved,
+            rejected,
+            pending,
+            approvalRate: allBookings.length > 0 
+              ? ((approved / (approved + rejected)) * 100).toFixed(1)
+              : '0',
+            revenue,
+          },
+          recentBookings: allBookings
+            .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .slice(0, 5)
+            .map((b: any) => ({
+              _id: b._id,
+              status: b.status,
+              price: b.price,
+              createdAt: b.createdAt,
+            })),
+        }
+      })
+    )
+
+    // Sort by total bookings (most active first)
+    staffActivity.sort((a, b) => b.metrics.total - a.metrics.total)
+
+    res.json(staffActivity)
+  } catch (err) {
+    logger.error(`[booking.getStaffActivity] ${i18n.t('DB_ERROR')}`, err)
     res.status(400).send(i18n.t('DB_ERROR') + err)
   }
 }

@@ -117,17 +117,25 @@ const UpdateLocation = () => {
         return
       }
 
+      // Use the single name for all languages
+      const singleName = data.names[0].name
+      const names = env._LANGUAGES.map(lang => ({
+        language: lang.code,
+        name: singleName
+      }))
+
       let isValid = true
-      const validationPromises = data.names.map(async (name, index) => {
-        if (name.name !== originalNames[index].name) {
+      const validationPromises = names.map(async (name) => {
+        // Only validate if the name changed from the original first language name
+        if (name.name !== originalNames[0].name) {
           const status = await LocationService.validate({ language: name.language, name: name.name })
 
           if (status !== 200) {
-            setError(`names.${index}.name`, {
+            setError('names.0.name', {
               type: 'manual',
               message: clStrings.INVALID_LOCATION
             })
-            setFocus(`names.${index}.name`)
+            setFocus('names.0.name')
             isValid = false
           }
           return status === 200
@@ -143,7 +151,7 @@ const UpdateLocation = () => {
           country: data.country?._id!,
           latitude: data.latitude ? Number(data.latitude) : undefined,
           longitude: data.longitude ? Number(data.longitude) : undefined,
-          names: data.names,
+          names,
           image: watchImage,
           parkingSpots: data.parkingSpots as bookcarsTypes.ParkingSpot[] || [],
           parentLocation: data.parentLocation?._id || undefined,
@@ -151,13 +159,9 @@ const UpdateLocation = () => {
         const { status, data: newLocation } = await LocationService.update(location._id, payload)
 
         if (status === 200) {
-          // for (let i = 0; i < names.length; i += 1) {
-          //   const name = names[i]
-          //   location.values[i].value = name.name
-          // }
-
           setLocation(newLocation)
-          setOriginalNames(bookcarsHelper.clone(data.names) as bookcarsTypes.LocationName[])
+          // Store the single name in originalNames for all languages
+          setOriginalNames([{ language: 'en', name: singleName }])
           helper.info(strings.LOCATION_UPDATED)
         } else {
           _error()
@@ -188,15 +192,16 @@ const UpdateLocation = () => {
 
             if (_location && _location.values) {
               env._LANGUAGES.forEach((lang) => {
-                if (_location.values && !_location.values.some((value) => value.language === lang.code)) {
+                if (_location.values && !_location.values.some((value: bookcarsTypes.LocationValue) => value.language === lang.code)) {
                   _location.values.push({ language: lang.code, value: '' })
                 }
               })
 
-              const _names: bookcarsTypes.LocationName[] = _location.values.map((value) => ({
-                language: value.language || '',
-                name: value.value || '',
-              }))
+              // Use only the first language value for the single name field
+              const _names: bookcarsTypes.LocationName[] = [{
+                language: 'en',
+                name: _location.values[0]?.value || '',
+              }]
 
               setLocation(_location)
               setValue('country', _location.country as Option)
@@ -204,7 +209,7 @@ const UpdateLocation = () => {
               setValue('names', _names)
               setValue('longitude', (_location.longitude && _location.longitude.toString()) || '')
               setValue('latitude', (_location.latitude && _location.latitude.toString()) || '')
-              setValue('parkingSpots', _location.parkingSpots?.map((ps) => ({
+              setValue('parkingSpots', _location.parkingSpots?.map((ps: bookcarsTypes.ParkingSpot) => ({
                 latitude: ps.latitude.toString(),
                 longitude: ps.longitude.toString(),
                 values: ps.values as ParkingSpot['values'],
@@ -284,19 +289,19 @@ const UpdateLocation = () => {
                 }}
               />
 
-              {nameFields.map((field, index) => (
+              {nameFields.map((field) => (
                 <FormControl key={field.id} fullWidth margin="dense">
-                  <InputLabel className="required">{`${commonStrings.NAME} (${env._LANGUAGES.filter((l) => l.code === field.language)[0].label})`}</InputLabel>
-
+                  <InputLabel className="required">{commonStrings.NAME}</InputLabel>
+              
                   <Input
                     type="text"
-                    error={!!errors.names?.[index]?.name}
+                    error={!!errors.names?.[0]?.name}
                     required
-                    {...register(`names.${index}.name`)}
+                    {...register('names.0.name')}
                     autoComplete="off"
                   />
-                  <FormHelperText error={!!errors.names?.[index]?.name}>
-                    {errors.names?.[index]?.name?.message || ''}
+                  <FormHelperText error={!!errors.names?.[0]?.name}>
+                    {errors.names?.[0]?.name?.message || ''}
                   </FormHelperText>
                 </FormControl>
               ))}
@@ -320,7 +325,7 @@ const UpdateLocation = () => {
                 values={parkingSpotFields as bookcarsTypes.ParkingSpot[]}
                 onAdd={(value) => {
                   const parkingSpot: ParkingSpot = {
-                    values: value.values?.map((v) => ({ value: v.value!, language: v.language })) || [],
+                    values: value.values?.map((v: any) => ({ value: v.value!, language: v.language })) || [],
                     latitude: value.latitude as string,
                     longitude: value.longitude as string,
                   }
@@ -328,7 +333,7 @@ const UpdateLocation = () => {
                 }}
                 onUpdate={(value, index) => {
                   const parkingSpot: ParkingSpot = {
-                    values: value.values?.map((v) => ({ value: v.value!, language: v.language })) || [],
+                    values: value.values?.map((v: any) => ({ value: v.value!, language: v.language })) || [],
                     latitude: value.latitude as string,
                     longitude: value.longitude as string,
                   }

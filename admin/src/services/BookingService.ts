@@ -21,16 +21,16 @@ export const create = (data: bookcarsTypes.UpsertBookingPayload): Promise<bookca
  * Update a Booking.
  *
  * @param {bookcarsTypes.UpsertBookingPayload} data
- * @returns {Promise<number>}
+ * @returns {Promise<bookcarsTypes.Booking>}
  */
-export const update = (data: bookcarsTypes.UpsertBookingPayload): Promise<number> =>
+export const update = (data: bookcarsTypes.UpsertBookingPayload): Promise<bookcarsTypes.Booking> =>
   axiosInstance
     .put(
       '/api/update-booking',
       data,
       { withCredentials: true }
     )
-    .then((res) => res.status)
+    .then((res) => res.data)
 
 /**
  * Update a Booking status.
@@ -91,4 +91,61 @@ export const getBookings = (payload: bookcarsTypes.GetBookingsPayload, page: num
       payload,
       { withCredentials: true }
     )
+    .then((res) => res.data)
+
+/**
+ * Get bookings pending approval.
+ *
+ * @returns {Promise<bookcarsTypes.Booking[]>}
+ */
+export const getPendingApprovals = (): Promise<bookcarsTypes.Booking[]> =>
+  axiosInstance
+    .get(
+      '/api/pending-approvals',
+      { withCredentials: true }
+    )
+    .then((res) => res.data)
+
+/**
+ * Approve a booking.
+ *
+ * @param {string} id
+ * @param {string} userId
+ * @param {string} [notes]
+ * @returns {Promise<bookcarsTypes.Booking>}
+ */
+export const approveBooking = (id: string, userId: string, notes?: string): Promise<bookcarsTypes.Booking> =>
+  axiosInstance
+    .post(
+      `/api/approve-booking/${encodeURIComponent(id)}`,
+      { userId, notes },
+      { withCredentials: true }
+    )
+    .then((res) => res.data)
+
+/**
+ * Reject a booking.
+ *
+ * @param {string} id
+ * @param {string} userId
+ * @param {string} [notes]
+ * @returns {Promise<bookcarsTypes.Booking>}
+ */
+export const rejectBooking = (id: string, userId: string, notes?: string): Promise<bookcarsTypes.Booking> =>
+  axiosInstance
+    .post(
+      `/api/reject-booking/${encodeURIComponent(id)}`,
+      { userId, notes },
+      { withCredentials: true }
+    )
+    .then((res) => res.data)
+
+/**
+ * Get staff activity and performance metrics.
+ *
+ * @returns {Promise<any[]>}
+ */
+export const getStaffActivity = (): Promise<any[]> =>
+  axiosInstance
+    .get('/api/staff-activity', { withCredentials: true })
     .then((res) => res.data)

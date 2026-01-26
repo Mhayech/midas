@@ -92,7 +92,6 @@ const CarStateManagement = () => {
           }
         }
       }
-
     } catch (err) {
       console.error('Error loading data:', err)
       setError(csmStrings.FAILED_TO_LOAD_DATA)
@@ -106,9 +105,10 @@ const CarStateManagement = () => {
     loadData()
   }, [carId, bookingId])
 
-  // Simple state change handler that just calls loadData
+  // State change handler - NO redirect, just refresh the data
   const handleStateChange = () => {
-    loadData()
+    // The CarStateReport component already reloads its own data via loadCarStates()
+    // No redirect needed - user can create multiple states (pre-rental, post-rental) in one session
   }
 
   // PDF handler registration using ref to avoid infinite re-renders
@@ -306,10 +306,10 @@ const CarStateManagement = () => {
                     </Typography>
                     <Typography variant="body1" sx={{ mt: 0, mb: 1 }}>
                       {(() => {
-                        const ms = new Date(booking.to).getTime() - new Date(booking.from).getTime();
-                        const days = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)));
-                        const perDay = (booking.price || 0) / days;
-                        return bookcarsHelper.formatPrice(perDay, commonStrings.CURRENCY, 'en');
+                        const ms = new Date(booking.to).getTime() - new Date(booking.from).getTime()
+                        const days = Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)))
+                        const perDay = (booking.price || 0) / days
+                        return bookcarsHelper.formatPrice(perDay, commonStrings.CURRENCY, 'en')
                       })()}
                     </Typography>
                   </Grid>

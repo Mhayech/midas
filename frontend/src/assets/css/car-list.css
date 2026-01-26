@@ -48,3 +48,15 @@ section.car-list div.title div.car-count {
     min-width: 800px;
   }
 }
+
+/* Pulse animation for availability badge */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.2);
+  }
+}

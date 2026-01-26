@@ -16,6 +16,7 @@ import Token from '../models/Token'
 import PushToken from '../models/PushToken'
 import * as helper from '../utils/helper'
 import * as authHelper from '../utils/authHelper'
+import * as otpHelper from '../utils/otpHelper'
 import * as mailHelper from '../utils/mailHelper'
 import Notification from '../models/Notification'
 import NotificationCounter from '../models/NotificationCounter'
@@ -170,6 +171,37 @@ export const create = async (req: Request, res: Response) => {
   const { body }: { body: bookcarsTypes.CreateUserPayload } = req
 
   try {
+    // Get current user from token to check permissions
+    let authToken: string
+    const isAdmin = authHelper.isAdmin(req)
+    const isFrontend = authHelper.isFrontend(req)
+
+    if (isAdmin) {
+      authToken = req.signedCookies[env.ADMIN_AUTH_COOKIE_NAME] as string
+    } else if (isFrontend) {
+      authToken = req.signedCookies[env.FRONTEND_AUTH_COOKIE_NAME] as string
+    } else {
+      authToken = req.headers[env.X_ACCESS_TOKEN] as string
+    }
+
+    if (authToken) {
+      const sessionData = await authHelper.decryptJWT(authToken)
+      if (sessionData && helper.isValidObjectId(sessionData.id)) {
+        const currentUser = await User.findById(sessionData.id).lean()
+        
+        // Agency Staff can ONLY create Driver users
+        if (currentUser && currentUser.type === bookcarsTypes.UserType.AgencyStaff) {
+          if (body.type && body.type !== bookcarsTypes.UserType.User) {
+            logger.error(`[user.create] Agency Staff ${currentUser.email} attempted to create ${body.type} user`)
+            res.status(403).send('Access denied! Agency Staff can only create Driver users.')
+            return
+          }
+          // Force type to User for Staff
+          body.type = bookcarsTypes.UserType.User
+        }
+      }
+    }
+
     const existingUser = await User.findOne({ email: body.email })
     if (existingUser) {
       logger.error(`[user.create] Email already exists: ${body.email}`)
@@ -192,7 +224,7 @@ export const create = async (req: Request, res: Response) => {
     const user = new User(body)
     await user.save()
 
-    const finalContracts: bookcarsTypes.Contract[] = []
+    const finalContracts: bookcarsTypes.UserContract[] = []
     if (contracts) {
       for (const contract of contracts) {
         if (contract.language && contract.file) {
@@ -529,67 +561,75 @@ export const signin = async (req: Request, res: Response) => {
       res.sendStatus(204)
       return
     }
-    const passwordMatch = await bcrypt.compare(password, user.pasdocesword)
+    const passwordMatch = await bcrypt.compare(password, user.password)
 
     if (passwordMatch) {
       //
-      // On production, authentication cookies are httpOnly, signed, secure and strict sameSite.
-      // These options prevent XSS, CSRF and MITM attacks.
-      // Authentication cookies are protected against XST attacks as well via allowedMethods middleware.
+      // MFA STEP 1: Credentials verified - Generate and send OTP
       //
-      const cookieOptions: CookieOptions = helper.clone(env.COOKIE_OPTIONS)
+      try {
+        const otpCode = await otpHelper.createOTP(user.id)
 
-      if (stayConnected) {
-        //
-        // Cookies can no longer set an expiration date more than 400 days in the future.
-        // The limit MUST NOT be greater than 400 days in duration.
-        // The RECOMMENDED limit is 400 days in duration, but the user agent MAY adjust the
-        // limit to be less.
-        //
-        cookieOptions.maxAge = 400 * 24 * 60 * 60 * 1000
-      } else {
-        //
-        // Cookie maxAge option is set in milliseconds.
-        //
-        cookieOptions.maxAge = env.JWT_EXPIRE_AT * 1000
-      }
+        // Set language for email
+        i18n.locale = user.language || 'en'
 
-      const payload: authHelper.SessionData = { id: user.id }
-      const token = await authHelper.encryptJWT(payload, stayConnected)
+        // Send OTP via email
+        const mailOptions: nodemailer.SendMailOptions = {
+          from: env.SMTP_FROM,
+          to: user.email,
+          subject: i18n.t('MFA_OTP_SUBJECT'),
+          html:
+            `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 30px; border: 1px solid #e0e0e0; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h2 style="color: #333; margin-bottom: 20px; text-align: center;">🔐 ${i18n.t('MFA_OTP_TITLE')}</h2>
+                <p style="font-size: 16px; color: #555; line-height: 1.6;">
+                  ${i18n.t('HELLO')} <strong>${user.fullName}</strong>,<br><br>
+                  ${i18n.t('MFA_OTP_MESSAGE')}<br><br>
+                </p>
+                <div style="background: #f8f9fa; border: 2px dashed #667eea; border-radius: 8px; padding: 20px; text-align: center; margin: 20px 0;">
+                  <p style="font-size: 14px; color: #666; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">
+                    ${i18n.t('MFA_OTP_CODE_LABEL')}
+                  </p>
+                  <p style="font-size: 36px; font-weight: bold; color: #667eea; letter-spacing: 8px; margin: 10px 0; font-family: 'Courier New', monospace;">
+                    ${otpCode}
+                  </p>
+                </div>
+                <p style="font-size: 14px; color: #999; text-align: center; margin-top: 20px;">
+                  ${i18n.t('MFA_OTP_EXPIRY')}<br>
+                  ${i18n.t('MFA_OTP_SECURITY_NOTE')}
+                </p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                <p style="font-size: 14px; color: #666; text-align: center;">
+                  ${i18n.t('REGARDS')}<br>
+                  <strong>${env.WEBSITE_NAME}</strong>
+                </p>
+              </div>
+            </div>`,
+        }
+        await mailHelper.sendMail(mailOptions)
 
-      const loggedUser: bookcarsTypes.User = {
-        _id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-        language: user.language,
-        enableEmailNotifications: user.enableEmailNotifications,
-        blacklisted: user.blacklisted,
-        avatar: user.avatar,
-      }
+        logger.info(`[user.signin] OTP sent to ${user.email} - MFA required`)
 
-      //
-      // On mobile, we return the token in the response body.
-      //
-      if (mobile) {
-        loggedUser.accessToken = token
+        // Return user info WITHOUT JWT token - OTP verification required
+        const partialUser: bookcarsTypes.User = {
+          _id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+          language: user.language,
+          avatar: user.avatar,
+        }
 
-        res
-          .status(200)
-          .send(loggedUser)
+        // Special response indicating OTP is required
+        res.status(202).json({
+          otpRequired: true,
+          user: partialUser,
+        })
+        return
+      } catch (otpErr) {
+        logger.error(`[user.signin] Failed to send OTP to ${user.email}:`, otpErr)
+        res.status(500).send('Failed to initiate MFA')
         return
       }
-
-      //
-      // On web, we return the token in a httpOnly, signed, secure and strict sameSite cookie.
-      //
-      const cookieName = authHelper.getAuthCookieName(req)
-
-      res
-        .clearCookie(cookieName)
-        .cookie(cookieName, token, cookieOptions)
-        .status(200)
-        .send(loggedUser)
-      return
     }
 
     res.sendStatus(204)
@@ -600,7 +640,117 @@ export const signin = async (req: Request, res: Response) => {
 }
 
 /**
- * Sign In.
+ * Sign In - Complete after OTP verification.
+ * This endpoint is called after user successfully verifies their OTP.
+ * It issues the JWT token and completes the authentication process.
+ *
+ * @export
+ * @async
+ * @param {Request} req
+ * @param {Response} res
+ * @returns {unknown}
+ */
+export const signinComplete = async (req: Request, res: Response) => {
+  const { body }: { body: { userId: string; stayConnected?: boolean; mobile?: boolean } } = req
+  const { userId, stayConnected, mobile } = body
+
+  try {
+    if (!userId || !helper.isValidObjectId(userId)) {
+      throw new Error('Invalid userId')
+    }
+
+    // Verify OTP was completed
+    const hasValidOTP = await otpHelper.hasVerifiedOTP(userId)
+    if (!hasValidOTP) {
+      logger.error(`[user.signinComplete] No verified OTP for user ${userId}`)
+      res.status(403).send('OTP verification required')
+      return
+    }
+
+    // Get user
+    const user = await User.findById(userId)
+    if (!user) {
+      logger.error(`[user.signinComplete] User not found: ${userId}`)
+      res.status(404).send('User not found')
+      return
+    }
+
+    // Check permissions
+    const type = req.params.type.toLowerCase() as bookcarsTypes.AppType
+    if (
+      ![bookcarsTypes.AppType.Frontend, bookcarsTypes.AppType.Admin].includes(type)
+      || (type === bookcarsTypes.AppType.Admin && user.type === bookcarsTypes.UserType.User)
+      || (type === bookcarsTypes.AppType.Frontend && user.type !== bookcarsTypes.UserType.User)
+    ) {
+      res.sendStatus(403)
+      return
+    }
+
+    //
+    // MFA STEP 2: OTP verified - Issue JWT token and complete signin
+    //
+    const cookieOptions: CookieOptions = helper.clone(env.COOKIE_OPTIONS)
+
+    if (stayConnected) {
+      //
+      // Cookies can no longer set an expiration date more than 400 days in the future.
+      //
+      cookieOptions.maxAge = 400 * 24 * 60 * 60 * 1000
+    } else {
+      //
+      // Cookie maxAge option is set in milliseconds.
+      //
+      cookieOptions.maxAge = env.JWT_EXPIRE_AT * 1000
+    }
+
+    const payload: authHelper.SessionData = { id: user.id }
+    const token = await authHelper.encryptJWT(payload, stayConnected)
+
+    const loggedUser: bookcarsTypes.User = {
+      _id: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      language: user.language,
+      enableEmailNotifications: user.enableEmailNotifications,
+      blacklisted: user.blacklisted,
+      avatar: user.avatar,
+    }
+
+    // Clean up OTP records after successful signin
+    await otpHelper.deleteUserOTPs(userId)
+
+    //
+    // On mobile, we return the token in the response body.
+    //
+    if (mobile) {
+      loggedUser.accessToken = token
+
+      res
+        .status(200)
+        .send(loggedUser)
+      return
+    }
+
+    //
+    // On web, we return the token in a httpOnly, signed, secure and strict sameSite cookie.
+    //
+    const cookieName = authHelper.getAuthCookieName(req)
+
+    res
+        .clearCookie(cookieName)
+        .cookie(cookieName, token, cookieOptions)
+        .status(200)
+        .send(loggedUser)
+
+    logger.info(`[user.signinComplete] User ${user.email} successfully signed in with MFA`)
+  } catch (err) {
+    logger.error('[user.signinComplete] Error:', err)
+    res.status(500).send('Internal server error')
+  }
+}
+
+/**
+ * Social Sign In.
  *
  * @export
  * @async

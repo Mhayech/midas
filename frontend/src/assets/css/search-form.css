@@ -1,23 +1,33 @@
 form.home-search-form .btn-search,
 form.home-search-form .btn-cancel {
-  font-size: 18px;
-  font-weight: 400;
-  height: 52px;
+  font-size: 16px;
+  font-weight: 600;
+  height: 54px;
   min-width: 190px;
+  border-radius: var(--border-radius);
+  transition: var(--transition);
+  text-transform: none;
+  letter-spacing: 0.02em;
 }
 
 form.home-search-form .btn-search {
   color: #fff;
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--border-radius);
   margin: 0;
   white-space: nowrap;
-  background: #212121;
+  background: var(--gradient-primary);
+  box-shadow: var(--shadow-md);
 }
 
-form.home-search-form .btn-search:hover,
+form.home-search-form .btn-search:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(47, 82, 51, 0.35);
+}
+
 form.home-search-form .btn-cancel:hover {
-  opacity: 0.95;
+  background-color: rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
 }
 
 form.home-search-form .chk-same-location {

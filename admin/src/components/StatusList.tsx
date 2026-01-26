@@ -87,6 +87,14 @@ const StatusList = ({
             <MenuItem value={bookcarsTypes.BookingStatus.Cancelled} className="bs-s bs-s-cancelled">
               {commonStrings.BOOKING_STATUS_CANCELLED}
             </MenuItem>
+            {/* PendingApproval - System-set status (not user-selectable, but can be displayed) */}
+            <MenuItem 
+              value={bookcarsTypes.BookingStatus.PendingApproval} 
+              className="bs-s bs-s-pending_approval"
+              disabled
+            >
+              {commonStrings.BOOKING_STATUS_PENDING_APPROVAL}
+            </MenuItem>
           </Select>
         </>
       )}

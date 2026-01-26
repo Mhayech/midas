@@ -9,12 +9,14 @@ import Notification from '../models/Notification'
 import NotificationCounter from '../models/NotificationCounter'
 import PushToken from '../models/PushToken'
 import Token, { TOKEN_EXPIRE_AT_INDEX_NAME } from '../models/Token'
+import Otp, { OTP_EXPIRE_AT_INDEX_NAME } from '../models/Otp'
 import User, { USER_EXPIRE_AT_INDEX_NAME } from '../models/User'
 import Country from '../models/Country'
 import ParkingSpot from '../models/ParkingSpot'
 import AdditionalDriver from '../models/AdditionalDriver'
 import BankDetails from '../models/BankDetails'
 import DateBasedPrice from '../models/DateBasedPrice'
+import Contract from '../models/Contract'
 import * as databaseTTLHelper from './databaseTTLHelper'
 import * as databaseLangHelper from './databaseLangHelper'
 import * as settingController from '../controllers/settingController'
@@ -192,12 +194,14 @@ export const models = defineModels([
   BankDetails,
   Booking,
   Car,
+  Contract,
   Country,
   DateBasedPrice,
   Location,
   LocationValue,
   Notification,
   NotificationCounter,
+  Otp,
   ParkingSpot,
   PushToken,
   Token,
@@ -238,6 +242,7 @@ export const initialize = async (createIndexes: boolean = true): Promise<boolean
       checkAndUpdateTTL(Booking, BOOKING_EXPIRE_AT_INDEX_NAME, env.BOOKING_EXPIRE_AT),
       checkAndUpdateTTL(User, USER_EXPIRE_AT_INDEX_NAME, env.USER_EXPIRE_AT),
       checkAndUpdateTTL(Token, TOKEN_EXPIRE_AT_INDEX_NAME, env.TOKEN_EXPIRE_AT),
+      checkAndUpdateTTL(Otp, OTP_EXPIRE_AT_INDEX_NAME, 300), // OTP expires in 5 minutes (300 seconds)
     ])
 
     //

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   Box,
   Button,
@@ -43,13 +43,7 @@ const ComparisonDialog = ({ open, bookingId, onClose }: ComparisonDialogProps) =
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    if (open && bookingId) {
-      _loadComparison()
-    }
-  }, [open, bookingId])
-
-  const _loadComparison = async () => {
+  const _loadComparison = useCallback(async () => {
     setLoading(true)
     setError('')
     try {
@@ -61,7 +55,13 @@ const ComparisonDialog = ({ open, bookingId, onClose }: ComparisonDialogProps) =
     } finally {
       setLoading(false)
     }
-  }
+  }, [bookingId])
+
+  useEffect(() => {
+    if (open && bookingId) {
+      _loadComparison()
+    }
+  }, [open, bookingId, _loadComparison])
 
   const formatDate = (dateString: string) => {
     try {

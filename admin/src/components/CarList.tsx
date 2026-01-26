@@ -450,6 +450,19 @@ const CarList = ({
             )
             : rows.map((car, index) => {
               const edit = admin || car.supplier._id === user._id
+              
+              // Skip cars with missing required fields
+              if (!car._id || !car.image || !car.supplier || !car.supplier._id) {
+                console.warn('[CarList] Skipping car with missing data:', { 
+                  carId: car._id, 
+                  hasImage: !!car.image, 
+                  hasSupplier: !!car.supplier,
+                  supplierId: car.supplier?._id,
+                  carName: car.name
+                })
+                return null
+              }
+              
               return (
                 <article key={car._id}>
                   <div className="car">
@@ -496,8 +509,8 @@ const CarList = ({
                     {car.currentState && (
                       <div className="car-state-display" style={{ marginBottom: '10px' }}>
                         <Chip
-                          label={getCarStateLabel(car.currentState)}
-                          color={getCarStateColor(car.currentState) as any}
+                          label={car.allUnitsRented ? strings.UNAVAILABLE : strings.AVAILABLE}
+                          color={car.allUnitsRented ? 'error' : 'success'}
                           size="small"
                           variant="outlined"
                         />
@@ -586,11 +599,19 @@ const CarList = ({
                       )}
                       {edit && (
                         <>
-                          <li className={car.available ? 'car-available' : 'car-unavailable'}>
-                            <Tooltip title={car.available ? strings.CAR_AVAILABLE_TOOLTIP : strings.CAR_UNAVAILABLE_TOOLTIP}>
+                          <li className={car.available && !car.allUnitsRented ? 'car-available' : 'car-unavailable'}>
+                            <Tooltip title={car.available && !car.allUnitsRented ? strings.CAR_AVAILABLE_TOOLTIP : strings.CAR_UNAVAILABLE_TOOLTIP}>
                               <div className="car-info-list-item">
-                                {car.available ? <CheckIcon /> : <UncheckIcon />}
-                                {car.available ? <span className="car-info-list-text">{strings.CAR_AVAILABLE}</span> : <span className="car-info-list-text">{strings.CAR_UNAVAILABLE}</span>}
+                                {car.available && !car.allUnitsRented ? <CheckIcon /> : <UncheckIcon />}
+                                {car.available && !car.allUnitsRented ? (
+                                  <span className="car-info-list-text">
+                                    {strings.CAR_AVAILABLE}
+                                  </span>
+                                ) : (
+                                  <span className="car-info-list-text">
+                                    {strings.CAR_UNAVAILABLE}
+                                  </span>
+                                )}
                               </div>
                             </Tooltip>
                           </li>

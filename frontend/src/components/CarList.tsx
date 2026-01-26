@@ -81,6 +81,7 @@ const CarList = ({
   const [loading, setLoading] = useState(false)
   const [fetch, setFetch] = useState(false)
   const [rows, setRows] = useState<bookcarsTypes.Car[]>([])
+  const [groupedCars, setGroupedCars] = useState<Map<string, bookcarsTypes.Car[]>>(new Map())
   const [rowCount, setRowCount] = useState(0)
   const [totalRecords, setTotalRecords] = useState(0)
   const [page, setPage] = useState(1)
@@ -160,6 +161,16 @@ const CarList = ({
       setRowCount((_page - 1) * env.CARS_PAGE_SIZE + _rows.length)
       setTotalRecords(_totalRecords)
       setFetch(_data.resultData.length > 0)
+      
+      // Group cars by name
+      const grouped = new Map<string, bookcarsTypes.Car[]>()
+      _rows.forEach((car) => {
+        if (!grouped.has(car.name)) {
+          grouped.set(car.name, [])
+        }
+        grouped.get(car.name)!.push(car)
+      })
+      setGroupedCars(grouped)
 
       if (((env.PAGINATION_MODE === Const.PAGINATION_MODE.INFINITE_SCROLL || env.isMobile) && _page === 1) || (env.PAGINATION_MODE === Const.PAGINATION_MODE.CLASSIC && !env.isMobile)) {
         window.scrollTo(0, 0)
@@ -195,6 +206,17 @@ const CarList = ({
     if (cars) {
       setRows(cars)
       setFetch(false)
+      
+      // Group cars by name
+      const grouped = new Map<string, bookcarsTypes.Car[]>()
+      cars.forEach((car) => {
+        if (!grouped.has(car.name)) {
+          grouped.set(car.name, [])
+        }
+        grouped.get(car.name)!.push(car)
+      })
+      setGroupedCars(grouped)
+      
       if (onLoad) {
         onLoad({ rows: cars, rowCount: cars.length })
       }
@@ -243,22 +265,72 @@ const CarList = ({
                 </div>
               )}
 
-              {rows.map((car) => (
-                <Car
-                  key={car._id}
-                  car={car}
-                  booking={booking}
-                  pickupLocation={pickupLocation}
-                  dropOffLocation={dropOffLocation}
-                  from={from as Date}
-                  to={to as Date}
-                  pickupLocationName={pickupLocationName}
-                  distance={distance}
-                  hideSupplier={hideSupplier}
-                  sizeAuto={sizeAuto}
-                  hidePrice={hidePrice}
-                />
-              ))}
+              {Array.from(groupedCars.entries()).map(([carName, carGroup]) => {
+                // Calculate availability for this group
+                const availableUnits = carGroup.filter(c => c.available && !c.fullyBooked && !c.comingSoon).length
+                const totalUnits = carGroup.length
+                
+                // Show the first available car, or first car if none available
+                const carToDisplay = carGroup.find(c => c.available && !c.fullyBooked && !c.comingSoon) || carGroup[0]
+                
+                return (
+                  <div key={carName} style={{ position: 'relative' }}>
+                    {totalUnits > 1 && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '24px',
+                        left: '24px',
+                        zIndex: 10,
+                        background: availableUnits > 0 
+                          ? 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)' 
+                          : 'linear-gradient(135deg, #f44336 0%, #e57373 100%)',
+                        color: 'white',
+                        padding: '4px 10px',
+                        borderRadius: '16px',
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        boxShadow: availableUnits > 0 
+                          ? '0 2px 8px rgba(76, 175, 80, 0.25)' 
+                          : '0 2px 8px rgba(244, 67, 54, 0.25)',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.3px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'all 0.3s ease',
+                        cursor: 'default'
+                      }}>
+                        {availableUnits > 0 && (
+                          <span style={{
+                            width: '6px',
+                            height: '6px',
+                            backgroundColor: 'white',
+                            borderRadius: '50%',
+                            animation: 'pulse 2s ease-in-out infinite'
+                          }} />
+                        )}
+                        {availableUnits > 0 
+                          ? `${availableUnits}/${totalUnits} ${strings.UNITS_AVAILABLE}` 
+                          : strings.ALL_UNITS_UNAVAILABLE}
+                      </div>
+                    )}
+                    <Car
+                      key={carToDisplay._id}
+                      car={carToDisplay}
+                      booking={booking}
+                      pickupLocation={pickupLocation}
+                      dropOffLocation={dropOffLocation}
+                      from={from as Date}
+                      to={to as Date}
+                      pickupLocationName={pickupLocationName}
+                      distance={distance}
+                      hideSupplier={hideSupplier}
+                      sizeAuto={sizeAuto}
+                      hidePrice={hidePrice}
+                    />
+                  </div>
+                )
+              })}
             </>
           )}
         {loading && <Progress />}

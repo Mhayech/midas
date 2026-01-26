@@ -16,6 +16,7 @@ import { strings } from '@/lang/sign-in'
 import * as UserService from '@/services/UserService'
 import Header from '@/components/Header'
 import Error from '@/components/Error'
+import OtpDialog from '@/components/OtpDialog'
 import * as langHelper from '@/utils/langHelper'
 import { useUserContext, UserContextType } from '@/context/UserContext'
 import { schema, FormFields } from '@/models/SignInForm'
@@ -28,6 +29,10 @@ const SignIn = () => {
 
   const { setUser, setUserLoaded } = useUserContext() as UserContextType
   const [visible, setVisible] = useState(false)
+  const [otpDialogOpen, setOtpDialogOpen] = useState(false)
+  const [pendingUser, setPendingUser] = useState<bookcarsTypes.User | null>(null)
+  const [pendingStayConnected, setPendingStayConnected] = useState(false)
+  const [isRedirecting, setIsRedirecting] = useState(false)
 
   const {
     register,
@@ -58,6 +63,16 @@ const SignIn = () => {
 
       const res = await UserService.signin(data)
 
+      // Status 202 means OTP verification is required
+      if (res.status === 202) {
+        // Backend returns { otpRequired: true, user: {...} }
+        const userData = (res.data as any).user || res.data
+        setPendingUser(userData)
+        setPendingStayConnected(stayConnected || false)
+        setOtpDialogOpen(true)
+        return
+      }
+
       if (res.status === 200) {
         if (res.data.blacklisted) {
           await UserService.signout(false)
@@ -87,6 +102,47 @@ const SignIn = () => {
     } catch {
       signinError()
     }
+  }
+
+  const handleOtpSuccess = async (user: bookcarsTypes.User) => {
+    try {
+      setOtpDialogOpen(false)
+      setIsRedirecting(true)
+
+      if (user.blacklisted) {
+        await UserService.signout(false)
+        setError('root', { message: strings.IS_BLACKLISTED })
+        setIsRedirecting(false)
+        return
+      }
+
+      setUser(user)
+      setUserLoaded(true)
+
+      const params = new URLSearchParams(window.location.search)
+
+      if (params.has('u')) {
+        navigate(`/user${window.location.search}`)
+      } else if (params.has('c')) {
+        navigate(`/supplier${window.location.search}`)
+      } else if (params.has('cr')) {
+        navigate(`/car${window.location.search}`)
+      } else if (params.has('b')) {
+        navigate(`/update-booking${window.location.search}`)
+      } else {
+        navigate('/')
+      }
+    } catch (err) {
+      console.error('OTP success error:', err)
+      setIsRedirecting(false)
+      signinError()
+    }
+  }
+
+  const handleOtpCancel = () => {
+    setOtpDialogOpen(false)
+    setPendingUser(null)
+    setPendingStayConnected(false)
   }
 
   useEffect(() => {
@@ -123,7 +179,7 @@ const SignIn = () => {
     <div>
       <Header />
 
-      {visible && (
+      {visible && !isRedirecting && (
         <div className="signin">
           <Paper className={`signin-form ${visible ? '' : 'hidden'}`} elevation={10}>
             <form onSubmit={handleSubmit(onSubmit)}>
@@ -190,6 +246,18 @@ const SignIn = () => {
             </form>
           </Paper>
         </div>
+      )}
+
+      {pendingUser && (
+        <OtpDialog
+          open={otpDialogOpen}
+          userId={pendingUser._id!}
+          email={pendingUser.email!}
+          language={pendingUser.language}
+          stayConnected={pendingStayConnected}
+          onSuccess={handleOtpSuccess}
+          onCancel={handleOtpCancel}
+        />
       )}
     </div>
   )

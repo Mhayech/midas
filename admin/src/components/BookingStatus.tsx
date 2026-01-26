@@ -4,6 +4,7 @@ import {
   RemoveCircle as VoidIcon,
   PauseCircle as PendingIcon,
   Cancel as CancelledIcon,
+  HourglassEmpty as PendingApprovalIcon,
 } from '@mui/icons-material'
 import * as bookcarsTypes from ':bookcars-types'
 import * as helper from '@/utils/helper'
@@ -27,6 +28,10 @@ const getIcon = (value: bookcarsTypes.BookingStatus) => {
 
   if (value === bookcarsTypes.BookingStatus.Pending) {
     return <PendingIcon className="bs-icon bs-icon-pending" />
+  }
+
+  if (value === bookcarsTypes.BookingStatus.PendingApproval) {
+    return <PendingApprovalIcon className="bs-icon bs-icon-pending_approval" />
   }
 
   return <CancelledIcon className="bs-icon bs-icon-cancelled" />

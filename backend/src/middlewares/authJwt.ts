@@ -39,7 +39,7 @@ const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
       }
 
       if (isAdmin) {
-        $match.$and?.push({ type: { $in: [bookcarsTypes.UserType.Admin, bookcarsTypes.UserType.Supplier] } })
+        $match.$and?.push({ type: { $in: [bookcarsTypes.UserType.Admin, bookcarsTypes.UserType.Supplier, bookcarsTypes.UserType.Accountant, bookcarsTypes.UserType.AgencyStaff] } })
       } else if (isFrontend) {
         $match.$and?.push({ type: bookcarsTypes.UserType.User })
       }

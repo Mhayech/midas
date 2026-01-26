@@ -15,17 +15,18 @@ div.user-type-filter ul.user-type-list {
 }
 
 div.user-type-filter ul.user-type-list li {
-  width: 42%;
+  width: 48%;
   float: left;
   margin-bottom: 12px;
-  margin-left: 4%;
-  margin-right: 4%;
+  margin-left: 1%;
+  margin-right: 1%;
   clear: none;
+  overflow: visible;
 }
 
 div.user-type-filter ul.user-type-list li span.bs {
-  padding: 3px;
-  width: 80px;
+  padding: 3px 8px;
+  min-width: 80px;
   text-align: center;
   color: #fff;
   box-shadow: none;
@@ -34,10 +35,11 @@ div.user-type-filter ul.user-type-list li span.bs {
   top: -3px;
   left: 5px;
   cursor: pointer;
-  overflow: hidden;
+  overflow: visible;
   margin-bottom: 0;
   display: inline-block;
   opacity: 1;
+  white-space: nowrap;
 }
 
 div.user-type-filter ul.user-type-list li span.bs:hover {
@@ -54,6 +56,14 @@ div.user-type-filter ul.user-type-list li span.bs-supplier {
 
 div.user-type-filter ul.user-type-list li span.bs-user {
   background: #22bba7;
+}
+
+div.user-type-filter ul.user-type-list li span.bs-accountant {
+  background: #6c5ce7;
+}
+
+div.user-type-filter ul.user-type-list li span.bs-agency_staff {
+  background: #0984e3;
 }
 
 div.user-type-filter div.filter-actions {

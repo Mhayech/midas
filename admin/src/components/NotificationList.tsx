@@ -239,7 +239,13 @@ const NotificationList = ({ user }: NotificationListProps) => {
                                   }
 
                                   const __navigate__ = () => {
-                                    const url = row.booking ? `/update-booking?b=${row.booking}` : `/update-car?cr=${row.car}`
+                                    // Check if notification message contains approval keywords
+                                    const isApprovalNotification = row.message?.toLowerCase().includes('approval') || row.message?.toLowerCase().includes('requiring')
+                                    const url = row.booking 
+                                      ? isApprovalNotification 
+                                        ? '/bookings?approvals=true' 
+                                        : `/update-booking?b=${row.booking}` 
+                                      : `/update-car?cr=${row.car}`
                                     navigate(url)
                                   }
 

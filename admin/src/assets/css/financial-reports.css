@@ -1,0 +1,170 @@
+/* Financial Reports Styles */
+
+.financial-reports {
+  padding: 24px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8f0ec 100%);
+  min-height: 100vh;
+}
+
+.summary-card {
+  border-radius: 20px !important;
+  box-shadow: 0 8px 32px rgba(47, 82, 51, 0.12) !important;
+  border: none !important;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.summary-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 48px rgba(47, 82, 51, 0.2) !important;
+}
+
+.revenue-card {
+  background: linear-gradient(135deg, #2F5233 0%, #4A7C4E 100%) !important;
+  color: white !important;
+}
+
+.paid-card {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 100%) !important;
+  color: white !important;
+}
+
+.pending-card {
+  background: linear-gradient(135deg, #D4AF37 0%, #E8D085 100%) !important;
+  color: #1E3522 !important;
+}
+
+.avg-card {
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%) !important;
+  color: white !important;
+}
+
+.chart-card,
+.data-card {
+  border-radius: 20px !important;
+  box-shadow: 0 8px 32px rgba(47, 82, 51, 0.08) !important;
+  border: 1px solid rgba(212, 175, 55, 0.1) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.chart-card:hover,
+.data-card:hover {
+  box-shadow: 0 12px 40px rgba(47, 82, 51, 0.15) !important;
+  transform: translateY(-2px);
+}
+
+.financial-reports .MuiTableHead-root {
+  background: linear-gradient(135deg, #2F5233 0%, #4A7C4E 100%) !important;
+}
+
+.financial-reports .MuiTableHead-root .MuiTableCell-root {
+  color: #fff !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #2F5233 0%, #4A7C4E 100%) !important;
+  padding: 16px !important;
+  white-space: nowrap;
+  border-bottom: none !important;
+}
+
+.financial-reports .MuiTableBody-root .MuiTableRow-root:hover {
+  background-color: rgba(47, 82, 51, 0.04) !important;
+}
+
+.financial-reports .MuiTableCell-root {
+  border-bottom: 1px solid rgba(47, 82, 51, 0.08) !important;
+  padding: 12px 16px !important;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+}
+
+.financial-reports .MuiTable-root {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.financial-reports .MuiTableContainer-root {
+  overflow-x: auto;
+}
+
+/* Tablet and Mobile Responsive */
+@media (max-width: 960px) {
+  .financial-reports {
+    padding: 16px;
+  }
+
+  /* Make tables scrollable horizontally */
+  .financial-reports .MuiTableContainer-root {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .financial-reports .MuiTable-root {
+    min-width: 800px; /* Ensure table is wide enough to scroll */
+  }
+
+  .financial-reports .MuiTableCell-root {
+    padding: 10px 12px !important;
+    font-size: 0.875rem;
+  }
+
+  .financial-reports .MuiTableHead-root .MuiTableCell-root {
+    padding: 12px !important;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .financial-reports {
+    padding: 12px;
+  }
+
+  /* Stack summary cards vertically on mobile */
+  .summary-card {
+    margin-bottom: 12px;
+  }
+
+  /* More compact table on small screens */
+  .financial-reports .MuiTable-root {
+    min-width: 900px; /* Wider minimum for better column spacing */
+  }
+
+  .financial-reports .MuiTableCell-root {
+    padding: 8px 10px !important;
+    font-size: 0.8125rem;
+  }
+
+  .financial-reports .MuiTableHead-root .MuiTableCell-root {
+    padding: 10px !important;
+    font-size: 0.7rem;
+  }
+}
+
+/* Small mobile screens */
+@media (max-width: 600px) {
+  .financial-reports {
+    padding: 8px;
+  }
+
+  /* Even more compact on very small screens */
+  .financial-reports .MuiTableCell-root {
+    padding: 6px 8px !important;
+    font-size: 0.75rem;
+  }
+
+  .financial-reports .MuiTableHead-root .MuiTableCell-root {
+    padding: 8px !important;
+    font-size: 0.65rem;
+  }
+
+  /* Ensure scrollable container has visible scrollbar hint */
+  .financial-reports .MuiTableContainer-root {
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+  }
+}

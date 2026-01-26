@@ -301,6 +301,8 @@ const UpdateUser = () => {
                     <MenuItem value={bookcarsTypes.UserType.Admin}>{helper.getUserType(bookcarsTypes.UserType.Admin)}</MenuItem>
                     <MenuItem value={bookcarsTypes.UserType.Supplier}>{helper.getUserType(bookcarsTypes.UserType.Supplier)}</MenuItem>
                     <MenuItem value={bookcarsTypes.UserType.User}>{helper.getUserType(bookcarsTypes.UserType.User)}</MenuItem>
+                    <MenuItem value={bookcarsTypes.UserType.Accountant}>{helper.getUserType(bookcarsTypes.UserType.Accountant)}</MenuItem>
+                    <MenuItem value={bookcarsTypes.UserType.AgencyStaff}>{helper.getUserType(bookcarsTypes.UserType.AgencyStaff)}</MenuItem>
                   </Select>
                 </FormControl>
               )}

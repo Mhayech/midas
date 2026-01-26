@@ -1,0 +1,108 @@
+.contracts {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.contracts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.contracts-title {
+  font-weight: 600;
+}
+
+.contracts-search {
+  min-width: 300px;
+}
+
+.contracts-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.contracts-card .MuiCardContent-root {
+  padding: 0;
+}
+
+/* DataGrid responsive wrapper */
+.contracts-card .MuiDataGrid-root {
+  border: none;
+  min-height: 400px;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 960px) {
+  .contracts {
+    padding: 12px;
+  }
+
+  .contracts-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .contracts-title {
+    font-size: 1.5rem;
+  }
+
+  .contracts-search {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .contracts-card {
+    margin: 0 -12px;
+    border-radius: 0;
+  }
+
+  /* Enable horizontal scroll for DataGrid on mobile */
+  .contracts-card .MuiDataGrid-root {
+    min-width: 100%;
+  }
+
+  .contracts-card .MuiCardContent-root {
+    padding: 0;
+    overflow-x: auto;
+  }
+
+  /* Make DataGrid scrollable horizontally */
+  .contracts-card .MuiDataGrid-virtualScroller {
+    min-width: 800px; /* Minimum width to show all columns */
+  }
+}
+
+/* Tablet styles */
+@media (max-width: 768px) {
+  .contracts {
+    padding: 8px;
+  }
+
+  .contracts-header {
+    margin-bottom: 16px;
+  }
+
+  .contracts-title {
+    font-size: 1.25rem;
+  }
+}
+
+/* Small mobile styles */
+@media (max-width: 600px) {
+  .contracts {
+    padding: 4px;
+  }
+
+  .contracts-card {
+    margin: 0 -4px;
+  }
+
+  .contracts-card .MuiDataGrid-virtualScroller {
+    min-width: 900px; /* More space needed for smaller screens */
+  }
+}

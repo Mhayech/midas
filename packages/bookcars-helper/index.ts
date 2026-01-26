@@ -138,7 +138,7 @@ export const isCvv = (val: string) => /^\d{3,4}$/.test(val)
  * @param {*} b
  * @returns {boolean}
  */
-export const arrayEqual = (a: any, b: any) => {
+export const arrayEqual = (a: unknown[], b: unknown[]) => {
   if (a === b) return true
   if (a == null || b == null) return false
   if (a.length !== b.length) return false
@@ -420,7 +420,7 @@ export const getAllCarTypes = () => [
  *
  * @param {any[]} array
  */
-export const shuffle = (array: any[]) => {
+export const shuffle = <T>(array: T[]): void => {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     const temp = array[i]
@@ -486,7 +486,8 @@ export const getAllBookingStatuses = () => [
   bookcarsTypes.BookingStatus.Deposit,
   bookcarsTypes.BookingStatus.Paid,
   bookcarsTypes.BookingStatus.Reserved,
-  bookcarsTypes.BookingStatus.Cancelled
+  bookcarsTypes.BookingStatus.Cancelled,
+  bookcarsTypes.BookingStatus.PendingApproval
 ]
 
 /**

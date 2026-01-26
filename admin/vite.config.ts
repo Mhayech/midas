@@ -50,6 +50,10 @@ export default ({ mode }: { mode: string }) => {
         port: Number.parseInt(process.env.VITE_HMR_PORT || '3001', 10),
         clientPort: Number.parseInt(process.env.VITE_HMR_CLIENT_PORT || '3001', 10),
       },
+      // Improve dependency optimization for Docker
+      fs: {
+        strict: false,
+      },
     },
     build: {
       outDir: 'build', // Output directory

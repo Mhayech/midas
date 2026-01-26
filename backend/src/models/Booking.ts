@@ -1,11 +1,17 @@
 import { Schema, model } from 'mongoose'
 import * as bookcarsTypes from ':bookcars-types'
 import * as env from '../config/env.config'
+import { generateBookingNumber } from '../utils/idGenerator'
 
 export const BOOKING_EXPIRE_AT_INDEX_NAME = 'expireAt'
 
 const bookingSchema = new Schema<env.Booking>(
   {
+    bookingNumber: {
+      type: String,
+      unique: true,
+      sparse: true, // Allow null for existing bookings during migration
+    },
     supplier: {
       type: Schema.Types.ObjectId,
       required: [true, "can't be blank"],
@@ -50,6 +56,7 @@ const bookingSchema = new Schema<env.Booking>(
         bookcarsTypes.BookingStatus.Paid,
         bookcarsTypes.BookingStatus.Reserved,
         bookcarsTypes.BookingStatus.Cancelled,
+        bookcarsTypes.BookingStatus.PendingApproval,
       ],
       required: [true, "can't be blank"],
     },
@@ -106,6 +113,34 @@ const bookingSchema = new Schema<env.Booking>(
     paypalOrderId: {
       type: String,
     },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      index: true,
+    },
+    approvalRequired: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    approvedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    approvedAt: {
+      type: Date,
+    },
+    rejectedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    rejectedAt: {
+      type: Date,
+    },
+    approvalNotes: {
+      type: String,
+      trim: true,
+    },
     expireAt: {
       //
       // Bookings created from checkout with Stripe are temporary and
@@ -136,6 +171,20 @@ bookingSchema.index({ 'dropOffLocation._id': 1 })
 bookingSchema.index({ 'supplier.fullName': 1 }) // Consider text index if full-text search is needed
 bookingSchema.index({ 'driver.fullName': 1 })
 bookingSchema.index({ 'car.name': 1 })
+
+// Auto-generate booking number before saving (only for new bookings)
+bookingSchema.pre('save', async function (next) {
+  // Only generate if it's a new booking and doesn't already have a booking number
+  if (this.isNew && !this.bookingNumber) {
+    try {
+      this.bookingNumber = await generateBookingNumber()
+    } catch (error) {
+      console.error('Failed to generate booking number:', error)
+      // Continue anyway - bookingNumber is optional
+    }
+  }
+  next()
+})
 
 const Booking = model<env.Booking>('Booking', bookingSchema)
 

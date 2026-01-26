@@ -99,6 +99,9 @@ const strings = new LocalizedStrings({
     CAR_RANGE_BUS: 'Bus',
     CAR_RANGE_TRUCK: 'Camion',
     CAR_RANGE_CARAVAN: 'Caravane',
+    UNITS_AVAILABLE: 'disponibles',
+    OF: 'sur',
+    ALL_UNITS_UNAVAILABLE: 'Toutes les unités indisponibles',
   },
   en: {
     NEW_CAR: 'New car',
@@ -189,6 +192,9 @@ const strings = new LocalizedStrings({
     CAR_RANGE_BUS: 'Bus',
     CAR_RANGE_TRUCK: 'Truck',
     CAR_RANGE_CARAVAN: 'Caravan',
+    UNITS_AVAILABLE: 'available',
+    OF: 'of',
+    ALL_UNITS_UNAVAILABLE: 'All units unavailable',
   },
   es: {
     NEW_CAR: 'Coche nuevo',
@@ -279,6 +285,9 @@ const strings = new LocalizedStrings({
     CAR_RANGE_BUS: 'Autobús',
     CAR_RANGE_TRUCK: 'Camión',
     CAR_RANGE_CARAVAN: 'Caravana',
+    UNITS_AVAILABLE: 'disponibles',
+    OF: 'de',
+    ALL_UNITS_UNAVAILABLE: 'Todas las unidades no disponibles',
   }
 })
 

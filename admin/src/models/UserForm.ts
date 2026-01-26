@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import validator from 'validator'
 import { intervalToDuration } from 'date-fns'
+import * as bookcarsTypes from ':bookcars-types'
 import * as bookcarsHelper from ':bookcars-helper'
 import { strings as commonStrings } from '@/lang/common'
 import env from '@/config/env.config'
@@ -11,7 +12,13 @@ export const schema = z.object({
   phone: z.string().refine((val) => !val || validator.isMobilePhone(val), { message: commonStrings.PHONE_NOT_VALID }).optional(),
   location: z.string().optional(),
   bio: z.string().optional(),
-  type: z.enum([...bookcarsHelper.getAllUserTypes()] as [string, ...string[]]),
+  type: z.enum([
+    bookcarsTypes.UserType.Admin,
+    bookcarsTypes.UserType.Supplier,
+    bookcarsTypes.UserType.User,
+    bookcarsTypes.UserType.Accountant,
+    bookcarsTypes.UserType.AgencyStaff,
+  ] as [string, ...string[]]),
   birthDate: z.date().refine((value) => {
     if (value) {
       const sub = intervalToDuration({ start: value, end: new Date() }).years ?? 0
@@ -19,6 +26,9 @@ export const schema = z.object({
     }
     return true
   }, { message: commonStrings.BIRTH_DATE_NOT_VALID }).optional(),
+  cinNumber: z.string().optional(),
+  driverLicenseNumber: z.string().optional(),
+  driverLicenseIssueDate: z.date().optional(),
   blacklisted: z.boolean().optional(),
   payLater: z.boolean().optional(),
   licenseRequired: z.boolean().optional(),

@@ -87,44 +87,48 @@ const Activate = () => {
   }
 
   const onLoad = async (user?: bookcarsTypes.User) => {
-    if (user) {
-      setNoMatch(true)
-    } else {
-      const params = new URLSearchParams(window.location.search)
-      if (params.has('u') && params.has('e') && params.has('t')) {
-        const _userId = params.get('u')
-        const _email = params.get('e')
-        const _token = params.get('t')
-        if (_userId && _email && _token) {
-          try {
-            const status = await UserService.checkToken(_userId, _email, _token)
+    // Allow activation even if logged in, but check if it's for the same user
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('u') && params.has('e') && params.has('t')) {
+      const _userId = params.get('u')
+      const _email = params.get('e')
+      const _token = params.get('t')
+      
+      // If user is logged in and trying to activate their own account, show no match
+      if (user && user._id === _userId) {
+        setNoMatch(true)
+        return
+      }
+      
+      if (_userId && _email && _token) {
+        try {
+          const status = await UserService.checkToken(_userId, _email, _token)
 
-            if (status === 200) {
-              setUserId(_userId)
-              setEmail(_email)
-              setToken(_token)
-              setVisible(true)
+          if (status === 200) {
+            setUserId(_userId)
+            setEmail(_email)
+            setToken(_token)
+            setVisible(true)
 
-              if (params.has('r')) {
-                const _reset = params.get('r') === 'true'
-                setReset(_reset)
-              }
-            } else if (status === 204) {
-              setEmail(_email)
-              setResend(true)
-            } else {
-              setNoMatch(true)
+            if (params.has('r')) {
+              const _reset = params.get('r') === 'true'
+              setReset(_reset)
             }
-          } catch (err) {
-            console.error(err)
-            setError('root', {})
+          } else if (status === 204) {
+            setEmail(_email)
+            setResend(true)
+          } else {
+            setNoMatch(true)
           }
-        } else {
-          setNoMatch(true)
+        } catch (err) {
+          console.error(err)
+          setError('root', {})
         }
       } else {
         setNoMatch(true)
       }
+    } else {
+      setNoMatch(true)
     }
   }
 

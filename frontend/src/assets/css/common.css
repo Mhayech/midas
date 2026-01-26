@@ -2,6 +2,30 @@
   --toastify-color-progress-info: #fff !important;
   --toastify-color-progress-bgo: .6 !important;
   --toastify-icon-color-info: #fff !important;
+  
+  /* Modern Color Palette - Green Theme to match MIDAS logo */
+  --primary-color: #2F5233;
+  --primary-dark: #1E3522;
+  --primary-light: #4A7C4E;
+  --secondary-color: #D4AF37;
+  --secondary-dark: #B8941F;
+  --accent-color: #D4AF37;
+  --accent-light: #E8C547;
+  --dark: #1A1A2E;
+  --dark-light: #16213E;
+  --gray: #6C757D;
+  --gray-light: #F8F9FA;
+  --success: #2F5233;
+  --text-primary: #1A1A2E;
+  --text-secondary: #6C757D;
+  --gradient-primary: linear-gradient(135deg, #2F5233 0%, #4A7C4E 100%);
+  --gradient-secondary: linear-gradient(135deg, #D4AF37 0%, #E8C547 100%);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+  --border-radius: 12px;
+  --border-radius-lg: 20px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .grecaptcha-badge {
@@ -13,7 +37,9 @@
 }
 
 #nprogress .bar {
-  background: #1a1a1a !important;
+  background: var(--gradient-primary) !important;
+  height: 3px !important;
+  box-shadow: 0 0 10px var(--primary-color) !important;
 }
 
 .buttons button {
@@ -22,8 +48,17 @@
 }
 
 .btn-primary {
-  background-color: #232323 !important;
+  background: var(--gradient-primary) !important;
   color: #fff !important;
+  border: none !important;
+  border-radius: var(--border-radius) !important;
+  padding: 12px 32px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  box-shadow: var(--shadow-md) !important;
+  transition: var(--transition) !important;
+  font-size: 16px !important;
+  letter-spacing: 0.02em !important;
 }
 
 .hidden {
@@ -35,10 +70,19 @@
   color: #fff !important;
 } */
 
-.btn-primary:hover,
+.btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(47, 82, 51, 0.35) !important;
+}
+
+.btn-primary:active {
+  transform: translateY(0) !important;
+}
+
 .btn-secondary:hover,
 .btn-orange:hover {
-  opacity: 0.95;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
 .btn-margin {
@@ -243,6 +287,9 @@ div.content {
   margin: 0;
   padding: 0;
   background-color: #FAFAFA;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
 }
 
 @media only screen and (width <=550px) {

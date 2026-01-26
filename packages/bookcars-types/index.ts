@@ -2,6 +2,8 @@ export enum UserType {
   Admin = 'admin',
   Supplier = 'supplier',
   User = 'user',
+  Accountant = 'accountant',
+  AgencyStaff = 'agency_staff',
 }
 
 export enum AppType {
@@ -54,6 +56,7 @@ export enum BookingStatus {
   Paid = 'paid',
   Reserved = 'reserved',
   Cancelled = 'cancelled',
+  PendingApproval = 'pending_approval',
 }
 
 export enum CarState {
@@ -81,6 +84,8 @@ export enum RecordType {
   Admin = 'admin',
   Supplier = 'supplier',
   User = 'user',
+  Accountant = 'accountant',
+  AgencyStaff = 'agency_staff',
   Car = 'car',
   Location = 'location',
   Country = 'country',
@@ -116,6 +121,13 @@ export interface Booking {
   expireAt?: Date
   isDeposit?: boolean
   paypalOrderId?: string
+  createdBy?: string | User
+  approvalRequired?: boolean
+  approvedBy?: string | User
+  approvedAt?: Date
+  rejectedBy?: string | User
+  rejectedAt?: Date
+  approvalNotes?: string
 }
 
 export interface CheckoutPayload {
@@ -156,6 +168,7 @@ export interface AdditionalDriver {
 export interface UpsertBookingPayload {
   booking: Booking
   additionalDriver?: AdditionalDriver
+  userId?: string // For Agency Staff approval workflow
 }
 
 export interface LocationName {
@@ -286,7 +299,7 @@ export interface SignUpPayload {
   birthDate?: number | Date
 }
 
-export type Contract = { language: string, file: string | null }
+export type UserContract = { language: string, file: string | null }
 
 export interface CreateUserPayload {
   email?: string
@@ -297,13 +310,16 @@ export interface CreateUserPayload {
   type?: string
   avatar?: string
   birthDate?: number | Date
+  cinNumber?: string
+  driverLicenseNumber?: string
+  driverLicenseIssueDate?: number | Date
   language?: string
   password?: string
   verified?: boolean
   blacklisted?: boolean
   payLater?: boolean
   supplier?: string
-  contracts?: Contract[]
+  contracts?: UserContract[]
   licenseRequired?: boolean
   minimumRentalDays?: number
   license?: string
@@ -353,6 +369,29 @@ export interface SignInPayload {
   socialSignInType?: SocialSignInType
 }
 
+export interface SignInCompletePayload {
+  userId: string
+  stayConnected?: boolean
+  mobile?: boolean
+}
+
+export interface SendOTPPayload {
+  userId: string
+  email: string
+  language?: string
+}
+
+export interface VerifyOTPPayload {
+  userId: string
+  otp: string
+}
+
+export interface ResendOTPPayload {
+  userId: string
+  email: string
+  language?: string
+}
+
 export interface ResendLinkPayload {
   email?: string
 }
@@ -394,6 +433,9 @@ export interface User {
   phone?: string
   password?: string
   birthDate?: Date
+  cinNumber?: string
+  driverLicenseNumber?: string
+  driverLicenseIssueDate?: Date
   verified?: boolean
   verifiedAt?: Date
   active?: boolean
@@ -409,7 +451,7 @@ export interface User {
   checked?: boolean
   customerId?: string
   carCount?: number
-  contracts?: Contract[]
+  contracts?: UserContract[]
   licenseRequired?: boolean
   license?: string | null
   driverContract?: string | null
@@ -556,7 +598,7 @@ export interface CarStateInfo {
 
 export interface DamageMarker {
   id: string
-  type: 'W' | 'P' | 'O' | 'T' | 'R'  // Dent, Crack, Chip, Scratch, Scuff
+  type: 'W' | 'P' | 'O' | 'T' | 'R' // Dent, Crack, Chip, Scratch, Scuff
   severity: 'minor' | 'moderate' | 'major' | 'critical'
   viewAngle: 'front' | 'back' | 'left' | 'right' | 'top' | 'interior'
   x: number
@@ -590,6 +632,8 @@ export interface Data<T> {
 export interface GetBookingCarsPayload {
   supplier: string
   pickupLocation: string
+  from?: Date
+  to?: Date
 }
 
 export interface Notification {
@@ -785,6 +829,24 @@ export interface UpdateSettingsPayload {
   minRentalHours: number
   minPickupDropoffHour: number
   maxPickupDropoffHour: number
+}
+
+export interface Contract {
+  _id?: string
+  booking: string | Booking
+  contractNumber: string
+  fileName: string
+  filePath: string
+  fileSize: number
+  generatedAt: Date
+  customer: string | User
+  supplier: string | User
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface GenerateContractPayload {
+  bookingId: string
 }
 
 // 

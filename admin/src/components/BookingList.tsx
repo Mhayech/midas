@@ -17,7 +17,7 @@ import {
   DialogActions,
   Button,
 } from '@mui/material'
-import { Edit as EditIcon, Delete as DeleteIcon, Check as CheckIcon, Assessment as AssessmentIcon } from '@mui/icons-material'
+import { Edit as EditIcon, Delete as DeleteIcon, Check as CheckIcon, Assessment as AssessmentIcon, Description as ContractIcon } from '@mui/icons-material'
 import { format } from 'date-fns'
 import { fr as dfnsFR, enUS as dfnsENUS } from 'date-fns/locale'
 import * as bookcarsTypes from ':bookcars-types'
@@ -28,6 +28,7 @@ import { strings as csStrings } from '@/lang/cars'
 import { strings } from '@/lang/booking-list'
 import * as helper from '@/utils/helper'
 import * as BookingService from '@/services/BookingService'
+import * as ContractService from '@/services/ContractService'
 import StatusList from './StatusList'
 import BookingStatus from './BookingStatus'
 
@@ -93,6 +94,8 @@ const BookingList = ({
     page: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [contractLoading, setContractLoading] = useState<Record<string, boolean>>({})
+  const [initialLoadDone, setInitialLoadDone] = useState(false)
 
   useEffect(() => {
     if (!env.isMobile) {
@@ -188,23 +191,16 @@ const BookingList = ({
     }
   }, [bookingUser]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Combined effect for initial data load and dependency changes
   useEffect(() => {
-    if (suppliers && statuses && loggedUser) {
+    if (suppliers && statuses && loggedUser && !initialLoadDone) {
+      fetchData(page, user)
+      setInitialLoadDone(true)
+    } else if (initialLoadDone && suppliers && statuses && loggedUser) {
+      // Only fetch if dependencies actually changed after initial load
       fetchData(page, user)
     }
-  }, [page]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (suppliers && statuses && loggedUser) {
-      if (page === 0) {
-        fetchData(0, user)
-      } else {
-        const _paginationModel = bookcarsHelper.clone(paginationModel)
-        _paginationModel.page = 0
-        setPaginationModel(_paginationModel)
-      }
-    }
-  }, [pageSize]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [suppliers, statuses, loggedUser, page]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const getDate = (date?: string) => {
     if (date) {
@@ -251,6 +247,40 @@ const BookingList = ({
         valueGetter: (value: string) => value,
       },
       {
+        field: 'contract',
+        headerName: strings.CONTRACT || 'Contract',
+        flex: 0.8,
+        sortable: false,
+        renderCell: ({ row }: GridRenderCellParams<bookcarsTypes.Booking>) => {
+          const isPaid = row.status === bookcarsTypes.BookingStatus.Paid
+          const bookingId = row._id || ''
+          const isGenerating = contractLoading[bookingId]
+
+          const handleDownloadContract = async (e: React.MouseEvent<HTMLElement>) => {
+            e.stopPropagation()
+            try {
+              await ContractService.downloadContract(bookingId)
+            } catch (err) {
+              helper.error(err)
+            }
+          }
+
+          if (!isPaid) {
+            return null
+          }
+
+          return (
+            <div>
+              <Tooltip title={strings.DOWNLOAD_CONTRACT || 'Download Contract'}>
+                <IconButton size="small" color="primary" onClick={handleDownloadContract} disabled={isGenerating}>
+                  <ContractIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </div>
+          )
+        },
+      },
+      {
         field: 'action',
         headerName: '',
         sortable: false,
@@ -262,6 +292,7 @@ const BookingList = ({
             setopenDeleteDialog(true)
           }
           const canManageState = !!loggedUser && ((row.supplier as bookcarsTypes.User)._id === loggedUser._id || helper.admin(loggedUser))
+          const canDelete = !!loggedUser && !helper.agencyStaff(loggedUser)
 
           return (
             <div>
@@ -277,15 +308,17 @@ const BookingList = ({
                   </IconButton>
                 </Tooltip>
               )}
-              <Tooltip title={commonStrings.DELETE}>
-                <IconButton onClick={handleDelete}>
-                  <DeleteIcon />
-                </IconButton>
-              </Tooltip>
+              {canDelete && (
+                <Tooltip title={commonStrings.DELETE}>
+                  <IconButton onClick={handleDelete}>
+                    <DeleteIcon />
+                  </IconButton>
+                </Tooltip>
+              )}
             </div>
           )
         },
-        renderHeader: () => (selectedIds.length > 0 ? (
+        renderHeader: () => (selectedIds.length > 0 && !helper.agencyStaff(loggedUser) ? (
           <div>
             <Tooltip title={strings.UPDATE_SELECTION}>
               <IconButton

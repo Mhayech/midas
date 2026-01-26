@@ -245,8 +245,10 @@ const SignUp = () => {
                 </table>
               </div>
 
-              <SocialLogin redirectToHomepage />
-
+              <div className="social-login">
+                <SocialLogin redirectToHomepage />
+              </div>
+              
               <div className="buttons">
                 <Button type="submit" variant="contained" className="btn-primary btn-margin-bottom" disabled={isSubmitting}>
                   {strings.SIGN_UP}

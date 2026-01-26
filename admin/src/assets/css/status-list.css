@@ -43,6 +43,11 @@ li.bs-s {
   background: #bc2143 !important;
 }
 
+.bs-s-pending_approval,
+.bs-s-pending_approval:hover {
+  background: #F57C00 !important;
+}
+
 .bs-s-sv {
   display: inherit;
   text-align: center;

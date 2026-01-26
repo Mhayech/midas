@@ -21,6 +21,10 @@ import bankDetailsRoutes from './routes/bankDetailsRoutes'
 import carStateRoutes from './routes/carStateRoutes'
 import ipinfoRoutes from './routes/ipinfoRoutes'
 import settingRoutes from './routes/settingRoutes'
+import financialReportRoutes from './routes/financialReportRoutes'
+import contractRoutes from './routes/contractRoutes'
+import gpsRoutes from './routes/gpsRoutes'
+import otpRoutes from './routes/otpRoutes'
 import * as helper from './utils/helper'
 
 const app = express()
@@ -66,6 +70,10 @@ app.use('/', ipinfoRoutes)
 app.use('/', bankDetailsRoutes)
 app.use('/', carStateRoutes)
 app.use('/', settingRoutes)
+app.use('/', financialReportRoutes)
+app.use('/', contractRoutes)
+app.use('/api/gps', gpsRoutes)
+app.use('/', otpRoutes)
 
 if (env.ENABLE_SENTRY) {
   Sentry.setupExpressErrorHandler(app)

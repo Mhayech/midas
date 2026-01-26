@@ -371,7 +371,23 @@ export const getCountriesWithLocations = async (req: Request, res: Response) => 
                 },
               },
               { $unwind: { path: '$value', preserveNullAndEmptyArrays: false } },
-              { $addFields: { name: '$value.value' } },
+              {
+                $addFields: {
+                  name: '$value.value',
+                  parkingSpotsCount: { $size: { $ifNull: ['$parkingSpots', []] } },
+                },
+              },
+              {
+                $project: {
+                  _id: 1,
+                  name: 1,
+                  image: 1,
+                  latitude: 1,
+                  longitude: 1,
+                  parkingSpots: 1,
+                  parkingSpotsCount: 1,
+                },
+              },
             ],
             as: 'locations',
           },

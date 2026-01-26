@@ -141,23 +141,11 @@ const Cars = () => {
     setUser(_user)
     setLanguage(_user?.language as string)
     const _isAdmin = helper.admin(_user)
+    const _isStaff = helper.agencyStaff(_user)
     setAdmin(_isAdmin)
 
-    if (_isAdmin) {
-      // const payload: bookcarsTypes.GetCarsPayload = {
-      //   carSpecs,
-      //   carType,
-      //   gearbox,
-      //   mileage,
-      //   fuelPolicy,
-      //   deposit,
-      //   availability,
-      //   ranges,
-      //   multimedia,
-      //   rating,
-      //   seats,
-      // }
-      // const _allSuppliers = await SupplierService.getAdminSuppliers(payload)
+    // Admin and Agency Staff can see all cars
+    if (_isAdmin || _isStaff) {
       const _allSuppliers = await SupplierService.getAllSuppliers()
       const _suppliers = bookcarsHelper.flattenSuppliers(_allSuppliers)
       setAllSuppliers(_allSuppliers)
@@ -185,7 +173,7 @@ const Cars = () => {
 
               {rowCount > 0 && <InfoBox value={`${bookcarsHelper.formatNumber(rowCount, language)} ${rowCount > 1 ? commonStrings.CARS : commonStrings.CAR}`} className="car-count" />}
 
-              {admin && (
+              {(admin || helper.agencyStaff(user)) && (
                 loadingSuppliers ? (
                   <div className="filter-progress-wrapper">
                     <CircularProgress className="filter-progress" size="1.3rem" />

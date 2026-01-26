@@ -21,6 +21,9 @@ import {
   Tooltip,
   FormControlLabel,
   Checkbox,
+  Slider,
+  Alert,
+  Stack,
 } from '@mui/material'
 import Grid from '@mui/material/GridLegacy'
 import { SelectChangeEvent } from '@mui/material/Select'
@@ -28,6 +31,10 @@ import {
   Edit as EditIcon,
   Visibility as ViewIcon,
   Upload as UploadIcon,
+  LocalGasStation as FuelIcon,
+  Speed as SpeedIcon,
+  CheckCircle as CheckIcon,
+  Warning as WarningIcon,
 } from '@mui/icons-material'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -123,10 +130,14 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
 
   const getGroupKeyFromName = (fullName: string): 'exterior' | 'interior' | 'electronics' | undefined => {
     const m = fullName.match(/^\[(.*?)\]\s/)
-    if (!m) return undefined
+    if (!m) {
+      return undefined
+    }
     const raw = (m[1] || '').toLowerCase()
     for (const key of Object.keys(GROUP_LABELS)) {
-      if (GROUP_LABELS[key as keyof typeof GROUP_LABELS].some((s) => s?.toLowerCase() === raw)) return key as any
+      if (GROUP_LABELS[key as keyof typeof GROUP_LABELS].some((s) => s?.toLowerCase() === raw)) {
+        return key as any
+      }
     }
     return undefined
   }
@@ -241,7 +252,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
       setPhotoFiles([])
       setExistingPhotos([])
       setIncludedItems([])
-      loadCarStates()
+      await loadCarStates()
       onStateChange?.()
     } catch (error) {
       console.error('Error creating car state:', error)
@@ -249,7 +260,9 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
   }
 
   const handleEditState = async (data: FormFields) => {
-    if (!editingState) return
+    if (!editingState) {
+      return
+    }
 
     try {
       const currentUser = UserService.getCurrentUser()
@@ -304,7 +317,7 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
       setPhotoFiles([])
       setExistingPhotos([])
       setIncludedItems([])
-      loadCarStates()
+      await loadCarStates()
       onStateChange?.()
     } catch (error) {
       console.error('Error updating car state:', error)
@@ -366,14 +379,20 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
   // pdfMake is attached to window in main.tsx
 
   const toAbsoluteUrl = (maybeFilename?: string): string | undefined => {
-    if (!maybeFilename) return undefined
-    if (helper.isValidURL(maybeFilename)) return maybeFilename
+    if (!maybeFilename) {
+      return undefined
+    }
+    if (helper.isValidURL(maybeFilename)) {
+      return maybeFilename
+    }
     // Prefer temp CDN as uploads for car states are temporary filenames
     return bookcarsHelper.joinURL(env.CDN_TEMP_CARS, maybeFilename)
   }
 
   const loadImageAsDataUrl = async (url?: string): Promise<string | undefined> => {
-    if (!url) return undefined
+    if (!url) {
+      return undefined
+    }
     try {
       // Try permanent CDN first
       const carsUrl = helper.isValidURL(url) ? url : bookcarsHelper.joinURL(env.CDN_CARS, url)
@@ -469,13 +488,17 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
       if (beforeState?.photos) {
         for (const p of beforeState.photos) {
           const dataUrl = await loadImageAsDataUrl(typeof p.url === 'string' ? p.url : undefined)
-          if (dataUrl) beforeThumbs.push(dataUrl)
+          if (dataUrl) {
+            beforeThumbs.push(dataUrl)
+          }
         }
       }
       if (afterState?.photos) {
         for (const p of afterState.photos) {
           const dataUrl = await loadImageAsDataUrl(typeof p.url === 'string' ? p.url : undefined)
-          if (dataUrl) afterThumbs.push(dataUrl)
+          if (dataUrl) {
+            afterThumbs.push(dataUrl)
+          }
         }
       }
 
@@ -544,7 +567,9 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
       }
 
       const formatIncludedItem = (present?: boolean, condition?: string) => {
-        if (present == null && !condition) return '—'
+        if (present == null && !condition) {
+          return '—'
+        }
         const label = present ? 'P' : 'A'
         const color = present ? '#2e7d32' : '#d32f2f'
         const cond = condition ? ` · ${formatCondition(condition)}` : ''
@@ -557,17 +582,19 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
         for (const group of checklistGroups) {
           const label = group.label
           const names = new Set<string>()
-          ;(beforeState?.includedItems || []).filter(i => getGroupKeyFromName(i.name) === 'exterior' && group.key === 'exterior' || getGroupKeyFromName(i.name) === 'interior' && group.key === 'interior' || getGroupKeyFromName(i.name) === 'electronics' && group.key === 'electronics').forEach(i => names.add(i.name))
-          ;(afterState?.includedItems || []).filter(i => getGroupKeyFromName(i.name) === 'exterior' && group.key === 'exterior' || getGroupKeyFromName(i.name) === 'interior' && group.key === 'interior' || getGroupKeyFromName(i.name) === 'electronics' && group.key === 'electronics').forEach(i => names.add(i.name))
-          if (names.size === 0) continue
+          ;(beforeState?.includedItems || []).filter((i: bookcarsTypes.IncludedItem) => getGroupKeyFromName(i.name) === 'exterior' && group.key === 'exterior' || getGroupKeyFromName(i.name) === 'interior' && group.key === 'interior' || getGroupKeyFromName(i.name) === 'electronics' && group.key === 'electronics').forEach((i: bookcarsTypes.IncludedItem) => names.add(i.name))
+          ;(afterState?.includedItems || []).filter((i: bookcarsTypes.IncludedItem) => getGroupKeyFromName(i.name) === 'exterior' && group.key === 'exterior' || getGroupKeyFromName(i.name) === 'interior' && group.key === 'interior' || getGroupKeyFromName(i.name) === 'electronics' && group.key === 'electronics').forEach((i: bookcarsTypes.IncludedItem) => names.add(i.name))
+          if (names.size === 0) {
+            continue
+          }
           // Counts
           const total = names.size
           const prePresent = Array.from(names).reduce((acc, n) => {
-            const b = (beforeState?.includedItems || []).find(i => i.name === n)
+            const b = (beforeState?.includedItems || []).find((i: bookcarsTypes.IncludedItem) => i.name === n)
             return acc + (b?.isPresent ? 1 : 0)
           }, 0)
           const postPresent = Array.from(names).reduce((acc, n) => {
-            const a = (afterState?.includedItems || []).find(i => i.name === n)
+            const a = (afterState?.includedItems || []).find((i: bookcarsTypes.IncludedItem) => i.name === n)
             return acc + (a?.isPresent ? 1 : 0)
           }, 0)
 
@@ -575,8 +602,8 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
           rows.push([{ text: 'Item', style: 'tableHeader' }, { text: csrStrings.PRE, style: 'tableHeader' }, { text: csrStrings.POST, style: 'tableHeader' }])
           for (const n of Array.from(names)) {
             const itemLabel = n.replace(/^\[[^\]]+\]\s*/, '')
-            const b = (beforeState?.includedItems || []).find(i => i.name === n)
-            const a = (afterState?.includedItems || []).find(i => i.name === n)
+            const b = (beforeState?.includedItems || []).find((i: bookcarsTypes.IncludedItem) => i.name === n)
+            const a = (afterState?.includedItems || []).find((i: bookcarsTypes.IncludedItem) => i.name === n)
             rows.push([
               itemLabel,
               formatIncludedItem(b?.isPresent, b?.condition),
@@ -782,6 +809,53 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
         </CardContent>
       </Card>
 
+      {/* Summary Comparison Card - shown when both states exist */}
+      {beforeState && afterState && (
+        <Alert 
+          severity="info" 
+          icon={<CheckIcon />}
+          sx={{ 
+            mb: 3,
+            backgroundColor: '#e3f2fd',
+            '& .MuiAlert-icon': { color: '#1976d2' }
+          }}
+        >
+          <Typography variant="subtitle2" gutterBottom fontWeight="bold">
+            📊 Rental Summary
+          </Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} divider={<Divider orientation="vertical" flexItem />}>
+            <Box>
+              <Typography variant="body2" color="textSecondary">Distance Traveled</Typography>
+              <Typography variant="h6" color="primary">
+                {afterState.mileage - beforeState.mileage} km
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="textSecondary">Fuel Used</Typography>
+              <Typography variant="h6" color={afterState.fuelLevel < beforeState.fuelLevel ? 'warning.main' : 'success.main'}>
+                {beforeState.fuelLevel - afterState.fuelLevel}%
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="body2" color="textSecondary">Condition Change</Typography>
+              <Box display="flex" gap={0.5} alignItems="center">
+                {(beforeState.bodyCondition !== afterState.bodyCondition || beforeState.interiorCondition !== afterState.interiorCondition) ? (
+                  <>
+                    <WarningIcon fontSize="small" color="warning" />
+                    <Typography variant="body2" color="warning.main">Changed</Typography>
+                  </>
+                ) : (
+                  <>
+                    <CheckIcon fontSize="small" color="success" />
+                    <Typography variant="body2" color="success.main">Unchanged</Typography>
+                  </>
+                )}
+              </Box>
+            </Box>
+          </Stack>
+        </Alert>
+      )}
+
       {/* State Comparison */}
       <Grid container spacing={3}>
         {/* Pick-up State */}
@@ -812,11 +886,20 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="body2" color="textSecondary">{csrStrings.MILEAGE_KM}</Typography>
-                      <Typography variant="body1">{beforeState.mileage} km</Typography>
+                      <Box display="flex" alignItems="center" gap={0.5}>
+                        <SpeedIcon fontSize="small" color="primary" />
+                        <Typography variant="body1" fontWeight="medium">{beforeState.mileage} km</Typography>
+                      </Box>
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="body2" color="textSecondary">{csrStrings.FUEL_LEVEL_PERCENT}</Typography>
-                      <Typography variant="body1">{beforeState.fuelLevel}%</Typography>
+                      <Box display="flex" alignItems="center" gap={0.5}>
+                        <FuelIcon 
+                          fontSize="small" 
+                          color={beforeState.fuelLevel > 50 ? 'success' : beforeState.fuelLevel > 25 ? 'warning' : 'error'}
+                        />
+                        <Typography variant="body1" fontWeight="medium">{beforeState.fuelLevel}%</Typography>
+                      </Box>
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="body2" color="textSecondary">{csrStrings.BODY}</Typography>
@@ -888,7 +971,9 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                           <Box mt={1}>
                             {checklistGroups.map((g) => {
                               const items = (beforeState.includedItems || []).filter((i) => getGroupKeyFromName(i.name) === g.key)
-                              if (!items.length) return null
+                              if (!items.length) {
+                                return null
+                              }
                               return (
                                 <Box key={`b-group-${g.key}`} sx={{ mb: 1.5 }}>
                                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>{g.label}</Typography>
@@ -985,11 +1070,36 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="body2" color="textSecondary">{csrStrings.MILEAGE_KM}</Typography>
-                      <Typography variant="body1">{afterState.mileage} km</Typography>
+                      <Box display="flex" alignItems="center" gap={0.5}>
+                        <SpeedIcon fontSize="small" color="primary" />
+                        <Typography variant="body1" fontWeight="medium">{afterState.mileage} km</Typography>
+                        {beforeState && afterState.mileage > beforeState.mileage && (
+                          <Chip 
+                            label={`+${afterState.mileage - beforeState.mileage} km`}
+                            size="small"
+                            color="info"
+                            sx={{ ml: 1, height: 20, fontSize: '0.7rem' }}
+                          />
+                        )}
+                      </Box>
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="body2" color="textSecondary">{csrStrings.FUEL_LEVEL_PERCENT}</Typography>
-                      <Typography variant="body1">{afterState.fuelLevel}%</Typography>
+                      <Box display="flex" alignItems="center" gap={0.5}>
+                        <FuelIcon 
+                          fontSize="small" 
+                          color={afterState.fuelLevel > 50 ? 'success' : afterState.fuelLevel > 25 ? 'warning' : 'error'}
+                        />
+                        <Typography variant="body1" fontWeight="medium">{afterState.fuelLevel}%</Typography>
+                        {beforeState && afterState.fuelLevel < beforeState.fuelLevel && (
+                          <Chip 
+                            label={`${afterState.fuelLevel - beforeState.fuelLevel}%`}
+                            size="small"
+                            color="warning"
+                            sx={{ ml: 1, height: 20, fontSize: '0.7rem' }}
+                          />
+                        )}
+                      </Box>
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="body2" color="textSecondary">{csrStrings.BODY}</Typography>
@@ -1061,7 +1171,9 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                           <Box mt={1}>
                             {checklistGroups.map((g) => {
                               const items = (afterState.includedItems || []).filter((i) => getGroupKeyFromName(i.name) === g.key)
-                              if (!items.length) return null
+                              if (!items.length) {
+                                return null
+                              }
                               return (
                                 <Box key={`a-group-${g.key}`} sx={{ mb: 1.5 }}>
                                   <Typography variant="subtitle2" sx={{ mb: 0.5 }}>{g.label}</Typography>
@@ -1106,17 +1218,33 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                     variant="outlined"
                     size="small"
                     onClick={() => {
-                      reset({ 
-                        stateType: bookcarsTypes.CarState.PostRental,
+                      // Smart: Pre-fill with pre-rental data if available
+                      const preRentalData = beforeState ? {
+                        stateType: bookcarsTypes.CarState.PostRental as bookcarsTypes.CarState.PostRental,
+                        date: bookcarsHelper.formatDate(new Date()),
+                        time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                        mileage: beforeState.mileage, // Start with same mileage
+                        fuelLevel: beforeState.fuelLevel, // Start with same fuel level
+                        bodyCondition: beforeState.bodyCondition as 'excellent' | 'good' | 'fair' | 'poor',
+                        interiorCondition: beforeState.interiorCondition as 'excellent' | 'good' | 'fair' | 'poor',
+                        adminNotes: '',
+                        customerNotes: '',
+                      } : {
+                        stateType: bookcarsTypes.CarState.PostRental as bookcarsTypes.CarState.PostRental,
                         date: bookcarsHelper.formatDate(new Date()),
                         time: new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }),
                         mileage: 0,
                         fuelLevel: 100,
-                        bodyCondition: 'excellent',
-                        interiorCondition: 'excellent',
+                        bodyCondition: 'excellent' as const,
+                        interiorCondition: 'excellent' as const,
                         adminNotes: '',
                         customerNotes: '',
-                      })
+                      }
+                      reset(preRentalData)
+                      // Copy included items from pre-rental
+                      if (beforeState?.includedItems) {
+                        setIncludedItems(beforeState.includedItems.map(item => ({ ...item })))
+                      }
                       setFormMode('create')
                       setOpenForm(true)
                     }}
@@ -1124,6 +1252,13 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                   >
                     {csrStrings.CREATE_DROPOFF}
                   </Button>
+                  {beforeState && (
+                    <Alert severity="info" sx={{ mt: 2, maxWidth: 400, mx: 'auto' }}>
+                      <Typography variant="caption">
+                        💡 Form will be pre-filled with pre-rental data for easy comparison
+                      </Typography>
+                    </Alert>
+                  )}
                 </Box>
               )}
             </CardContent>
@@ -1286,13 +1421,25 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                   name="mileage"
                   control={control}
                   render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label={csrStrings.MILEAGE_KM_LABEL}
-                      type="number"
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
+                    <Box>
+                      <Box display="flex" alignItems="center" gap={1} mb={1}>
+                        <SpeedIcon color="primary" />
+                        <TextField
+                          {...field}
+                          fullWidth
+                          label={csrStrings.MILEAGE_KM_LABEL}
+                          type="number"
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          InputProps={{
+                            endAdornment: (
+                              <Typography variant="body2" color="textSecondary" sx={{ ml: 1 }}>
+                                km
+                              </Typography>
+                            )
+                          }}
+                        />
+                      </Box>
+                    </Box>
                   )}
                 />
               </Grid>
@@ -1301,14 +1448,39 @@ const CarStateReport = ({ car, booking, location, onStateChange, registerPdfHand
                   name="fuelLevel"
                   control={control}
                   render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label={csrStrings.FUEL_LEVEL_PERCENT_LABEL}
-                      type="number"
-                      inputProps={{ min: 0, max: 100 }}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
+                    <Box>
+                      <Box display="flex" alignItems="center" gap={1} mb={1}>
+                        <FuelIcon color={field.value > 50 ? 'success' : field.value > 25 ? 'warning' : 'error'} />
+                        <Typography variant="subtitle2">{csrStrings.FUEL_LEVEL_PERCENT_LABEL}</Typography>
+                        <Chip 
+                          label={`${field.value}%`} 
+                          size="small" 
+                          color={field.value > 50 ? 'success' : field.value > 25 ? 'warning' : 'error'}
+                          sx={{ ml: 'auto', fontWeight: 'bold' }}
+                        />
+                      </Box>
+                      <Slider
+                        {...field}
+                        min={0}
+                        max={100}
+                        step={5}
+                        marks={[
+                          { value: 0, label: '0%' },
+                          { value: 25, label: '¼' },
+                          { value: 50, label: '½' },
+                          { value: 75, label: '¾' },
+                          { value: 100, label: 'Full' },
+                        ]}
+                        valueLabelDisplay="auto"
+                        valueLabelFormat={(value) => `${value}%`}
+                        sx={{
+                          '& .MuiSlider-markLabel': { fontSize: '0.75rem' },
+                          '& .MuiSlider-track': {
+                            backgroundColor: field.value > 50 ? '#4caf50' : field.value > 25 ? '#ff9800' : '#f44336'
+                          }
+                        }}
+                      />
+                    </Box>
                   )}
                 />
               </Grid>

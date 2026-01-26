@@ -89,6 +89,20 @@ const strings = new LocalizedStrings({
     OR: 'ou',
     DRIVER_LICENSE: 'Permis de conduire',
     UPLOAD_FILE: 'Charger un ficher...',
+    /* Statistics Section */
+    YEARS_EXCELLENCE: 'Années d\'excellence',
+    HAPPY_CUSTOMERS: 'Clients satisfaits',
+    VEHICLES_AVAILABLE: 'Véhicules disponibles',
+    CUSTOMER_SATISFACTION: 'Satisfaction client',
+    /* Testimonials Section */
+    WHAT_CUSTOMERS_SAY: 'Ce que disent nos clients',
+    TESTIMONIAL_1: "Excellent service! La voiture était impeccable et le processus de location était fluide. MIDAS a rendu mon voyage d'affaires sans stress. Hautement recommandé!",
+    TESTIMONIAL_2: "Très bon rapport qualité-prix! Le véhicule était en parfait état et l'équipe de support client était incroyablement utile pendant mes vacances.",
+    TESTIMONIAL_3: "Professionnel et fiable! J'utilise MIDAS depuis des années et ils ne m'ont jamais déçu. Meilleur service de location de voitures dans la région!",
+    BUSINESS_EXECUTIVE: 'Cadre commercial',
+    TRAVEL_ENTHUSIAST: 'Passionné de voyage',
+    REGULAR_CUSTOMER: 'Client régulier',
+    IT_ENGINEER: 'Ingénieur informatique',
   },
   en: {
     BOOKCARS: env.WEBSITE_NAME,
@@ -175,6 +189,20 @@ const strings = new LocalizedStrings({
     OR: 'or',
     DRIVER_LICENSE: "Driver's License",
     UPLOAD_FILE: 'Upload file...',
+    /* Statistics Section */
+    YEARS_EXCELLENCE: 'Years of Excellence',
+    HAPPY_CUSTOMERS: 'Happy Customers',
+    VEHICLES_AVAILABLE: 'Vehicles Available',
+    CUSTOMER_SATISFACTION: 'Customer Satisfaction',
+    /* Testimonials Section */
+    WHAT_CUSTOMERS_SAY: 'What Our Customers Say',
+    TESTIMONIAL_1: "Excellent service! The car was spotless and the rental process was seamless. MIDAS made my business trip stress-free. Highly recommended!",
+    TESTIMONIAL_2: "Great value for money! The vehicle was in perfect condition and the customer support team was incredibly helpful throughout my vacation.",
+    TESTIMONIAL_3: "Professional and reliable! I've been using MIDAS for years and they never disappoint. Best car rental service in the area!",
+    BUSINESS_EXECUTIVE: 'Business Executive',
+    TRAVEL_ENTHUSIAST: 'Travel Enthusiast',
+    REGULAR_CUSTOMER: 'Regular Customer',
+    IT_ENGINEER: 'IT Engineer',
   },
   es: {
     BOOKCARS: env.WEBSITE_NAME,
@@ -261,6 +289,20 @@ const strings = new LocalizedStrings({
     OR: 'o',
     DRIVER_LICENSE: 'Licencia de conducir',
     UPLOAD_FILE: 'Subir archivo...',
+    /* Statistics Section */
+    YEARS_EXCELLENCE: 'Años de excelencia',
+    HAPPY_CUSTOMERS: 'Clientes satisfechos',
+    VEHICLES_AVAILABLE: 'Vehículos disponibles',
+    CUSTOMER_SATISFACTION: 'Satisfacción del cliente',
+    /* Testimonials Section */
+    WHAT_CUSTOMERS_SAY: 'Lo que dicen nuestros clientes',
+    TESTIMONIAL_1: "¡Excelente servicio! El coche estaba impecable y el proceso de alquiler fue perfecto. MIDAS hizo que mi viaje de negocios fuera sin estrés. ¡Altamente recomendado!",
+    TESTIMONIAL_2: "¡Gran relación calidad-precio! El vehículo estaba en perfectas condiciones y el equipo de atención al cliente fue increíblemente útil durante mis vacaciones.",
+    TESTIMONIAL_3: "¡Profesional y confiable! Llevo años usando MIDAS y nunca me han defraudado. ¡Mejor servicio de alquiler de coches de la zona!",
+    BUSINESS_EXECUTIVE: 'Ejecutivo de negocios',
+    TRAVEL_ENTHUSIAST: 'Aficionado a los viajes',
+    REGULAR_CUSTOMER: 'Cliente habitual',
+    IT_ENGINEER: 'Ingeniero informático',
   },
 })
 

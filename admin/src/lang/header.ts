@@ -9,6 +9,8 @@ const strings = new LocalizedStrings({
     COMPANIES: 'Fournisseurs',
     LOCATIONS: 'Lieux',
     CARS: 'Voitures',
+    BOOKINGS: 'Réservations',
+    CONTRACTS: 'Contrats',
     USERS: 'Utilisateurs',
     ABOUT: 'À propos',
     TOS: "Conditions d'utilisation",
@@ -19,6 +21,8 @@ const strings = new LocalizedStrings({
     COUNTRIES: 'Pays',
     BANK_DETAILS: 'Détails bancaires',
     PRICING: 'Tarification',
+    FINANCIAL_REPORTS: 'Rapports financiers',
+    STAFF_ACTIVITY: 'Activité du personnel',
   },
   en: {
     DASHBOARD: 'Dashboard',
@@ -27,6 +31,8 @@ const strings = new LocalizedStrings({
     COMPANIES: 'Suppliers',
     LOCATIONS: 'Locations',
     CARS: 'Cars',
+    BOOKINGS: 'Bookings',
+    CONTRACTS: 'Contracts',
     USERS: 'Users',
     ABOUT: 'About',
     TOS: 'Terms of Service',
@@ -37,6 +43,8 @@ const strings = new LocalizedStrings({
     COUNTRIES: 'Countries',
     BANK_DETAILS: 'Bank Details',
     PRICING: 'Pricing',
+    FINANCIAL_REPORTS: 'Financial Reports',
+    STAFF_ACTIVITY: 'Staff Activity',
   },
   es: {
     DASHBOARD: 'Panel de control',
@@ -45,6 +53,8 @@ const strings = new LocalizedStrings({
     COMPANIES: 'Proveedores',
     LOCATIONS: 'Ubicaciones',
     CARS: 'Coches',
+    BOOKINGS: 'Reservas',
+    CONTRACTS: 'Contratos',
     USERS: 'Usuarios',
     ABOUT: 'Acerca de',
     TOS: 'Términos de servicio',
@@ -55,6 +65,8 @@ const strings = new LocalizedStrings({
     COUNTRIES: 'Países',
     BANK_DETAILS: 'Detalles bancarios',
     PRICING: 'Precios',
+    FINANCIAL_REPORTS: 'Informes financieros',
+    STAFF_ACTIVITY: 'Actividad del personal',
   },
 })
 

@@ -193,21 +193,21 @@ const CarStateForm: React.FC<CarStateFormProps> = ({
   }, [carState, reset])
 
   const handleAddDamage = () => {
-    if (!damageCoordinates) return
+    if (damageCoordinates) {
+      const newDamage: DamageMarker = {
+        id: Date.now().toString(),
+        type: 'W', // Default to dent
+        severity: 'minor',
+        viewAngle: selectedViewAngle,
+        x: damageCoordinates.x,
+        y: damageCoordinates.y,
+        description: '',
+        isNewDamage: true,
+      }
 
-    const newDamage: DamageMarker = {
-      id: Date.now().toString(),
-      type: 'W', // Default to dent
-      severity: 'minor',
-      viewAngle: selectedViewAngle,
-      x: damageCoordinates.x,
-      y: damageCoordinates.y,
-      description: '',
-      isNewDamage: true,
+      setDamages([...damages, newDamage])
+      setDamageCoordinates(null)
     }
-
-    setDamages([...damages, newDamage])
-    setDamageCoordinates(null)
   }
 
   const handleRemoveDamage = (id: string) => {

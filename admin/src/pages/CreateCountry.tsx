@@ -85,6 +85,8 @@ const CreateCountry = () => {
           // Reset form and show success message
           reset()
           helper.info(strings.COUNTRY_CREATED)
+          // Navigate to countries list after successful creation
+          navigate('/countries')
         } else {
           helper.error()
         }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   InputLabel,
   FormControl,
@@ -29,6 +30,7 @@ import { Option } from '@/models/common'
 import '@/assets/css/create-location.css'
 
 const CreateLocation = () => {
+  const navigate = useNavigate()
   const { user } = useUserContext() as UserContextType
   const [visible, setVisible] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -49,7 +51,7 @@ const CreateLocation = () => {
     mode: 'onSubmit',
     defaultValues: {
       country: undefined,
-      names: env._LANGUAGES.map(lang => ({ language: lang.code, name: '' })),
+      names: [{ language: 'en', name: '' }], // Single name field instead of 3
       latitude: '',
       longitude: '',
       parkingSpots: [],
@@ -63,7 +65,7 @@ const CreateLocation = () => {
     name: 'country'
   })
 
-  // Use field array for names and parking spots
+  // Use field array for single name field
   const { fields: nameFields } = useFieldArray({
     control,
     name: 'names'
@@ -96,15 +98,22 @@ const CreateLocation = () => {
 
   const onSubmit = async (data: FormFields) => {
     try {
+      // Use the single name for all languages
+      const singleName = data.names[0].name
+      const names = env._LANGUAGES.map(lang => ({
+        language: lang.code,
+        name: singleName
+      }))
+
       let isValid = true
-      const validationPromises = data.names.map((name, index) =>
+      const validationPromises = names.map((name) =>
         LocationService.validate({ language: name.language, name: name.name }).then((status) => {
           if (status !== 200) {
-            setError(`names.${index}.name`, {
+            setError('names.0.name', {
               type: 'manual',
               message: strings.INVALID_LOCATION
             })
-            setFocus(`names.${index}.name`)
+            setFocus('names.0.name')
             isValid = false
           }
           return status === 200
@@ -118,7 +127,7 @@ const CreateLocation = () => {
           country: data.country?._id!,
           latitude: data.latitude ? Number(data.latitude) : undefined,
           longitude: data.longitude ? Number(data.longitude) : undefined,
-          names: data.names,
+          names,
           image: data.image,
           parkingSpots: data.parkingSpots as bookcarsTypes.ParkingSpot[] || [],
           supplier: helper.supplier(user) ? user?._id : undefined,
@@ -130,7 +139,7 @@ const CreateLocation = () => {
         if (status === 200) {
           reset({
             country: undefined,
-            names: env._LANGUAGES.map(lang => ({ language: lang.code, name: '' })),
+            names: [{ language: 'en', name: '' }],
             latitude: '',
             longitude: '',
             parkingSpots: [],
@@ -138,6 +147,8 @@ const CreateLocation = () => {
             parentLocation: undefined,
           })
           helper.info(strings.LOCATION_CREATED)
+          // Navigate to locations list
+          navigate('/locations')
         } else {
           helper.error()
         }
@@ -202,23 +213,23 @@ const CreateLocation = () => {
               }}
             />
 
-            {nameFields.map((field, index) => (
+            {nameFields.map((field) => (
               <FormControl key={field.id} fullWidth margin="dense">
-                <InputLabel className="required">{`${commonStrings.NAME} (${env._LANGUAGES[index].label})`}</InputLabel>
+                <InputLabel className="required">{commonStrings.NAME}</InputLabel>
 
                 <Input
-                  {...register(`names.${index}.name`)}
+                  {...register('names.0.name')}
                   onChange={() => {
-                    if (errors.names?.[index]?.name) {
-                      clearErrors(`names.${index}.name`)
+                    if (errors.names?.[0]?.name) {
+                      clearErrors('names.0.name')
                     }
                   }}
-                  error={!!errors.names?.[index]?.name}
+                  error={!!errors.names?.[0]?.name}
                   required
                 />
 
-                <FormHelperText error={!!errors.names?.[index]?.name}>
-                  {errors.names?.[index]?.name?.message || ''}
+                <FormHelperText error={!!errors.names?.[0]?.name}>
+                  {errors.names?.[0]?.name?.message || ''}
                 </FormHelperText>
               </FormControl>
             ))}

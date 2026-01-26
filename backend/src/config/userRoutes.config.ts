@@ -10,6 +10,7 @@ const routes = {
   resendLink: '/api/resend-link',
   validateEmail: '/api/validate-email',
   signin: '/api/sign-in/:type',
+  signinComplete: '/api/sign-in-complete/:type',
   socialSignin: '/api/social-sign-in',
   getPushToken: '/api/push-token/:userId',
   createPushToken: '/api/create-push-token/:userId/:token',

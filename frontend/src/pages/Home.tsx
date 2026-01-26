@@ -19,6 +19,11 @@ import {
   Public,
   FlashOn,
   CheckBox,
+  Star,
+  TrendingUp,
+  Group,
+  LocalShipping,
+  ThumbUp,
 } from '@mui/icons-material'
 import L from 'leaflet'
 import * as bookcarsTypes from ':bookcars-types'
@@ -215,6 +220,40 @@ const Home = () => {
           </div>
         </div>
 
+        {/* Statistics Section */}
+        <div className="statistics">
+          <div className="stats-grid">
+            <div className="stat-box">
+              <div className="stat-icon-wrapper">
+                <TrendingUp className="stat-icon" />
+              </div>
+              <div className="stat-number">2+</div>
+              <div className="stat-label">{commonStrings.YEARS_EXCELLENCE}</div>
+            </div>
+            <div className="stat-box">
+              <div className="stat-icon-wrapper">
+                <Group className="stat-icon" />
+              </div>
+              <div className="stat-number">100+</div>
+              <div className="stat-label">{commonStrings.HAPPY_CUSTOMERS}</div>
+            </div>
+            <div className="stat-box">
+              <div className="stat-icon-wrapper">
+                <LocalShipping className="stat-icon" />
+              </div>
+              <div className="stat-number">20+</div>
+              <div className="stat-label">{commonStrings.VEHICLES_AVAILABLE}</div>
+            </div>
+            <div className="stat-box">
+              <div className="stat-icon-wrapper">
+                <ThumbUp className="stat-icon" />
+              </div>
+              <div className="stat-number">98%</div>
+              <div className="stat-label">{commonStrings.CUSTOMER_SATISFACTION}</div>
+            </div>
+          </div>
+        </div>
+
         <div className="services">
 
           <h1>{strings.SERVICES_TITLE}</h1>
@@ -284,8 +323,8 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="home-suppliers" style={suppliers.length < 4 ? { margin: 0 } : undefined}>
-          {suppliers.length > 3 && (
+        <div className="home-suppliers" style={suppliers.length < 3 ? { margin: 0 } : undefined}>
+          {suppliers.length >= 3 && (
             <>
               <h1>{strings.SUPPLIERS_TITLE}</h1>
               <SupplierCarrousel suppliers={suppliers} />
@@ -293,7 +332,7 @@ const Home = () => {
           )}
         </div>
 
-        {countries.length > 3 && (
+        {countries.length >= 1 && (
           <div className="destinations">
             <h1>{strings.DESTINATIONS_TITLE}</h1>
             <div className="tabs">
@@ -482,6 +521,73 @@ const Home = () => {
             {strings.SEARCH_FOR_CAR}
           </Button> */}
         </div>
+
+        {/* Testimonials Section */}
+        <div className="testimonials">
+          <h1>{commonStrings.WHAT_CUSTOMERS_SAY}</h1>
+          <div className="testimonials-grid">
+            <div className="testimonial-card">
+              <div className="testimonial-stars">
+                <Star className="star-icon" />
+                <Star className="star-icon" />
+                <Star className="star-icon" />
+                <Star className="star-icon" />
+                <Star className="star-icon" />
+              </div>
+              <p className="testimonial-text">
+                {commonStrings.TESTIMONIAL_1}
+              </p>
+              <div className="testimonial-author">
+                <div className="author-avatar">OM</div>
+                <div className="author-info">
+                  <div className="author-name">Oussama Mhayech</div>
+                  <div className="author-title">{commonStrings.IT_ENGINEER}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="testimonial-card">
+              <div className="testimonial-stars">
+                <Star className="star-icon" />
+                <Star className="star-icon" />
+                <Star className="star-icon" />
+                <Star className="star-icon" />
+                <Star className="star-icon" />
+              </div>
+              <p className="testimonial-text">
+                {commonStrings.TESTIMONIAL_2}
+              </p>
+              <div className="testimonial-author">
+                <div className="author-avatar">BH</div>
+                <div className="author-info">
+                  <div className="author-name">Bassem Hamdi</div>
+                  <div className="author-title">{commonStrings.TRAVEL_ENTHUSIAST}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="testimonial-card">
+              <div className="testimonial-stars">
+                <Star className="star-icon" />
+                <Star className="star-icon" />
+                <Star className="star-icon" />
+                <Star className="star-icon" />
+                <Star className="star-icon" />
+              </div>
+              <p className="testimonial-text">
+                {commonStrings.TESTIMONIAL_3}
+              </p>
+              <div className="testimonial-author">
+                <div className="author-avatar">MH</div>
+                <div className="author-info">
+                  <div className="author-name">Mohamed Hmidi</div>
+                  <div className="author-title">{commonStrings.REGULAR_CUSTOMER}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="faq">
           <FaqList />
         </div>

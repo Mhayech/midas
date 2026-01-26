@@ -6,14 +6,25 @@ div.car-container {
 
 div.car-container article .btn-book {
   border: 0;
-  border-radius: 5px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2F5233 0%, #4A7C4E 100%);
   color: #fff;
-  height: 42px;
+  height: 52px;
   margin: 0;
   white-space: nowrap;
-  /* font-size: 1.5em; */
-  /* font-weight: 400; */
-  padding: 0 20px;
+  padding: 0 32px;
+  font-weight: 700;
+  font-size: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(47, 82, 51, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+div.car-container article .btn-book:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(47, 82, 51, 0.35);
+  background: linear-gradient(135deg, #4A7C4E 0%, #2F5233 100%);
 }
 
 div.car-container article span.coming-soon,
@@ -33,21 +44,36 @@ div.car-container article span.fully-booked {
 }
 
 div.car-container div.car-header {
-  padding: 10px 0;
-  border-bottom: #d9d8d9 2px solid;
-  margin-bottom: 10px;
+  padding: 12px 0;
+  border-bottom: 2px solid transparent;
+  background: linear-gradient(to right, rgba(47, 82, 51, 0.05) 0%, transparent 100%);
+  margin-bottom: 15px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   width: 100%;
+  border-radius: 8px;
+  padding-left: 12px;
+  transition: all 0.3s ease;
+}
+
+div.car-container div.car-header:hover {
+  background: linear-gradient(to right, rgba(47, 82, 51, 0.08) 0%, transparent 100%);
 }
 
 div.car-container div.car-header div.location {
   display: flex;
   flex-direction: row;
   align-items: center;
-  color: #232323;
+  color: #2F5233;
   font-size: 18px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+div.car-container div.car-header div.location:hover {
+  color: #4A7C4E;
+  transform: translateX(4px);
 }
 
 div.car-container div.car-header div.location span.location-name {
@@ -58,6 +84,16 @@ div.car-container div.car-header div.distance {
   display: flex;
   flex-direction: row;
   align-items: center;
+  background: rgba(47, 82, 51, 0.08);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+div.car-container div.car-header div.distance:hover {
+  background: rgba(47, 82, 51, 0.12);
+  transform: scale(1.05);
 }
 
 div.car-container div.car-header div.distance img {
@@ -72,15 +108,41 @@ div.car-container {
 
 div.car-container article {
   background: #fff;
-  border: 1px solid #eee;
-  border-radius: 5px;
-  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  color: var(--text-primary);
   font-size: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 24px;
   width: 800px;
   display: flex;
   flex-direction: row;
-  padding: 15px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+}
+
+div.car-container article::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #2F5233 0%, #4A7C4E 50%, #2F5233 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+div.car-container article:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 40px rgba(47, 82, 51, 0.15);
+  border-color: rgba(47, 82, 51, 0.3);
+}
+
+div.car-container article:hover::before {
+  opacity: 1;
 }
 
 div.car-container article div.car {
@@ -100,6 +162,12 @@ div.car-container article div.car .car-img {
   margin-bottom: 0;
   max-width: 100%;
   max-height: 100%;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+}
+
+div.car-container article:hover div.car .car-img {
+  transform: scale(1.05);
 }
 
 div.car-container article div.car div.car-row {
@@ -117,13 +185,22 @@ div.car-container article div.car div.car-supplier {
 
 div.car-container article div.car div.car-supplier span.car-supplier-logo {
   border: 1px solid #e6e6e6;
-  border-radius: 3px;
+  border-radius: 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 62px;
   height: 32px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+div.car-container article div.car div.car-supplier span.car-supplier-logo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 div.car-container article div.car div.car-supplier span.car-supplier-logo img {
@@ -155,6 +232,16 @@ div.car-container article div.car .car-footer div.co2 {
   display: flex;
   flex-direction: row;
   align-items: center;
+  padding: 6px 10px;
+  background: rgba(47, 82, 51, 0.05);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+div.car-container article div.car .car-footer div.rating:hover,
+div.car-container article div.car .car-footer div.co2:hover {
+  background: rgba(47, 82, 51, 0.1);
+  transform: translateY(-2px);
 }
 
 div.car-container article div.car .car-footer div.rating img {
@@ -212,6 +299,17 @@ div.car-container article div.car-info div.car-info-header div.name {
   word-break: break-word;
   overflow: hidden;
   text-overflow: ellipsis;
+  background: linear-gradient(135deg, #2F5233 0%, #4A7C4E 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: all 0.3s ease;
+}
+
+div.car-container article:hover div.car-info div.car-info-header div.name {
+  background: linear-gradient(135deg, #4A7C4E 0%, #2F5233 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 div.car-container article div.price {
@@ -228,6 +326,16 @@ div.car-container article span.price-main {
   white-space: nowrap;
   display: table-row;
   text-align: right;
+  background: linear-gradient(135deg, #2F5233 0%, #4A7C4E 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+div.car-container article:hover span.price-main {
+  transform: scale(1.05);
 }
 
 div.car-container article span.price-days,
@@ -265,8 +373,20 @@ div.car-container article div.car-info ul.car-info-list li.aircon {
   padding-top: 3px;
   box-shadow: 0 0 0 1px #ddd inset;
   margin-left: 5px;
-  border-radius: 5px;
+  border-radius: 8px;
   text-align: center;
+  background: rgba(47, 82, 51, 0.02);
+  transition: all 0.3s ease;
+}
+
+div.car-container article div.car-info ul.car-info-list li.car-type:hover,
+div.car-container article div.car-info ul.car-info-list li.gearbox:hover,
+div.car-container article div.car-info ul.car-info-list li.seats:hover,
+div.car-container article div.car-info ul.car-info-list li.doors:hover,
+div.car-container article div.car-info ul.car-info-list li.aircon:hover {
+  background: rgba(47, 82, 51, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(47, 82, 51, 0.1);
 }
 
 div.car-container article div.car-info .accordion {
@@ -282,6 +402,12 @@ div.car-container article div.car-info .accordion::before {
 div.car-container article div.car-info .accordion-summary {
   border-bottom: #CFD8DC 1px solid;
   font-weight: 600;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+div.car-container article div.car-info .accordion-summary:hover {
+  background: rgba(47, 82, 51, 0.03);
 }
 
 div.car-container article div.car-info ul.extras-list {
@@ -368,4 +494,46 @@ div.car-container article div.action {
   section.car-list article div.car-info {
     width: 100%;
   }
+}
+
+/* Animation for card entrance */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Staggered animation for multiple cards */
+div.car-container article {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+div.car-container article:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+div.car-container article:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+div.car-container article:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+div.car-container article:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+div.car-container article:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+div.car-container article:nth-child(n+6) {
+  animation-delay: 0.6s;
 }

@@ -145,7 +145,7 @@ const DriverLicense = ({
           </>
         )}
       </div>
-      <input id="upload-license" type="file" hidden onChange={handleChange} />
+      <input id="upload-license" type="file" accept="image/*" hidden onChange={handleChange} />
     </div>
   )
 }

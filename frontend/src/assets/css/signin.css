@@ -4,87 +4,168 @@ div.signin {
   flex-direction: row;
   flex: 1 0 auto;
   justify-content: center;
-  margin: 120px 0;
-  transform: translate3d(0, 0, 0);
+  align-items: center;
   min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+  padding: 20px;
+  margin: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+div.signin::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 10% 20%, rgba(47, 82, 51, 0.05) 0%, transparent 20%),
+              radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 20%);
+  pointer-events: none;
 }
 
 div.signin .signin-form {
-  height: fit-content;
+  background: #ffffff;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 40px 30px;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  z-index: 2;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: var(--transition);
+}
+
+div.signin .signin-form:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
 }
 
 div.signin .signin-form-title {
   text-align: center;
   text-transform: capitalize;
-  margin-top: 35px;
-  color: #232323;
+  margin: 0 0 30px 0;
+  color: var(--text-primary);
+  font-size: 28px;
+  font-weight: 700;
+  position: relative;
+}
+
+div.signin .signin-form-title::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 4px;
+  background: var(--gradient-primary);
+  margin: 10px auto 0;
+  border-radius: 2px;
 }
 
 div.signin div.signin-buttons {
-  float: right;
-  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 25px;
+  width: 100%;
+}
+
+div.signin div.signin-buttons button {
+  margin: 0 !important;
 }
 
 div.signin .form-error {
   clear: both;
-  height: 65px;
-  padding-top: 10px;
+  min-height: 65px;
+  padding-top: 15px;
   text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 div.signin div.stay-connected {
   margin-top: 15px;
   display: flex;
   align-items: center;
+  gap: 10px;
+  font-size: 14px;
 }
 
 div.signin div.stay-connected input[type='checkbox'] {
-  margin-right: 5px;
+  margin: 0;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary-color);
 }
 
 div.signin div.stay-connected label {
   cursor: pointer;
-  color: rgb(0 0 0 / 60%);
+  color: var(--text-secondary);
   user-select: none;
+  flex-grow: 1;
 }
 
 div.signin div.forgot-password-wrapper {
-  margin-top: 15px;
+  margin: 15px 0;
+  text-align: center;
+}
+
+div.signin div.forgot-password-wrapper button {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-size: 14px;
+  padding: 0;
+}
+
+div.signin div.forgot-password-wrapper button:hover {
+  text-decoration: underline;
+  color: var(--primary-dark);
+}
+
+/* Social Login Styling */
+div.signin .social-login {
+  margin: 20px 0;
+  padding: 0 20px;
+}
+
+div.signin .social-login hr {
+  border: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(0, 0, 0, 0.1), transparent);
+  margin: 20px 0;
+}
+
+div.signin .social-login .divider {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0;
 }
 
 /* Device width is less than or equal to 960px */
-
 @media only screen and (width <=960px) {
   div.signin .signin-form {
-    align-items: center;
-    justify-content: center;
-    display: flex;
-    width: 350px;
-    border: 1px solid rgb(0 0 0 / 12%);
-    padding: 15px;
+    width: 100%;
+    max-width: 350px;
+    padding: 30px 20px;
   }
 
   div.signin div.signin-buttons {
-    margin-top: 15px;
-    margin-bottom: 5px;
-    display: grid;
-    width: 100%;
+    margin-top: 20px;
   }
 
-  div.signin div.signin-buttons button {
-    margin-right: 0;
+  div.signin .signin-form-title {
+    font-size: 24px;
   }
 }
 
 /* Device width is greater than or equal to 960px */
-
 @media only screen and (width >=960px) {
   div.signin .signin-form {
-    align-items: center;
-    justify-content: center;
-    display: flex;
-    width: 380px;
-    border: 1px solid rgb(0 0 0 / 12%);
-    padding: 15px;
+    width: 100%;
+    max-width: 400px;
+    padding: 40px 30px;
   }
 }

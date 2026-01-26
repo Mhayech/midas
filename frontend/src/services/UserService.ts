@@ -102,9 +102,57 @@ export const signin = (data: bookcarsTypes.SignInPayload): Promise<{ status: num
       { withCredentials: true }
     )
     .then((res) => {
+      if (res.status === 200) {
+        localStorage.setItem('bc-fe-user', JSON.stringify(res.data))
+      }
+      return { status: res.status, data: res.data }
+    })
+
+/**
+ * Complete signin after OTP verification.
+ *
+ * @param {bookcarsTypes.SignInCompletePayload} data
+ * @returns {Promise<{ status: number, data: bookcarsTypes.User }>}
+ */
+export const signinComplete = (data: bookcarsTypes.SignInCompletePayload): Promise<{ status: number, data: bookcarsTypes.User }> =>
+  axiosInstance
+    .post(
+      '/api/sign-in-complete/frontend',
+      data,
+      { withCredentials: true }
+    )
+    .then((res) => {
       localStorage.setItem('bc-fe-user', JSON.stringify(res.data))
       return { status: res.status, data: res.data }
     })
+
+/**
+ * Verify OTP code.
+ *
+ * @param {bookcarsTypes.VerifyOTPPayload} data
+ * @returns {Promise<{ success: boolean, message: string }>}
+ */
+export const verifyOtp = (data: bookcarsTypes.VerifyOTPPayload): Promise<{ success: boolean, message: string }> =>
+  axiosInstance
+    .post(
+      '/api/verify-otp',
+      data
+    )
+    .then((res) => res.data)
+
+/**
+ * Resend OTP code.
+ *
+ * @param {bookcarsTypes.ResendOTPPayload} data
+ * @returns {Promise<number>}
+ */
+export const resendOtp = (data: bookcarsTypes.ResendOTPPayload): Promise<number> =>
+  axiosInstance
+    .post(
+      '/api/resend-otp',
+      data
+    )
+    .then((res) => res.status)
 
 /**
  * Social sign in.

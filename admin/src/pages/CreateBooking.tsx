@@ -50,6 +50,7 @@ const CreateBooking = () => {
   const [minDate, setMinDate] = useState<Date>()
   const [fromError, setFromError] = useState(false)
   const [toError, setToError] = useState(false)
+  const [currentUser, setCurrentUser] = useState<bookcarsTypes.User>()
 
   const {
     register,
@@ -149,20 +150,35 @@ const CreateBooking = () => {
       const _booking = await BookingService.create({
         booking,
         additionalDriver: _additionalDriver,
+        userId: currentUser?._id, // Pass current user ID for approval workflow
       })
       console.log(_booking)
       if (_booking && _booking._id) {
-        navigate('/')
+        // Show appropriate success message based on booking status
+        if (_booking.status === bookcarsTypes.BookingStatus.PendingApproval) {
+          helper.info(commonStrings.BOOKING_SENT_FOR_APPROVAL)
+        } else {
+          helper.info(commonStrings.BOOKING_CREATED)
+        }
+        navigate('/bookings')
       } else {
         helper.error()
       }
-    } catch (err) {
-      helper.error(err)
+    } catch (err: any) {
+      // Handle booking conflict (409 status)
+      if (err?.response?.status === 409 && err?.response?.data?.message) {
+        helper.error(err.response.data.message)
+      } else if (err?.message) {
+        helper.error(err.message)
+      } else {
+        helper.error(err)
+      }
     }
   }
 
   const onLoad = (user?: bookcarsTypes.User) => {
     if (user) {
+      setCurrentUser(user)
       setVisible(true)
 
       if (user.type === bookcarsTypes.RecordType.Supplier) {

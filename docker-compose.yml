@@ -4,11 +4,10 @@ services:
     command: mongod --quiet --logpath /dev/null
     restart: always
     environment:
-      # Provide your credentials here
       MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: admin
-    ports:
-      - 27018:27017
+      MONGO_INITDB_ROOT_PASSWORD: s81wi3fbcaKxssgoK8Pm3QkdvRZzHj1r98q5
+    expose:
+      - "27017"
     volumes:
       - mongodb_data:/data/db
       - mongodb_config:/data/configdb
@@ -16,12 +15,12 @@ services:
   mongo-express:
     image: mongo-express:latest
     restart: always
-    ports:
-      - 8084:8081
+    expose:
+      - "8081"
     environment:
-      ME_CONFIG_MONGODB_URL: mongodb://admin:admin@mongo:27017/
+      ME_CONFIG_MONGODB_URL: mongodb://admin:s81wi3fbcaKxssgoK8Pm3QkdvRZzHj1r98q5@mongo:27017/
       ME_CONFIG_BASICAUTH_USERNAME: admin
-      ME_CONFIG_BASICAUTH_PASSWORD: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: s81wi3fbcaKxssgoK8Pm3QkdvRZzHj1r98q5
     depends_on:
       - mongo
 
@@ -31,8 +30,8 @@ services:
       dockerfile: ./backend/Dockerfile
     env_file: ./backend/.env.docker
     restart: always
-    ports:
-      - 4002:4002
+    expose:
+      - "4002"
     depends_on:
       - mongo
     volumes:
@@ -43,20 +42,23 @@ services:
     build: 
       context: .
       dockerfile: ./admin/Dockerfile
+    env_file: ./admin/.env.docker
+    restart: always
+    expose:
+      - "3001"
     depends_on:
       - bc-backend
-    ports:
-      - 3001:3001
 
   bc-frontend:
     build: 
       context: .
       dockerfile: ./frontend/Dockerfile
+    env_file: ./frontend/.env.docker
+    restart: always
+    expose:
+      - "80"
     depends_on:
       - bc-backend
-    ports:
-      - 8080:80
-      - 8443:443
     volumes:
       - cdn:/var/www/cdn/bookcars
 

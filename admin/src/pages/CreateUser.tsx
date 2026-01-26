@@ -39,6 +39,7 @@ const CreateUser = () => {
   const navigate = useNavigate()
   const [user, setUser] = useState<bookcarsTypes.User>()
   const [admin, setAdmin] = useState(false)
+  const [staff, setStaff] = useState(false)
   const [formError, setFormError] = useState(false)
   const [visible, setVisible] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -114,8 +115,11 @@ const CreateUser = () => {
   const onLoad = (_user?: bookcarsTypes.User) => {
     if (_user && _user.verified) {
       const _admin = helper.admin(_user)
+      const _staff = helper.agencyStaff(_user)
       setUser(_user)
       setAdmin(_admin)
+      setStaff(_staff)
+      // Admin can select any type, Staff is locked to Driver, Suppliers default to User
       setValue('type', _admin ? '' : bookcarsTypes.UserType.User)
       setVisible(true)
     }
@@ -152,17 +156,32 @@ const CreateUser = () => {
 
   const onSubmit = async (data: FormFields) => {
     try {
+      console.log('[CreateUser] Form submitted with data:', data)
+      console.log('[CreateUser] User type:', type)
+      console.log('[CreateUser] Validation errors:', errors)
+      
       if (!user) {
+        console.error('[CreateUser] No user found')
         helper.error()
+        return
+      }
+      
+      // Check if type is selected
+      if (!data.type || data.type === '') {
+        console.error('[CreateUser] User type not selected')
+        setError('type', { message: commonStrings.REQUIRED_FIELD })
+        helper.error('Please select a user type')
         return
       }
       
       const emailValid = await validateEmail(data.email)
       if (!emailValid) {
+        console.error('[CreateUser] Email validation failed')
         return
       }
       
       if (type === bookcarsTypes.UserType.Supplier && !avatar) {
+        console.error('[CreateUser] Supplier requires avatar')
         setAvatarError(true)
         setFormError(false)
         return
@@ -182,6 +201,9 @@ const CreateUser = () => {
         type: data.type,
         avatar,
         birthDate: data.birthDate,
+        cinNumber: data.cinNumber,
+        driverLicenseNumber: data.driverLicenseNumber,
+        driverLicenseIssueDate: data.driverLicenseIssueDate,
         language,
         supplier,
         license,
@@ -199,12 +221,17 @@ const CreateUser = () => {
 
       const formStatus = await UserService.create(payload)
 
+      console.log('[CreateUser] User creation response status:', formStatus)
+
       if (formStatus === 200) {
+        console.log('[CreateUser] User created successfully')
         navigate('/users')
       } else {
+        console.error('[CreateUser] User creation failed with status:', formStatus)
         setFormError(true)
       }
     } catch (err) {
+      console.error('[CreateUser] Error creating user:', err)
       helper.error(err)
     }
   }
@@ -218,7 +245,12 @@ const CreateUser = () => {
         <div className="create-user">
           <Paper className="user-form user-form-wrapper" elevation={10} style={visible ? {} : { display: 'none' }}>
             <h1 className="user-form-title">{strings.CREATE_USER_HEADING}</h1>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={(e) => {
+              console.log('[CreateUser] Form onSubmit triggered')
+              console.log('[CreateUser] Current type value:', type)
+              console.log('[CreateUser] Form errors before submit:', errors)
+              handleSubmit(onSubmit)(e)
+            }}>
               <Avatar
                 type={type}
                 mode="create"
@@ -239,16 +271,19 @@ const CreateUser = () => {
               )}
 
               {admin && (
-                <FormControl fullWidth margin="dense" style={{ marginTop: supplier ? 0 : 39 }}>
+                <FormControl fullWidth margin="dense" style={{ marginTop: supplier ? 0 : 39 }} error={!!errors.type}>
                   <InputLabel className="required">{commonStrings.TYPE}</InputLabel>
                   <Select
                     label={commonStrings.TYPE}
-                    value={type}
+                    value={type || ''}
                     onChange={(e) => {
                       if (errors.fullName) {
                         clearErrors('fullName')
                       }
-                      setValue('type', e.target.value)
+                      if (errors.type) {
+                        clearErrors('type')
+                      }
+                      setValue('type', e.target.value, { shouldValidate: true })
                     }}
                     variant="standard"
                     required
@@ -257,6 +292,28 @@ const CreateUser = () => {
                     <MenuItem value={bookcarsTypes.UserType.Admin}>{helper.getUserType(bookcarsTypes.UserType.Admin)}</MenuItem>
                     <MenuItem value={bookcarsTypes.UserType.Supplier}>{helper.getUserType(bookcarsTypes.UserType.Supplier)}</MenuItem>
                     <MenuItem value={bookcarsTypes.UserType.User}>{helper.getUserType(bookcarsTypes.UserType.User)}</MenuItem>
+                    <MenuItem value={bookcarsTypes.UserType.Accountant}>{helper.getUserType(bookcarsTypes.UserType.Accountant)}</MenuItem>
+                    <MenuItem value={bookcarsTypes.UserType.AgencyStaff}>{helper.getUserType(bookcarsTypes.UserType.AgencyStaff)}</MenuItem>
+                  </Select>
+                  <FormHelperText error={!!errors.type}>
+                    {errors.type?.message || ''}
+                  </FormHelperText>
+                </FormControl>
+              )}
+              
+              {/* Staff can only create Driver users */}
+              {staff && (
+                <FormControl fullWidth margin="dense" style={{ marginTop: 39 }}>
+                  <InputLabel className="required">{commonStrings.TYPE}</InputLabel>
+                  <Select
+                    label={commonStrings.TYPE}
+                    value={bookcarsTypes.UserType.User}
+                    disabled
+                    variant="standard"
+                    required
+                    fullWidth
+                  >
+                    <MenuItem value={bookcarsTypes.UserType.User}>{helper.getUserType(bookcarsTypes.UserType.User)}</MenuItem>
                   </Select>
                 </FormControl>
               )}
@@ -264,7 +321,6 @@ const CreateUser = () => {
               <FormControl fullWidth margin="dense">
                 <InputLabel className="required">{commonStrings.FULL_NAME}</InputLabel>
                 <Input
-                  // {...register('fullName')}
                   type="text"
                   error={!!errors.fullName}
                   required
@@ -273,7 +329,7 @@ const CreateUser = () => {
                     if (errors.fullName) {
                       clearErrors('fullName')
                     }
-                    setValue('fullName', e.target.value)
+                    setValue('fullName', e.target.value, { shouldValidate: true })
                   }}
                   onBlur={async (e) => {
                     await validateFullName(e.target.value)
@@ -287,12 +343,11 @@ const CreateUser = () => {
               <FormControl fullWidth margin="dense">
                 <InputLabel className="required">{commonStrings.EMAIL}</InputLabel>
                 <Input
-                  // {...register('email')}
                   onChange={(e) => {
                     if (errors.email) {
                       clearErrors('email')
                     }
-                    setValue('email', e.target.value)
+                    setValue('email', e.target.value, { shouldValidate: true })
                   }}
                   onBlur={async (e) => {
                     await validateEmail(e.target.value)
@@ -325,6 +380,41 @@ const CreateUser = () => {
                       language={(user && user.language) || env.DEFAULT_LANGUAGE}
                     />
                     <FormHelperText error={!!errors.birthDate}>{errors.birthDate?.message || ''}</FormHelperText>
+                  </FormControl>
+
+                  <FormControl fullWidth margin="dense">
+                    <InputLabel>{commonStrings.CIN_NUMBER}</InputLabel>
+                    <Input
+                      {...register('cinNumber')}
+                      type="text"
+                      autoComplete="off"
+                    />
+                  </FormControl>
+
+                  <FormControl fullWidth margin="dense">
+                    <InputLabel>{commonStrings.DRIVER_LICENSE_NUMBER}</InputLabel>
+                    <Input
+                      {...register('driverLicenseNumber')}
+                      type="text"
+                      autoComplete="off"
+                    />
+                  </FormControl>
+
+                  <FormControl fullWidth margin="dense">
+                    <DatePicker
+                      label={commonStrings.DRIVER_LICENSE_ISSUE_DATE}
+                      variant="standard"
+                      onChange={(date) => {
+                        if (date) {
+                          if (errors.driverLicenseIssueDate) {
+                            clearErrors('driverLicenseIssueDate')
+                          }
+                          setValue('driverLicenseIssueDate', date, { shouldValidate: true })
+                        }
+                      }}
+                      language={(user && user.language) || env.DEFAULT_LANGUAGE}
+                    />
+                    <FormHelperText error={!!errors.driverLicenseIssueDate}>{errors.driverLicenseIssueDate?.message || ''}</FormHelperText>
                   </FormControl>
 
                   <DriverLicense

@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
  * @param {...*} args
  * @returns {{}}
  */
-export const useInit = (callback: any, ...args: any) => {
+export const useInit = (callback: any, ...args: any[]) => {
   const [mounted, setMounted] = useState(false)
 
   const resetInit = () => setMounted(false)

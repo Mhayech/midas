@@ -394,6 +394,22 @@ export const admin = (user?: bookcarsTypes.User | null): boolean => (user && use
 export const supplier = (user?: bookcarsTypes.User | null): boolean => (user && user.type === bookcarsTypes.RecordType.Supplier) || false
 
 /**
+ * Check whether a user is an accountant or not.
+ *
+ * @param {?bookcarsTypes.User} [user]
+ * @returns {boolean}
+ */
+export const accountant = (user?: bookcarsTypes.User | null): boolean => (user && user.type === bookcarsTypes.RecordType.Accountant) || false
+
+/**
+ * Check whether a user is agency staff or not.
+ *
+ * @param {?bookcarsTypes.User} [user]
+ * @returns {boolean}
+ */
+export const agencyStaff = (user?: bookcarsTypes.User | null): boolean => (user && user.type === bookcarsTypes.RecordType.AgencyStaff) || false
+
+/**
  * Get booking status label.
  *
  * @param {string} status
@@ -418,6 +434,9 @@ export const getBookingStatus = (status?: bookcarsTypes.BookingStatus) => {
 
     case bookcarsTypes.BookingStatus.Cancelled:
       return commonStrings.BOOKING_STATUS_CANCELLED
+
+    case bookcarsTypes.BookingStatus.PendingApproval:
+      return commonStrings.BOOKING_STATUS_PENDING_APPROVAL
 
     default:
       return ''
@@ -450,6 +469,9 @@ export const getBookingStatusBackgroundColor = (status?: bookcarsTypes.BookingSt
     case bookcarsTypes.BookingStatus.Cancelled:
       return '#FBDFDE'
 
+    case bookcarsTypes.BookingStatus.PendingApproval:
+      return '#FFF3E0'
+
     default:
       return ''
   }
@@ -480,6 +502,9 @@ export const getBookingStatusTextColor = (status?: bookcarsTypes.BookingStatus) 
 
     case bookcarsTypes.BookingStatus.Cancelled:
       return '#E53935'
+
+    case bookcarsTypes.BookingStatus.PendingApproval:
+      return '#F57C00'
 
     default:
       return ''
@@ -516,6 +541,10 @@ export const getBookingStatuses = (): bookcarsTypes.StatusFilterItem[] => [
     value: bookcarsTypes.BookingStatus.Cancelled,
     label: commonStrings.BOOKING_STATUS_CANCELLED,
   },
+  {
+    value: bookcarsTypes.BookingStatus.PendingApproval,
+    label: commonStrings.BOOKING_STATUS_PENDING_APPROVAL,
+  },
 ]
 
 /**
@@ -536,6 +565,14 @@ export const getUserTypes = () => [
     value: bookcarsTypes.UserType.User,
     label: commonStrings.RECORD_TYPE_USER
   },
+  {
+    value: bookcarsTypes.UserType.Accountant,
+    label: commonStrings.RECORD_TYPE_ACCOUNTANT
+  },
+  {
+    value: bookcarsTypes.UserType.AgencyStaff,
+    label: commonStrings.RECORD_TYPE_AGENCY_STAFF
+  },
 ]
 
 /**
@@ -554,6 +591,12 @@ export const getUserType = (status?: bookcarsTypes.UserType) => {
 
     case bookcarsTypes.UserType.User:
       return commonStrings.RECORD_TYPE_USER
+
+    case bookcarsTypes.UserType.Accountant:
+      return commonStrings.RECORD_TYPE_ACCOUNTANT
+
+    case bookcarsTypes.UserType.AgencyStaff:
+      return commonStrings.RECORD_TYPE_AGENCY_STAFF
 
     default:
       return ''

@@ -49,6 +49,17 @@ const userSchema = new Schema<env.User>(
     birthDate: {
       type: Date,
     },
+    cinNumber: {
+      type: String,
+      trim: true,
+    },
+    driverLicenseNumber: {
+      type: String,
+      trim: true,
+    },
+    driverLicenseIssueDate: {
+      type: Date,
+    },
     verified: {
       type: Boolean,
       default: false,
@@ -89,6 +100,8 @@ const userSchema = new Schema<env.User>(
         bookcarsTypes.UserType.Admin,
         bookcarsTypes.UserType.Supplier,
         bookcarsTypes.UserType.User,
+        bookcarsTypes.UserType.Accountant,
+        bookcarsTypes.UserType.AgencyStaff,
       ],
       default: bookcarsTypes.UserType.User,
     },

@@ -2,15 +2,53 @@ form.newsletter-form div.form {
   display: flex;
   flex-direction: row;
   align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 8px;
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: var(--transition);
+}
+
+form.newsletter-form div.form:focus-within {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: #2F5233;
+  box-shadow: 0 0 0 3px rgba(47, 82, 51, 0.1);
 }
 
 form.newsletter-form div.form .input {
-  margin-right: 15px;
-  max-width: 240px;
+  margin-right: 8px;
+  max-width: 260px;
+  flex: 1;
+}
+
+form.newsletter-form div.form .input input {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+
+form.newsletter-form div.form .input input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+form.newsletter-form div.form .input .MuiInputBase-root::before,
+form.newsletter-form div.form .input .MuiInputBase-root::after {
+  display: none !important;
 }
 
 form.newsletter-form div.form .btn {
-  height: 40px;
-  padding: 0 30px;
-  min-width: 120px;
+  height: 44px;
+  padding: 0 32px;
+  min-width: 130px;
+  background: var(--gradient-primary) !important;
+  color: #ffffff !important;
+  border-radius: calc(var(--border-radius) - 2px) !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition) !important;
+}
+
+form.newsletter-form div.form .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(47, 82, 51, 0.3);
 }

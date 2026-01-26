@@ -18,6 +18,8 @@ const strings = new LocalizedStrings({
     DAYS: 'Jours',
     COST: 'Total',
     MANAGE_STATE: 'Gérer l\'état',
+    CONTRACT: 'Contrat',
+    DOWNLOAD_CONTRACT: 'Télécharger le contrat',
   },
   en: {
     CAR: 'Car',
@@ -35,6 +37,8 @@ const strings = new LocalizedStrings({
     DAYS: 'Days',
     COST: 'COST',
     MANAGE_STATE: 'Manage state',
+    CONTRACT: 'Contract',
+    DOWNLOAD_CONTRACT: 'Download Contract',
   },
   es: {
     CAR: 'Coche',
@@ -52,6 +56,8 @@ const strings = new LocalizedStrings({
     DAYS: 'Días',
     COST: 'Coste',
     MANAGE_STATE: 'Gestionar estado',
+    CONTRACT: 'Contrato',
+    DOWNLOAD_CONTRACT: 'Descargar contrato',
   },
 })
 

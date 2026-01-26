@@ -8,6 +8,11 @@ div.faq-list {
 
 div.faq-list h2 {
   width: fit-content;
+  font-weight: 700;
+  font-size: 42px;
+  color: var(--text-primary);
+  margin-bottom: 40px;
+  text-align: center;
 }
 
 div.faq-list div.questions {
@@ -16,12 +21,16 @@ div.faq-list div.questions {
 }
 
 div.faq-list div.questions .accordion-title {
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-primary);
 }
 
 
 div.faq-list div.questions .accordion-details {
-  color: #1a1a1a;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  font-size: 15px;
 }
 
 @media only screen and (width <=960px) {

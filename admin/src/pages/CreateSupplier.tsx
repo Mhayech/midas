@@ -40,7 +40,7 @@ const CreateSupplier = () => {
   const [submitError, setSubmitError] = useState(false)
   const [avatar, setAvatar] = useState('')
   const [avatarError, setAvatarError] = useState(false)
-  const [contracts, setContracts] = useState<bookcarsTypes.Contract[]>([])
+  const [contracts, setContracts] = useState<bookcarsTypes.UserContract[]>([])
 
   const {
     control,
@@ -372,7 +372,7 @@ const CreateSupplier = () => {
             <FormControl fullWidth margin="dense">
               <ContractList
                 onUpload={(language, filename) => {
-                  const _contracts = bookcarsHelper.cloneArray(contracts) as bookcarsTypes.Contract[]
+                  const _contracts = bookcarsHelper.cloneArray(contracts) as bookcarsTypes.UserContract[]
                   const contract = _contracts.find((c) => c.language === language)
                   if (contract) {
                     contract.file = filename
@@ -382,7 +382,7 @@ const CreateSupplier = () => {
                   setContracts(_contracts)
                 }}
                 onDelete={(language) => {
-                  const _contracts = bookcarsHelper.cloneArray(contracts) as bookcarsTypes.Contract[]
+                  const _contracts = bookcarsHelper.cloneArray(contracts) as bookcarsTypes.UserContract[]
                   _contracts.find((c) => c.language === language)!.file = null
                   setContracts(_contracts)
                 }}

@@ -197,7 +197,7 @@ const carStateSchema = new Schema<bookcarsTypes.CarStateInfo>(
 
 // Indexes for better query performance
 carStateSchema.index({ car: 1, date: -1 })
-carStateSchema.index({ booking: 1 })
+// Note: booking index is already created via 'index: true' in schema field
 carStateSchema.index({ stateType: 1, date: -1 })
 carStateSchema.index({ location: 1, date: -1 })
 carStateSchema.index({ admin: 1, createdAt: -1 })

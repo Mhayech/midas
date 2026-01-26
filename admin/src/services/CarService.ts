@@ -184,3 +184,19 @@ export const getBookingCars = (keyword: string, data: bookcarsTypes.GetBookingCa
       { withCredentials: true }
     )
     .then((res) => res.data)
+
+/**
+ * Get car inventory grouped by name with availability stats.
+ *
+ * @param {string} supplier - Optional supplier ID filter
+ * @returns {Promise<any[]>}
+ */
+export const getCarInventory = (supplier?: string): Promise<any[]> => {
+  const params = supplier ? `?supplier=${encodeURIComponent(supplier)}` : ''
+  return axiosInstance
+    .get(
+      `/api/car-inventory${params}`,
+      { withCredentials: true }
+    )
+    .then((res) => res.data)
+}

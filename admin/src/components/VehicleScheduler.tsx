@@ -71,14 +71,21 @@ const VehicleScheduler = (
     }
     const bookings = _data.resultData
 
-    const events = bookings.map((booking): ProcessedEvent => ({
-      event_id: booking._id as string,
-      title: `${(booking.car as bookcarsTypes.Car).name} / ${(booking.supplier as bookcarsTypes.User).fullName} / ${helper.getBookingStatus(booking.status)}`,
-      start: new Date(booking.from),
-      end: new Date(booking.to),
-      color: helper.getBookingStatusBackgroundColor(booking.status),
-      textColor: helper.getBookingStatusTextColor(booking.status),
-    }))
+    const events = bookings.map((booking): ProcessedEvent => {
+      const car = booking.car as bookcarsTypes.Car
+      const supplier = booking.supplier as bookcarsTypes.User
+      const status = helper.getBookingStatus(booking.status)
+      const carDisplayName = car.immatriculation ? `${car.name} (${car.immatriculation})` : car.name
+      
+      return {
+        event_id: booking._id as string,
+        title: `${carDisplayName} • ${supplier.fullName} • ${status}`,
+        start: new Date(booking.from),
+        end: new Date(booking.to),
+        color: helper.getBookingStatusBackgroundColor(booking.status),
+        textColor: helper.getBookingStatusTextColor(booking.status),
+      }
+    })
 
     setInit(false)
 

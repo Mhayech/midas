@@ -146,7 +146,7 @@ const ContractList: React.FC<ContractListProps> = ({ supplier, onUpload, onDelet
           </div>
         </div>
       ))}
-      <input id="upload-contract" type="file" hidden onChange={handleChange} />
+      <input id="upload-contract" type="file" accept="image/*" hidden onChange={handleChange} />
     </div>
   )
 }

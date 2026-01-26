@@ -1,15 +1,19 @@
+/* Booking Page - Modern Layout */
 div.booking {
-  display: flex;
-  flex-direction: row;
-  transform: translate3d(0, 0, 0);
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  z-index: 1;
 }
 
+/* Legacy styles for compatibility */
 div.booking div.col-2 div.col-2-header {
   text-align: right;
 }
 
 div.booking div.col-1 div.booking-buttons {
-  float: right;
+  width: 100%;
+  margin-top: 20px;
 }
 
 div.booking div.col-2 div.col-2-header div.price {

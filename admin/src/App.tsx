@@ -26,6 +26,7 @@ const UpdateCar = lazy(() => import('@/pages/UpdateCar'))
 const Bookings = lazy(() => import('@/pages/Bookings'))
 const UpdateBooking = lazy(() => import('@/pages/UpdateBooking'))
 const CreateBooking = lazy(() => import('@/pages/CreateBooking'))
+const Contracts = lazy(() => import('@/pages/Contracts'))
 const CarStates = lazy(() => import('@/pages/CarStates'))
 const CarStateManagement = lazy(() => import('@/pages/CarStateManagement'))
 const Users = lazy(() => import('@/pages/Users'))
@@ -45,6 +46,9 @@ const UpdateCountry = lazy(() => import('@/pages/UpdateCountry'))
 const Scheduler = lazy(() => import('@/pages/Scheduler'))
 const BankDetails = lazy(() => import('@/pages/BankDetails'))
 const Pricing = lazy(() => import('@/pages/Pricing'))
+const Dashboard = lazy(() => import('@/pages/DashboardNew'))
+const FinancialReports = lazy(() => import('@/pages/FinancialReports'))
+const StaffActivity = lazy(() => import('@/pages/StaffActivity'))
 
 const AppLayout = () => {
   const location = useLocation()
@@ -76,7 +80,7 @@ const router = createBrowserRouter([
     path: '/',
     element: <AppLayout />,
     children: [
-      { index: true, element: <Bookings /> },
+      { index: true, element: <Dashboard /> },
       { path: 'sign-in', element: <SignIn /> },
       { path: 'activate', element: <Activate /> },
       { path: 'forgot-password', element: <ForgotPassword /> },
@@ -96,6 +100,7 @@ const router = createBrowserRouter([
       { path: 'bookings', element: <Bookings /> },
       { path: 'update-booking', element: <UpdateBooking /> },
       { path: 'create-booking', element: <CreateBooking /> },
+      { path: 'contracts', element: <Contracts /> },
       { path: 'car-states', element: <CarStates /> },
       { path: 'car-state-management/booking/:bookingId', element: <CarStateManagement /> },
       { path: 'car-state-management/:carId?', element: <CarStateManagement /> },
@@ -115,6 +120,9 @@ const router = createBrowserRouter([
       { path: 'scheduler', element: <Scheduler /> },
       { path: 'bank-details', element: <BankDetails /> },
       { path: 'pricing', element: <Pricing /> },
+      { path: 'dashboard', element: <Dashboard /> },
+      { path: 'financial-reports', element: <FinancialReports /> },
+      { path: 'staff-activity', element: <StaffActivity /> },
       { path: '*', element: <NoMatch /> }
     ]
   }
