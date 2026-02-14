@@ -176,15 +176,21 @@ const Contracts = () => {
       field: 'actions',
       headerName: strings.ACTIONS,
       flex: 0.8,
-      minWidth: 120,
+      minWidth: 100,
       sortable: false,
       renderCell: (params) => (
-        <div>
+        <div style={{ display: 'flex', gap: '4px' }}>
           <IconButton
             onClick={() => handleDownload(params.row)}
             color="primary"
             size="small"
             title={strings.DOWNLOAD}
+            sx={{
+              padding: { xs: '4px', sm: '8px' },
+              '& .MuiSvgIcon-root': {
+                fontSize: { xs: '1.2rem', sm: '1.5rem' }
+              }
+            }}
           >
             <DownloadIcon />
           </IconButton>
@@ -194,6 +200,12 @@ const Contracts = () => {
               color="error"
               size="small"
               title={commonStrings.DELETE}
+              sx={{
+                padding: { xs: '4px', sm: '8px' },
+                '& .MuiSvgIcon-root': {
+                  fontSize: { xs: '1.2rem', sm: '1.5rem' }
+                }
+              }}
             >
               <DeleteIcon />
             </IconButton>
