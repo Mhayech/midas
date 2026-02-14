@@ -18,7 +18,7 @@ interface ApiError {
  * Handle API errors with user-friendly messages
  */
 export const handleApiError = (err: unknown, context?: string): void => {
-  if (console?.log) {
+  if (console && console.error) {
     console.error('[API Error]', context || 'Unknown context', err)
   }
 
