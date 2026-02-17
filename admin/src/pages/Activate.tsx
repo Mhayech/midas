@@ -19,6 +19,7 @@ import { useUserContext, UserContextType } from '@/context/UserContext'
 import Error from './Error'
 import { schema, FormFields } from '@/models/ActivateForm'
 import PasswordInput from '@/components/PasswordInput'
+import OtpDialog from '@/components/OtpDialog'
 
 import '@/assets/css/activate.css'
 
@@ -34,6 +35,9 @@ const Activate = () => {
   const [noMatch, setNoMatch] = useState(false)
   const [reset, setReset] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [otpDialogOpen, setOtpDialogOpen] = useState(false)
+  const [pendingUser, setPendingUser] = useState<bookcarsTypes.User | null>(null)
+  const [isNavigating, setIsNavigating] = useState(false)
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, setError, clearErrors } = useForm<FormFields>({
     resolver: zodResolver(schema),
@@ -49,6 +53,7 @@ const Activate = () => {
         const signInResult = await UserService.signin({ email, password })
 
         if (signInResult.status === 200) {
+          // Direct sign in successful - no OTP required
           const user = await UserService.getUser(signInResult.data._id)
           setIsAuthenticated(true)
           setUser(user)
@@ -61,15 +66,40 @@ const Activate = () => {
           } else {
             helper.error()
           }
+        } else if (signInResult.status === 202) {
+          // OTP verification required - show OTP dialog
+          const userData = (signInResult.data as any).user || signInResult.data
+          setPendingUser(userData)
+          setOtpDialogOpen(true)
         } else {
+          // Invalid credentials or other error
           helper.error()
         }
       } else {
         helper.error()
       }
     } catch (err) {
+      console.error('Activation error:', err)
       helper.error(err)
     }
+  }
+
+  const handleOtpSuccess = async (user: bookcarsTypes.User) => {
+    try {
+      setIsNavigating(true)
+      setUser(user)
+      // Navigate directly to dashboard - page content hidden
+      navigate('/')
+    } catch (err) {
+      console.error('OTP success error:', err)
+      setOtpDialogOpen(false)
+      helper.error(err)
+    }
+  }
+
+  const handleOtpCancel = () => {
+    setOtpDialogOpen(false)
+    setPendingUser(null)
   }
 
   const handleResend = async () => {
@@ -134,81 +164,97 @@ const Activate = () => {
 
   return (
     <Layout onLoad={onLoad} strict={false}>
-      {resend && (
-        <div className="resend">
-          <Paper className="resend-form" elevation={10}>
-            <h1>{strings.ACTIVATE_HEADING}</h1>
-            <div className="resend-form-content">
-              <span>{strings.TOKEN_EXPIRED}</span>
-              <Button type="button" variant="contained" size="small" className="btn-primary btn-resend" onClick={handleResend}>
-                {mStrings.RESEND}
-              </Button>
-              <p className="go-to-home">
-                <Button variant="text" onClick={() => navigate('/')} className="btn-lnk">{commonStrings.GO_TO_HOME}</Button>
-              </p>
+      {!isNavigating && (
+        <>
+          {resend && (
+            <div className="resend">
+              <Paper className="resend-form" elevation={10}>
+                <h1>{strings.ACTIVATE_HEADING}</h1>
+                <div className="resend-form-content">
+                  <span>{strings.TOKEN_EXPIRED}</span>
+                  <Button type="button" variant="contained" size="small" className="btn-primary btn-resend" onClick={handleResend}>
+                    {mStrings.RESEND}
+                  </Button>
+                  <p className="go-to-home">
+                    <Button variant="text" onClick={() => navigate('/')} className="btn-lnk">{commonStrings.GO_TO_HOME}</Button>
+                  </p>
+                </div>
+              </Paper>
             </div>
-          </Paper>
-        </div>
+          )}
+          {visible && (
+            <div className="activate">
+              <Paper className="activate-form" elevation={10}>
+                <h1>{reset ? rpStrings.RESET_PASSWORD_HEADING : strings.ACTIVATE_HEADING}</h1>
+                <form onSubmit={handleSubmit(onSubmit)}>
+
+                  <PasswordInput
+                    label={commonStrings.PASSWORD}
+                    variant="standard"
+                    {...register('password')}
+                    error={!!errors.password}
+                    helperText={errors.password?.message}
+                    onChange={(e) => {
+                      if (errors.password) {
+                        clearErrors('password')
+                      }
+                      setValue('password', e.target.value)
+                    }}
+                    required
+                    autoComplete="new-password"
+                  />
+
+                  <PasswordInput
+                    label={commonStrings.CONFIRM_PASSWORD}
+                    variant="standard"
+                    {...register('confirmPassword')}
+                    error={!!errors.confirmPassword}
+                    helperText={errors.confirmPassword?.message}
+                    onChange={(e) => {
+                      if (errors.confirmPassword) {
+                        clearErrors('confirmPassword')
+                      }
+                      setValue('confirmPassword', e.target.value)
+                    }}
+                    required
+                    inputProps={{
+                      autoComplete: 'new-password',
+                      form: {
+                        autoComplete: 'off',
+                      },
+                    }}
+                  />
+
+                  <div className="buttons">
+                    <Button type="submit" className="btn-primary btn-margin btn-margin-bottom" variant="contained" disabled={isSubmitting}>
+                      {reset ? commonStrings.UPDATE : strings.ACTIVATE}
+                    </Button>
+                    <Button variant="outlined" color="primary" className="btn-margin-bottom" onClick={() => navigate('/')}>
+                      {commonStrings.CANCEL}
+                    </Button>
+                  </div>
+                </form>
+              </Paper>
+            </div>
+          )}
+
+          {!isAuthenticated && noMatch && <NoMatch hideHeader />}
+
+          {errors.root && <Error />}
+        </>
       )}
-      {visible && (
-        <div className="activate">
-          <Paper className="activate-form" elevation={10}>
-            <h1>{reset ? rpStrings.RESET_PASSWORD_HEADING : strings.ACTIVATE_HEADING}</h1>
-            <form onSubmit={handleSubmit(onSubmit)}>
 
-              <PasswordInput
-                label={commonStrings.PASSWORD}
-                variant="standard"
-                {...register('password')}
-                error={!!errors.password}
-                helperText={errors.password?.message}
-                onChange={(e) => {
-                  if (errors.password) {
-                    clearErrors('password')
-                  }
-                  setValue('password', e.target.value)
-                }}
-                required
-                autoComplete="new-password"
-              />
-
-              <PasswordInput
-                label={commonStrings.CONFIRM_PASSWORD}
-                variant="standard"
-                {...register('confirmPassword')}
-                error={!!errors.confirmPassword}
-                helperText={errors.confirmPassword?.message}
-                onChange={(e) => {
-                  if (errors.confirmPassword) {
-                    clearErrors('confirmPassword')
-                  }
-                  setValue('confirmPassword', e.target.value)
-                }}
-                required
-                inputProps={{
-                  autoComplete: 'new-password',
-                  form: {
-                    autoComplete: 'off',
-                  },
-                }}
-              />
-
-              <div className="buttons">
-                <Button type="submit" className="btn-primary btn-margin btn-margin-bottom" variant="contained" disabled={isSubmitting}>
-                  {reset ? commonStrings.UPDATE : strings.ACTIVATE}
-                </Button>
-                <Button variant="outlined" color="primary" className="btn-margin-bottom" onClick={() => navigate('/')}>
-                  {commonStrings.CANCEL}
-                </Button>
-              </div>
-            </form>
-          </Paper>
-        </div>
+      {pendingUser && (
+        <OtpDialog
+          open={otpDialogOpen}
+          userId={pendingUser._id!}
+          email={pendingUser.email!}
+          language={pendingUser.language}
+          stayConnected={false}
+          onSuccess={handleOtpSuccess}
+          onCancel={handleOtpCancel}
+        />
       )}
-
-      {!isAuthenticated && noMatch && <NoMatch hideHeader />}
-
-      {errors.root && <Error />}
     </Layout>
   )
 }

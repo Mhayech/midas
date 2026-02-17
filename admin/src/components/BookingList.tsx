@@ -212,11 +212,13 @@ const BookingList = ({
   }
 
   const getColumns = (): GridColDef<bookcarsTypes.Booking>[] => {
+    const isMobile = window.innerWidth < 600
     const _columns: GridColDef<bookcarsTypes.Booking>[] = [
       {
         field: 'driver',
         headerName: strings.DRIVER,
         flex: 1,
+        minWidth: isMobile ? 100 : 120,
         renderCell: ({ row, value }: GridRenderCellParams<bookcarsTypes.Booking, string>) => <Link href={`/user?u=${(row.driver as bookcarsTypes.User)._id}`}>{value}</Link>,
         valueGetter: (value: bookcarsTypes.User) => value?.fullName,
       },
@@ -224,18 +226,21 @@ const BookingList = ({
         field: 'from',
         headerName: commonStrings.FROM,
         flex: 1,
+        minWidth: isMobile ? 90 : 100,
         valueGetter: (value: string) => getDate(value),
       },
       {
         field: 'to',
         headerName: commonStrings.TO,
         flex: 1,
+        minWidth: isMobile ? 90 : 100,
         valueGetter: (value: string) => getDate(value),
       },
       {
         field: 'price',
         headerName: strings.PRICE,
         flex: 1,
+        minWidth: isMobile ? 80 : 100,
         renderCell: ({ value }: GridRenderCellParams<bookcarsTypes.Booking, string>) => <span className="bp">{value}</span>,
         valueGetter: (value: number) => bookcarsHelper.formatPrice(value, commonStrings.CURRENCY, language as string),
       },
@@ -243,6 +248,7 @@ const BookingList = ({
         field: 'status',
         headerName: strings.STATUS,
         flex: 1,
+        minWidth: isMobile ? 100 : 120,
         renderCell: ({ value }: GridRenderCellParams<bookcarsTypes.Booking, bookcarsTypes.BookingStatus>) => <BookingStatus value={value!} showIcon />,
         valueGetter: (value: string) => value,
       },
@@ -282,9 +288,10 @@ const BookingList = ({
       },
       {
         field: 'action',
-        headerName: '',
+        headerName: commonStrings.ACTIONS,
         sortable: false,
         disableColumnMenu: true,
+        minWidth: 120,
         renderCell: ({ row }: GridRenderCellParams<bookcarsTypes.Booking>) => {
           const handleDelete = (e: React.MouseEvent<HTMLElement>) => {
             e.stopPropagation() // don't select this row after clicking
@@ -340,7 +347,7 @@ const BookingList = ({
             </Tooltip>
           </div>
         ) : (
-          <></>
+          <span style={{ color: '#000', fontWeight: 400 }}>{commonStrings.ACTIONS}</span>
         )),
       },
     ]
@@ -354,6 +361,7 @@ const BookingList = ({
         field: 'car',
         headerName: strings.CAR,
         flex: 1,
+        minWidth: isMobile ? 100 : 120,
         renderCell: ({ row, value }: GridRenderCellParams<bookcarsTypes.Booking, string>) => <Link href={`/car?cr=${(row.car as bookcarsTypes.Car)._id}`}>{value}</Link>,
         valueGetter: (value: bookcarsTypes.Car) => value?.name,
       })
@@ -364,6 +372,7 @@ const BookingList = ({
         field: 'supplier',
         headerName: commonStrings.SUPPLIER,
         flex: 1,
+        minWidth: 70,
         renderCell: ({ row, value }: GridRenderCellParams<bookcarsTypes.Booking, string>) => (
           <Link href={`/supplier?c=${(row.supplier as bookcarsTypes.User)._id}`} className="cell-supplier">
             <img src={bookcarsHelper.joinURL(env.CDN_USERS, (row.supplier as bookcarsTypes.User).avatar)} alt={value} />
@@ -395,6 +404,16 @@ const BookingList = ({
     const _columns = getColumns()
     setColumns(_columns)
   }, [selectedIds]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Rebuild columns on window resize for responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      const _columns = getColumns()
+      setColumns(_columns)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [loggedUser, hideCarColumn, hideSupplierColumn]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setLoggedUser(bookingLoggedUser || undefined)

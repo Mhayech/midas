@@ -135,11 +135,13 @@ const UserList = ({
   }, [pageSize]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const getColumns = (_user: bookcarsTypes.User): GridColDef<bookcarsTypes.User>[] => {
+    const isMobile = window.innerWidth < 600
     const _columns: GridColDef<bookcarsTypes.User>[] = [
       {
         field: 'fullName',
         headerName: commonStrings.USER,
         flex: 1,
+        minWidth: isMobile ? 120 : 150,
         renderCell: ({ row, value }: GridRenderCellParams<bookcarsTypes.User, string>) => {
           const __user = row
           let userAvatar
@@ -228,26 +230,30 @@ const UserList = ({
         field: 'email',
         headerName: commonStrings.EMAIL,
         flex: 1,
+        minWidth: isMobile ? 120 : 150,
         valueGetter: (value: string) => value,
       },
       {
         field: 'phone',
         headerName: commonStrings.PHONE,
         flex: 1,
+        minWidth: isMobile ? 100 : 120,
         valueGetter: (value: string) => value,
       },
       {
         field: 'type',
         headerName: commonStrings.TYPE,
         flex: 1,
+        minWidth: isMobile ? 80 : 100,
         renderCell: ({ value }: GridRenderCellParams<bookcarsTypes.User, bookcarsTypes.UserType>) => <span className={`bs us-${value?.toLowerCase()}`}>{helper.getUserType(value)}</span>,
         valueGetter: (value: string) => value,
       },
       {
         field: 'action',
-        headerName: '',
+        headerName: commonStrings.ACTIONS,
         sortable: false,
         disableColumnMenu: true,
+        minWidth: 100,
         renderCell: ({ row }: GridRenderCellParams<bookcarsTypes.User>) => {
           const handleDelete = (e: React.MouseEvent<HTMLElement>) => {
             e.stopPropagation() // don't select this row after clicking
@@ -287,7 +293,7 @@ const UserList = ({
             </Tooltip>
           </div>
         ) : (
-          <></>
+          <span style={{ color: '#000', fontWeight: 400 }}>{commonStrings.ACTIONS}</span>
         )),
       },
     ]
@@ -322,6 +328,18 @@ const UserList = ({
       setReloadColumns(false)
     }
   }, [user, selectedIds, reloadColumns]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Rebuild columns on window resize for responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      if (user) {
+        const _columns = getColumns(user)
+        setColumns(_columns)
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [user, hideDesktopColumns]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleCancelDelete = () => {
     setOpenDeleteDialog(false)

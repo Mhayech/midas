@@ -1,0 +1,36 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /mnt/app/midas
+            
+            # Pull latest code
+            git pull origin main
+            
+            # Only rebuild if there are changes
+            if git diff --name-only HEAD@{1} HEAD | grep -qE '(backend|admin|frontend)'; then
+              echo "Code changes detected, rebuilding..."
+              docker-compose build --no-cache
+              docker-compose up -d
+              docker image prune -f
+            else
+              echo "No code changes, skipping rebuild"
+            fi
+            
+            # Show container status
+            docker-compose ps

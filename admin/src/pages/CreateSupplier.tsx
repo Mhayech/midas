@@ -106,7 +106,7 @@ const CreateSupplier = () => {
   }
 
   const onLoad = (_user?: bookcarsTypes.User) => {
-    if (_user && _user.verified) {
+    if (_user) {
       setVisible(true)
     }
   }

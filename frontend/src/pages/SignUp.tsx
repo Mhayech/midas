@@ -79,17 +79,11 @@ const SignUp = () => {
       const status = await UserService.signup(payload)
 
       if (status === 200) {
-        const signInResult = await UserService.signin({
-          email: data.email,
-          password: data.password,
-        })
-
-        if (signInResult.status === 200) {
-          const user = await UserService.getUser(signInResult.data._id)
-          setUser(user)
-          setUserLoaded(true)
-          navigate(`/${window.location.search}`)
-        }
+        // Signup successful - show success message and redirect to sign-in
+        helper.info(commonStrings.ACCOUNT_CREATED_SUCCESSFULLY)
+        setTimeout(() => {
+          navigate('/sign-in')
+        }, 1500)
       }
     } catch (err) {
       console.error(err)

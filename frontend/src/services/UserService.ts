@@ -72,7 +72,14 @@ export const activate = (data: bookcarsTypes.ActivatePayload): Promise<number> =
       data,
       { withCredentials: true }
     )
-    .then((res) => res.status)
+    .then((res: any) => res.status)
+    .catch((error: any) => {
+      // Handle HTTP error responses
+      if (error.response) {
+        return error.response.status
+      }
+      throw error
+    })
 
 /**
  * Validate email.
@@ -138,7 +145,7 @@ export const verifyOtp = (data: bookcarsTypes.VerifyOTPPayload): Promise<{ succe
       '/api/verify-otp',
       data
     )
-    .then((res) => res.data)
+    .then((res: any) => res.data)
 
 /**
  * Resend OTP code.

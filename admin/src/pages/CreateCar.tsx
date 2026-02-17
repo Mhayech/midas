@@ -226,7 +226,7 @@ const CreateCar = () => {
   }
 
   const onLoad = (user?: bookcarsTypes.User) => {
-    if (user && user.verified) {
+    if (user) {
       setVisible(true)
 
       if (user.type === bookcarsTypes.RecordType.Supplier) {

@@ -84,11 +84,18 @@ export const resend = (email?: string, reset = false, appType: string = bookcars
 export const activate = (data: bookcarsTypes.ActivatePayload): Promise<number> =>
   axiosInstance
     .post(
-      '/api/activate/ ',
+      '/api/activate',
       data,
       { withCredentials: true }
     )
     .then((res) => res.status)
+    .catch((error) => {
+      // Handle HTTP error responses
+      if (error.response) {
+        return error.response.status
+      }
+      throw error
+    })
 
 /**
  * Validate an email.
@@ -122,6 +129,15 @@ export const signin = (data: bookcarsTypes.SignInPayload): Promise<{ status: num
         localStorage.setItem('bc-be-user', JSON.stringify(res.data))
       }
       return { status: res.status, data: res.data }
+    })
+    .catch((error) => {
+      // Handle HTTP error responses (4xx, 5xx)
+      if (error.response) {
+        // Status 204 is returned for invalid credentials
+        return { status: error.response.status, data: {} as bookcarsTypes.User }
+      }
+      // Network or other errors
+      throw error
     })
 
 /**

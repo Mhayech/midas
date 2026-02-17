@@ -124,7 +124,7 @@ const Car = () => {
     setLanguage(UserService.getLanguage())
 
     const params = new URLSearchParams(window.location.search)
-    if (_user && _user.verified && params.has('cr')) {
+    if (_user && params.has('cr')) {
       const id = params.get('cr')
       if (id && id !== '') {
         try {

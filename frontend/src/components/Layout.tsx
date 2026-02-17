@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode } from 'react'
+import React, { useState, useEffect, useRef, ReactNode } from 'react'
 import { Button } from '@mui/material'
 import * as bookcarsTypes from ':bookcars-types'
 import { strings } from '@/lang/master'
@@ -21,22 +21,42 @@ const Layout = ({
 }: LayoutProps) => {
   useAnalytics()
 
-  const { user, userLoaded, unauthorized } = useUserContext() as UserContextType
+  const context = useUserContext() as UserContextType | null
   const [loading, setLoading] = useState(true)
+  const onLoadCalled = useRef(false)
 
   useEffect(() => {
+    if (!context) {
+      return
+    }
+
     const currentUser = UserService.getCurrentUser()
 
     if (!currentUser && strict) {
       UserService.signout(true, false)
-    } else if (userLoaded) {
+    } else if (context.userLoaded) {
       setLoading(false)
 
-      if (onLoad) {
-        onLoad(user || undefined)
+      // Only call onLoad once per mount
+      if (onLoad && !onLoadCalled.current) {
+        onLoadCalled.current = true
+        onLoad(context.user || undefined)
       }
     }
-  }, [user, userLoaded, strict]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [context?.userLoaded, context?.user, strict]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reset onLoadCalled when component unmounts/remounts
+  useEffect(() => {
+    return () => {
+      onLoadCalled.current = false
+    }
+  }, [])
+
+  if (!context) {
+    return null // Context not available yet
+  }
+
+  const { user, userLoaded, unauthorized } = context
 
   const handleResend = async (e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault()
@@ -61,7 +81,7 @@ const Layout = ({
     <>
       {
         !(unauthorized && strict) && (
-          (!user && !loading) || (user && user.verified) ? (
+          (!user && !loading) || (user) || !strict ? (
             <div className="content">{children}</div>
           ) : (
             !loading && (

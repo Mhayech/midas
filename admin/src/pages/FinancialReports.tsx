@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   Card,
   CardContent,
@@ -23,7 +23,20 @@ import {
   Paper,
   Alert,
   Skeleton,
-  TablePagination
+  TablePagination,
+  Collapse,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Divider,
+  Badge,
+  useMediaQuery,
+  useTheme
 } from '@mui/material'
 import {
   Download as DownloadIcon,
@@ -33,7 +46,14 @@ import {
   CalendarMonth as CalendarIcon,
   Refresh as RefreshIcon,
   MonetizationOn as MoneyIcon,
-  Timer as TimerIcon
+  Timer as TimerIcon,
+  KeyboardArrowDown as ExpandIcon,
+  KeyboardArrowUp as CollapseIcon,
+  Close as CloseIcon,
+  DirectionsCar as CarIcon,
+  Person as PersonIcon,
+  Receipt as ReceiptIcon,
+  Visibility as ViewIcon
 } from '@mui/icons-material'
 import { XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, AreaChart, Area } from 'recharts'
 import * as bookcarsTypes from ':bookcars-types'
@@ -47,11 +67,427 @@ import { strings } from '@/lang/financial-reports'
 import '@/assets/css/financial-reports.css'
 import '@/assets/css/enhanced-theme.css'
 
+// Types for contract/booking data
+interface ContractInfo {
+  bookingId: string
+  contractNumber: string
+  fileName?: string
+}
+
+interface BookingDetail {
+  bookingId: string
+  contractNumber?: string
+  carName: string
+  from: string
+  to: string
+  price: number
+  status: string
+}
+
+interface ContractsDialogProps {
+  open: boolean
+  onClose: () => void
+  title: string
+  contracts: ContractInfo[]
+  onDownload: (bookingId: string) => void
+}
+
+// Contracts Dialog Component - Scalable view for many contracts
+const ContractsDialog: React.FC<ContractsDialogProps> = ({ open, onClose, title, contracts, onDownload }) => {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  
+  return (
+    <Dialog 
+      open={open} 
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      fullScreen={isMobile}
+      PaperProps={{
+        sx: { borderRadius: isMobile ? 0 : 3 }
+      }}
+    >
+      <DialogTitle sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        bgcolor: '#2F5233',
+        color: 'white',
+        py: 2
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <ReceiptIcon />
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            {title}
+          </Typography>
+          <Chip 
+            label={`${contracts.length} ${strings.CONTRACTS}`} 
+            size="small" 
+            sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', ml: 1 }}
+          />
+        </Box>
+        <IconButton onClick={onClose} sx={{ color: 'white' }}>
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent sx={{ p: 0 }}>
+        <List sx={{ maxHeight: 400, overflow: 'auto' }}>
+          {contracts.map((contract, idx) => (
+            <React.Fragment key={contract.bookingId}>
+              <ListItem 
+                sx={{ 
+                  py: 2,
+                  '&:hover': { bgcolor: 'rgba(47, 82, 51, 0.04)' },
+                  cursor: 'pointer'
+                }}
+                onClick={() => onDownload(contract.bookingId)}
+              >
+                <ListItemIcon>
+                  <ContractIcon sx={{ color: '#2F5233' }} />
+                </ListItemIcon>
+                <ListItemText 
+                  primary={
+                    <Typography sx={{ fontWeight: 600 }}>
+                      {contract.contractNumber || `Contract #${idx + 1}`}
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography variant="caption" color="text.secondary">
+                      {strings.CLICK_TO_DOWNLOAD}
+                    </Typography>
+                  }
+                />
+                <IconButton 
+                  size="small" 
+                  sx={{ 
+                    bgcolor: 'rgba(47, 82, 51, 0.1)',
+                    '&:hover': { bgcolor: 'rgba(47, 82, 51, 0.2)' }
+                  }}
+                >
+                  <DownloadIcon fontSize="small" sx={{ color: '#2F5233' }} />
+                </IconButton>
+              </ListItem>
+              {idx < contracts.length - 1 && <Divider />}
+            </React.Fragment>
+          ))}
+        </List>
+      </DialogContent>
+      <DialogActions sx={{ p: 2, borderTop: '1px solid #e0e0e0' }}>
+        <Button onClick={onClose} variant="outlined" sx={{ borderRadius: 2 }}>
+          {strings.CLOSE}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  )
+}
+
+// Expandable Row Component for Car Earnings
+interface ExpandableCarRowProps {
+  car: any
+  formatCurrency: (amount: number) => string
+  onDownloadContract: (bookingId: string) => void
+}
+
+const ExpandableCarRow: React.FC<ExpandableCarRowProps> = ({ car, formatCurrency, onDownloadContract }) => {
+  const [expanded, setExpanded] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const hasContracts = car.contracts && car.contracts.length > 0
+  const contractCount = hasContracts ? car.contracts.length : 0
+  
+  return (
+    <>
+      <TableRow 
+        hover 
+        sx={{ 
+          '& > *': { borderBottom: expanded ? 'none' : undefined },
+          bgcolor: expanded ? 'rgba(47, 82, 51, 0.02)' : undefined,
+          cursor: hasContracts ? 'pointer' : 'default'
+        }}
+        onClick={() => hasContracts && setExpanded(!expanded)}
+      >
+        <TableCell>
+          {hasContracts && (
+            <IconButton size="small" sx={{ mr: 1 }}>
+              {expanded ? <CollapseIcon /> : <ExpandIcon />}
+            </IconButton>
+          )}
+          {car.carName}
+        </TableCell>
+        <TableCell sx={{ color: '#666' }}>{car.carMake}</TableCell>
+        <TableCell sx={{ color: '#666' }}>{car.immatriculation}</TableCell>
+        <TableCell align="center">{car.rentalCount}</TableCell>
+        <TableCell align="center">{car.totalDaysRented}</TableCell>
+        <TableCell align="right" sx={{ fontWeight: 600 }}>
+          {formatCurrency(car.totalEarnings)}
+        </TableCell>
+        <TableCell align="right" sx={{ color: '#666' }}>
+          {formatCurrency(car.averageRentalPrice)}
+        </TableCell>
+        <TableCell align="center" onClick={(e) => e.stopPropagation()}>
+          {hasContracts ? (
+            <MuiTooltip title={`${strings.VIEW_ALL_CONTRACTS} (${contractCount})`}>
+              <Badge badgeContent={contractCount} color="primary" max={99}>
+                <IconButton 
+                  size="small" 
+                  onClick={() => setDialogOpen(true)}
+                  sx={{ 
+                    bgcolor: 'rgba(47, 82, 51, 0.1)',
+                    '&:hover': { bgcolor: 'rgba(47, 82, 51, 0.2)' }
+                  }}
+                >
+                  <ContractIcon fontSize="small" sx={{ color: '#2F5233' }} />
+                </IconButton>
+              </Badge>
+            </MuiTooltip>
+          ) : (
+            <Typography variant="caption" color="text.secondary">-</Typography>
+          )}
+        </TableCell>
+      </TableRow>
+      
+      {/* Expandable Contracts Section */}
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
+          <Collapse in={expanded} timeout="auto" unmountOnExit>
+            <Box sx={{ py: 2, px: 3, bgcolor: 'rgba(47, 82, 51, 0.02)', borderRadius: 2, my: 1 }}>
+              <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600, color: '#2F5233', display: 'flex', alignItems: 'center', gap: 1 }}>
+                <ReceiptIcon fontSize="small" />
+                {strings.CONTRACTS} ({contractCount})
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {car.contracts.slice(0, 5).map((contract: ContractInfo, idx: number) => (
+                  <Chip
+                    key={idx}
+                    icon={<ContractIcon />}
+                    label={contract.contractNumber || `#${idx + 1}`}
+                    onClick={() => onDownloadContract(contract.bookingId)}
+                    sx={{ 
+                      bgcolor: '#fff',
+                      border: '1px solid rgba(47, 82, 51, 0.2)',
+                      '&:hover': { bgcolor: 'rgba(47, 82, 51, 0.1)' }
+                    }}
+                  />
+                ))}
+                {contractCount > 5 && (
+                  <Chip
+                    icon={<ViewIcon />}
+                    label={`+${contractCount - 5} ${strings.MORE}`}
+                    onClick={() => setDialogOpen(true)}
+                    sx={{ 
+                      bgcolor: '#2F5233',
+                      color: 'white',
+                      '&:hover': { bgcolor: '#1E3522' }
+                    }}
+                  />
+                )}
+              </Box>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+      
+      {/* Contracts Dialog */}
+      <ContractsDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title={`${car.carName} - ${strings.CONTRACTS}`}
+        contracts={car.contracts || []}
+        onDownload={onDownloadContract}
+      />
+    </>
+  )
+}
+
+// Expandable Row Component for Customer
+interface ExpandableCustomerRowProps {
+  customer: any
+  formatCurrency: (amount: number) => string
+  onDownloadContract: (bookingId: string) => void
+}
+
+const ExpandableCustomerRow: React.FC<ExpandableCustomerRowProps> = ({ customer, formatCurrency, onDownloadContract }) => {
+  const [expanded, setExpanded] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const hasContracts = customer.contracts && customer.contracts.length > 0
+  const contractCount = hasContracts ? customer.contracts.length : 0
+  const carCount = customer.carNames?.length || 0
+  
+  // Truncate display for many cars
+  const getCarNamesDisplay = () => {
+    if (!customer.carNames || customer.carNames.length === 0) {
+      return '-'
+    }
+    if (customer.carNames.length <= 2) {
+      return customer.carNames.join(', ')
+    }
+    return `${customer.carNames.slice(0, 2).join(', ')} +${customer.carNames.length - 2}`
+  }
+  
+  const getImmatDisplay = () => {
+    if (!customer.carImmatriculations || customer.carImmatriculations.length === 0) {
+      return '-'
+    }
+    if (customer.carImmatriculations.length <= 2) {
+      return customer.carImmatriculations.join(', ')
+    }
+    return `${customer.carImmatriculations.slice(0, 2).join(', ')} +${customer.carImmatriculations.length - 2}`
+  }
+  
+  return (
+    <>
+      <TableRow 
+        hover 
+        sx={{ 
+          '& > *': { borderBottom: expanded ? 'none' : undefined },
+          bgcolor: expanded ? 'rgba(47, 82, 51, 0.02)' : undefined,
+          cursor: (hasContracts || carCount > 2) ? 'pointer' : 'default'
+        }}
+        onClick={() => (hasContracts || carCount > 2) && setExpanded(!expanded)}
+      >
+        <TableCell>
+          {(hasContracts || carCount > 2) && (
+            <IconButton size="small" sx={{ mr: 1 }}>
+              {expanded ? <CollapseIcon /> : <ExpandIcon />}
+            </IconButton>
+          )}
+          {customer.customerName}
+        </TableCell>
+        <TableCell sx={{ color: '#666' }}>{customer.customerEmail}</TableCell>
+        <TableCell sx={{ color: '#666' }}>
+          <MuiTooltip title={carCount > 2 ? strings.CLICK_TO_EXPAND : ''}>
+            <span>{getCarNamesDisplay()}</span>
+          </MuiTooltip>
+        </TableCell>
+        <TableCell sx={{ color: '#666' }}>
+          <MuiTooltip title={carCount > 2 ? strings.CLICK_TO_EXPAND : ''}>
+            <span>{getImmatDisplay()}</span>
+          </MuiTooltip>
+        </TableCell>
+        <TableCell align="center">{customer.rentalCount}</TableCell>
+        <TableCell align="center">{customer.totalDaysRented}</TableCell>
+        <TableCell align="right" sx={{ fontWeight: 600 }}>
+          {formatCurrency(customer.totalSpent)}
+        </TableCell>
+        <TableCell align="center" onClick={(e) => e.stopPropagation()}>
+          {hasContracts ? (
+            <MuiTooltip title={`${strings.VIEW_ALL_CONTRACTS} (${contractCount})`}>
+              <Badge badgeContent={contractCount} color="primary" max={99}>
+                <IconButton 
+                  size="small" 
+                  onClick={() => setDialogOpen(true)}
+                  sx={{ 
+                    bgcolor: 'rgba(47, 82, 51, 0.1)',
+                    '&:hover': { bgcolor: 'rgba(47, 82, 51, 0.2)' }
+                  }}
+                >
+                  <ContractIcon fontSize="small" sx={{ color: '#2F5233' }} />
+                </IconButton>
+              </Badge>
+            </MuiTooltip>
+          ) : (
+            <Typography variant="caption" color="text.secondary">-</Typography>
+          )}
+        </TableCell>
+      </TableRow>
+      
+      {/* Expandable Details Section */}
+      <TableRow>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
+          <Collapse in={expanded} timeout="auto" unmountOnExit>
+            <Box sx={{ py: 2, px: 3, bgcolor: 'rgba(47, 82, 51, 0.02)', borderRadius: 2, my: 1 }}>
+              {/* Cars Section */}
+              {carCount > 0 && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, color: '#2F5233', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CarIcon fontSize="small" />
+                    {strings.RENTED_CARS} ({carCount})
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {customer.carNames.map((carName: string, idx: number) => (
+                      <Chip
+                        key={idx}
+                        icon={<CarIcon />}
+                        label={
+                          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', py: 0.5 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 600, lineHeight: 1.2 }}>{carName}</Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+                              {customer.carImmatriculations[idx] || '-'}
+                            </Typography>
+                          </Box>
+                        }
+                        sx={{ 
+                          height: 'auto',
+                          bgcolor: '#fff',
+                          border: '1px solid rgba(47, 82, 51, 0.2)',
+                          '& .MuiChip-label': { py: 0.5 }
+                        }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+              
+              {/* Contracts Section */}
+              {hasContracts && (
+                <Box>
+                  <Typography variant="subtitle2" sx={{ mb: 1.5, fontWeight: 600, color: '#2F5233', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <ReceiptIcon fontSize="small" />
+                    {strings.CONTRACTS} ({contractCount})
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {customer.contracts.slice(0, 5).map((contract: ContractInfo, idx: number) => (
+                      <Chip
+                        key={idx}
+                        icon={<ContractIcon />}
+                        label={contract.contractNumber || `#${idx + 1}`}
+                        onClick={() => onDownloadContract(contract.bookingId)}
+                        sx={{ 
+                          bgcolor: '#fff',
+                          border: '1px solid rgba(47, 82, 51, 0.2)',
+                          '&:hover': { bgcolor: 'rgba(47, 82, 51, 0.1)' }
+                        }}
+                      />
+                    ))}
+                    {contractCount > 5 && (
+                      <Chip
+                        icon={<ViewIcon />}
+                        label={`+${contractCount - 5} ${strings.MORE}`}
+                        onClick={() => setDialogOpen(true)}
+                        sx={{ 
+                          bgcolor: '#2F5233',
+                          color: 'white',
+                          '&:hover': { bgcolor: '#1E3522' }
+                        }}
+                      />
+                    )}
+                  </Box>
+                </Box>
+              )}
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+      
+      {/* Contracts Dialog */}
+      <ContractsDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title={`${customer.customerName} - ${strings.CONTRACTS}`}
+        contracts={customer.contracts || []}
+        onDownload={onDownloadContract}
+      />
+    </>
+  )
+}
+
 const FinancialReports = () => {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const [user, setUser] = useState<bookcarsTypes.User>()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [dateRange, setDateRange] = useState('thisYear') // Changed from 'thisMonth' to show more data by default
+  const [dateRange, setDateRange] = useState('thisYear')
   const [startDate, setStartDate] = useState<Date>(new Date())
   const [endDate, setEndDate] = useState<Date>(new Date())
   const [suppliers, setSuppliers] = useState<bookcarsTypes.User[]>([])
@@ -145,17 +581,17 @@ const FinancialReports = () => {
 
   const formatCurrency = (amount: number) => `${amount.toFixed(2)} ${strings.TND}`
 
-  const handleDownloadContract = async (bookingId: string) => {
+  const handleDownloadContract = useCallback(async (bookingId: string) => {
     try {
       await ContractService.downloadContract(bookingId)
     } catch (err) {
       console.error('Error downloading contract:', err)
       helper.error()
     }
-  }
+  }, [])
 
   const onLoad = async (_user?: bookcarsTypes.User) => {
-    if (_user && _user.verified) {
+    if (_user) {
       setUser(_user)
       if (helper.admin(_user)) {
         const allSuppliers = await SupplierService.getAllSuppliers()
@@ -473,78 +909,90 @@ const FinancialReports = () => {
 
             {/* Tables */}
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {/* Car Earnings Table */}
+              {/* Car Earnings Table - Enhanced with Expandable Rows */}
               {reportData.carEarnings && (
-              <Card sx={{ borderRadius: 2, border: '1px solid #e0e0e0', boxShadow: 'none' }}>
-                <Box sx={{ p: { xs: 1.5, sm: 2 }, borderBottom: '1px solid #e0e0e0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#333', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                    {strings.CAR_EARNINGS}
-                  </Typography>
+              <Card sx={{ borderRadius: 3, border: '1px solid #e0e0e0', boxShadow: '0 4px 20px rgba(47, 82, 51, 0.06)', overflow: 'hidden' }}>
+                <Box sx={{ 
+                  p: { xs: 2, sm: 2.5 }, 
+                  borderBottom: '1px solid #e0e0e0', 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center', 
+                  flexWrap: 'wrap', 
+                  gap: 1,
+                  background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)'
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Box sx={{ 
+                      p: 1, 
+                      borderRadius: 2, 
+                      bgcolor: 'rgba(47, 82, 51, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <CarIcon sx={{ color: '#2F5233' }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#2F5233', fontSize: { xs: '1rem', sm: '1.25rem' }, lineHeight: 1.2 }}>
+                        {strings.CAR_EARNINGS}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {reportData.carEarnings.length} {strings.VEHICLES_TRACKED}
+                      </Typography>
+                    </Box>
+                  </Box>
                   <Button
                     variant="outlined"
                     startIcon={<DownloadIcon />}
                     onClick={() => handleExport('carEarnings', reportData.carEarnings)}
                     size="small"
-                    sx={{ borderColor: '#ccc', color: '#555', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    sx={{ 
+                      borderColor: '#2F5233', 
+                      color: '#2F5233', 
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      borderRadius: 2,
+                      '&:hover': { borderColor: '#1E3522', bgcolor: 'rgba(47, 82, 51, 0.04)' }
+                    }}
                   >
                     {strings.EXPORT_CSV}
                   </Button>
                 </Box>
-                <TableContainer>
-                  <Table size="small">
+                <TableContainer sx={{ maxHeight: 600 }}>
+                  <Table size="small" stickyHeader>
                     <TableHead>
-                      <TableRow sx={{ bgcolor: '#fafafa' }}>
-                        <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.CAR_NAME}</TableCell>
-                        <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.MAKE}</TableCell>
-                        <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.REGISTRATION}</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.RENTAL_COUNT}</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.TOTAL_DAYS_RENTED}</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.TOTAL_EARNED}</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.AVERAGE_PRICE}</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.CONTRACTS}</TableCell>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.CAR_NAME}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.MAKE}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.REGISTRATION}</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.RENTAL_COUNT}</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.TOTAL_DAYS_RENTED}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.TOTAL_EARNED}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.AVERAGE_PRICE}</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.CONTRACTS}</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {reportData.carEarnings.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={8} align="center" sx={{ py: 4, color: '#999' }}>
-                            No car rental data found
+                          <TableCell colSpan={8} align="center" sx={{ py: 6, color: '#999' }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                              <CarIcon sx={{ fontSize: 48, color: '#e0e0e0' }} />
+                              <Typography>{strings.NO_CAR_DATA}</Typography>
+                            </Box>
                           </TableCell>
                         </TableRow>
                       ) : (
                         reportData.carEarnings
                           .slice(carPage * rowsPerPage, carPage * rowsPerPage + rowsPerPage)
                           .map((car: any) => (
-                          <TableRow key={car.carId} hover>
-                            <TableCell>{car.carName}</TableCell>
-                            <TableCell sx={{ color: '#666' }}>{car.carMake}</TableCell>
-                            <TableCell sx={{ color: '#666' }}>{car.immatriculation}</TableCell>
-                            <TableCell align="center">{car.rentalCount}</TableCell>
-                            <TableCell align="center">{car.totalDaysRented}</TableCell>
-                            <TableCell align="right" sx={{ fontWeight: 600 }}>
-                              {formatCurrency(car.totalEarnings)}
-                            </TableCell>
-                            <TableCell align="right" sx={{ color: '#666' }}>{formatCurrency(car.averageRentalPrice)}</TableCell>
-                            <TableCell align="center">
-                              {car.contracts && car.contracts.length > 0 ? (
-                                <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                                  {car.contracts.slice(0, 2).map((contract: any, idx: number) => (
-                                    <MuiTooltip key={idx} title={contract.contractNumber}>
-                                      <IconButton size="small" onClick={() => handleDownloadContract(contract.bookingId)}>
-                                        <ContractIcon fontSize="small" />
-                                      </IconButton>
-                                    </MuiTooltip>
-                                  ))}
-                                  {car.contracts.length > 2 && (
-                                    <Typography variant="caption" color="text.secondary">+{car.contracts.length - 2}</Typography>
-                                  )}
-                                </Box>
-                              ) : (
-                                <Typography variant="caption" color="text.secondary">-</Typography>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))
+                            <ExpandableCarRow
+                              key={car.carId}
+                              car={car}
+                              formatCurrency={formatCurrency}
+                              onDownloadContract={handleDownloadContract}
+                            />
+                          ))
                       )}
                     </TableBody>
                   </Table>
@@ -560,84 +1008,97 @@ const FinancialReports = () => {
                       setRowsPerPage(parseInt(_e.target.value, 10))
                       setCarPage(0)
                     }}
-                    rowsPerPageOptions={[5, 10, 25]}
+                    rowsPerPageOptions={[5, 10, 25, 50]}
+                    sx={{ borderTop: '1px solid #e0e0e0' }}
                   />
                 )}
               </Card>
               )}
 
-              {/* All Customers Table */}
+              {/* All Customers Table - Enhanced with Expandable Rows */}
               {reportData.allCustomers && (
-              <Card sx={{ borderRadius: 2, border: '1px solid #e0e0e0', boxShadow: 'none' }}>
-                <Box sx={{ p: { xs: 1.5, sm: 2 }, borderBottom: '1px solid #e0e0e0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, color: '#333', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
-                    {strings.ALL_CUSTOMERS}
-                  </Typography>
+              <Card sx={{ borderRadius: 3, border: '1px solid #e0e0e0', boxShadow: '0 4px 20px rgba(47, 82, 51, 0.06)', overflow: 'hidden' }}>
+                <Box sx={{ 
+                  p: { xs: 2, sm: 2.5 }, 
+                  borderBottom: '1px solid #e0e0e0', 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center', 
+                  flexWrap: 'wrap', 
+                  gap: 1,
+                  background: 'linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%)'
+                }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Box sx={{ 
+                      p: 1, 
+                      borderRadius: 2, 
+                      bgcolor: 'rgba(47, 82, 51, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <PersonIcon sx={{ color: '#2F5233' }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="h6" sx={{ fontWeight: 700, color: '#2F5233', fontSize: { xs: '1rem', sm: '1.25rem' }, lineHeight: 1.2 }}>
+                        {strings.ALL_CUSTOMERS}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {reportData.allCustomers.length} {strings.CUSTOMERS_TRACKED}
+                      </Typography>
+                    </Box>
+                  </Box>
                   <Button
                     variant="outlined"
                     startIcon={<DownloadIcon />}
                     onClick={() => handleExport('allCustomers', reportData.allCustomers)}
                     size="small"
-                    sx={{ borderColor: '#ccc', color: '#555', fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    sx={{ 
+                      borderColor: '#2F5233', 
+                      color: '#2F5233', 
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      borderRadius: 2,
+                      '&:hover': { borderColor: '#1E3522', bgcolor: 'rgba(47, 82, 51, 0.04)' }
+                    }}
                   >
                     {strings.EXPORT_CSV}
                   </Button>
                 </Box>
-                <TableContainer>
-                  <Table size="small">
+                <TableContainer sx={{ maxHeight: 600 }}>
+                  <Table size="small" stickyHeader>
                     <TableHead>
-                      <TableRow sx={{ bgcolor: '#fafafa' }}>
-                        <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.CUSTOMER_NAME}</TableCell>
-                        <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.EMAIL}</TableCell>
-                        <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.CAR_NAMES}</TableCell>
-                        <TableCell sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.CAR_IMMATRICULATIONS}</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.RENTAL_COUNT}</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.TOTAL_DAYS_RENTED}</TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.TOTAL_SPENT}</TableCell>
-                        <TableCell align="center" sx={{ fontWeight: 600, fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#333', py: 1.5 }}>{strings.CONTRACTS}</TableCell>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.CUSTOMER_NAME}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.EMAIL}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.CAR_NAMES}</TableCell>
+                        <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.CAR_IMMATRICULATIONS}</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.RENTAL_COUNT}</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.TOTAL_DAYS_RENTED}</TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.TOTAL_SPENT}</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#2F5233', py: 2, bgcolor: '#fafafa' }}>{strings.CONTRACTS}</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {reportData.allCustomers.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={8} align="center" sx={{ py: 4, color: '#999' }}>
-                            No customers found
+                          <TableCell colSpan={8} align="center" sx={{ py: 6, color: '#999' }}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                              <PersonIcon sx={{ fontSize: 48, color: '#e0e0e0' }} />
+                              <Typography>{strings.NO_CUSTOMER_DATA}</Typography>
+                            </Box>
                           </TableCell>
                         </TableRow>
                       ) : (
                         reportData.allCustomers
                           .slice(customerPage * rowsPerPage, customerPage * rowsPerPage + rowsPerPage)
                           .map((customer: any) => (
-                          <TableRow key={customer.customerId} hover>
-                            <TableCell>{customer.customerName}</TableCell>
-                            <TableCell sx={{ color: '#666' }}>{customer.customerEmail}</TableCell>
-                            <TableCell sx={{ color: '#666' }}>{customer.carNamesDisplay}</TableCell>
-                            <TableCell sx={{ color: '#666' }}>{customer.carImmatriculationsDisplay}</TableCell>
-                            <TableCell align="center">{customer.rentalCount}</TableCell>
-                            <TableCell align="center">{customer.totalDaysRented}</TableCell>
-                            <TableCell align="right" sx={{ fontWeight: 600 }}>
-                              {formatCurrency(customer.totalSpent)}
-                            </TableCell>
-                            <TableCell align="center">
-                              {customer.contracts && customer.contracts.length > 0 ? (
-                                <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'center' }}>
-                                  {customer.contracts.slice(0, 2).map((contract: any, idx: number) => (
-                                    <MuiTooltip key={idx} title={contract.contractNumber}>
-                                      <IconButton size="small" onClick={() => handleDownloadContract(contract.bookingId)}>
-                                        <ContractIcon fontSize="small" />
-                                      </IconButton>
-                                    </MuiTooltip>
-                                  ))}
-                                  {customer.contracts.length > 2 && (
-                                    <Typography variant="caption" color="text.secondary">+{customer.contracts.length - 2}</Typography>
-                                  )}
-                                </Box>
-                              ) : (
-                                <Typography variant="caption" color="text.secondary">-</Typography>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))
+                            <ExpandableCustomerRow
+                              key={customer.customerId}
+                              customer={customer}
+                              formatCurrency={formatCurrency}
+                              onDownloadContract={handleDownloadContract}
+                            />
+                          ))
                       )}
                     </TableBody>
                   </Table>
@@ -653,7 +1114,8 @@ const FinancialReports = () => {
                       setRowsPerPage(parseInt(_e.target.value, 10))
                       setCustomerPage(0)
                     }}
-                    rowsPerPageOptions={[5, 10, 25]}
+                    rowsPerPageOptions={[5, 10, 25, 50]}
+                    sx={{ borderTop: '1px solid #e0e0e0' }}
                   />
                 )}
               </Card>

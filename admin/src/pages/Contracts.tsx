@@ -42,7 +42,7 @@ const Contracts = () => {
   const [selectedContract, setSelectedContract] = useState<bookcarsTypes.Contract | null>(null)
 
   const onLoad = async (_user?: bookcarsTypes.User) => {
-    if (_user && _user.verified) {
+    if (_user) {
       setUser(_user)
       await fetchContracts()
     }

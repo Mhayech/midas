@@ -173,7 +173,7 @@ const UpdateLocation = () => {
   }
 
   const onLoad = async (_user?: bookcarsTypes.User) => {
-    if (_user && _user.verified) {
+    if (_user) {
       setLoading(true)
       setUser(_user)
 

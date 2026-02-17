@@ -1,39 +1,261 @@
 .contracts {
-  padding: 20px;
+  padding: 24px;
   max-width: 1400px;
   margin: 0 auto;
+  background: linear-gradient(135deg, #f0f4f2 0%, #e8f0ec 100%);
+  min-height: 100vh;
 }
 
 .contracts-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
   flex-wrap: wrap;
   gap: 16px;
 }
 
 .contracts-title {
-  font-weight: 600;
+  font-weight: 400;
+  color: #1a1a1a;
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
 }
 
 .contracts-search {
-  min-width: 300px;
+  min-width: 320px;
 }
 
 .contracts-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(47, 82, 51, 0.12);
+  border-radius: 16px;
   overflow: hidden;
+  border: none;
+  background: linear-gradient(135deg, #ffffff 0%, #fafcfb 100%);
+  position: relative;
+}
+
+.contracts-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #D4AF37 0%, #FFD700 50%, #D4AF37 100%);
+  z-index: 10;
 }
 
 .contracts-card .MuiCardContent-root {
   padding: 0;
 }
 
-/* DataGrid responsive wrapper */
+/* ========================================
+   PREMIUM DATAGRID - MODERN DESIGN
+   ======================================== */
+
 .contracts-card .MuiDataGrid-root {
   border: none;
   min-height: 400px;
+  font-family: inherit;
+  background: transparent;
+}
+
+/* Header - Bold Gradient with Gold Stripe */
+.contracts-card .MuiDataGrid-columnHeaders {
+  background: linear-gradient(135deg, #1a4d2e 0%, #2F5233 50%, #1a4d2e 100%) !important;
+  border-bottom: none !important;
+  box-shadow: 0 4px 16px rgba(47, 82, 51, 0.3) !important;
+  position: relative !important;
+  min-height: 56px !important;
+}
+
+.contracts-card .MuiDataGrid-columnHeaders::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 4px !important;
+  background: linear-gradient(90deg, #D4AF37 0%, #FFD700 50%, #D4AF37 100%) !important;
+  z-index: 10 !important;
+}
+
+.contracts-card .MuiDataGrid-columnHeader {
+  padding: 0 24px !important;
+  background: transparent !important;
+}
+
+.contracts-card .MuiDataGrid-columnHeader:focus,
+.contracts-card .MuiDataGrid-columnHeader:focus-within {
+  outline: none !important;
+}
+
+.contracts-card .MuiDataGrid-columnHeaderTitleContainer {
+  padding: 0 !important;
+}
+
+.contracts-card .MuiDataGrid-columnHeaderTitle {
+  color: #f0f4f1 !important;
+  font-weight: 400 !important;
+  font-size: 0.8125rem !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+.contracts-card .MuiDataGrid-iconButtonContainer {
+  visibility: visible !important;
+}
+
+.contracts-card .MuiDataGrid-iconButtonContainer button {
+  color: #f0f4f1 !important;
+}
+
+.contracts-card .MuiDataGrid-menuIcon {
+  color: #f0f4f1 !important;
+}
+
+.contracts-card .MuiDataGrid-sortIcon {
+  color: #D4AF37 !important;
+}
+
+.contracts-card .MuiDataGrid-columnSeparator {
+  display: none !important;
+}
+
+.contracts-card .MuiDataGrid-columnHeaderDraggableContainer {
+  background: transparent !important;
+}
+
+/* Rows - Premium Design with Inset Gold Accent */
+.contracts-card .MuiDataGrid-row {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative !important;
+  background: #fff !important;
+  border-left: none !important;
+  cursor: pointer !important;
+  min-height: 52px !important;
+}
+
+.contracts-card .MuiDataGrid-row:nth-of-type(odd) {
+  background: linear-gradient(90deg, #ffffff 0%, #fefefe 100%) !important;
+}
+
+.contracts-card .MuiDataGrid-row:nth-of-type(even) {
+  background: linear-gradient(90deg, #f8faf9 0%, #f5f7f6 100%) !important;
+}
+
+.contracts-card .MuiDataGrid-row:hover {
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.12) 0%, rgba(47, 82, 51, 0.08) 100%) !important;
+  box-shadow: inset 6px 0 0 0 #D4AF37, 0 2px 12px rgba(47, 82, 51, 0.15) !important;
+}
+
+.contracts-card .MuiDataGrid-row.Mui-selected {
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.18) 0%, rgba(47, 82, 51, 0.12) 100%) !important;
+  box-shadow: inset 6px 0 0 0 #FFD700 !important;
+}
+
+.contracts-card .MuiDataGrid-row.Mui-selected:hover {
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.22) 0%, rgba(47, 82, 51, 0.14) 100%) !important;
+  box-shadow: inset 6px 0 0 0 #FFD700, 0 2px 12px rgba(212, 175, 55, 0.25) !important;
+}
+
+/* Cells - Professional Typography */
+.contracts-card .MuiDataGrid-cell {
+  border-bottom: 1px solid rgba(47, 82, 51, 0.08) !important;
+  padding: 14px 24px !important;
+  color: #2c3e35 !important;
+  font-size: 0.9rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.contracts-card .MuiDataGrid-cell:focus,
+.contracts-card .MuiDataGrid-cell:focus-within {
+  outline: 2px solid rgba(212, 175, 55, 0.4) !important;
+  outline-offset: -2px !important;
+}
+
+/* Action Cell Buttons */
+.contracts-card .MuiDataGrid-cell .MuiIconButton-root {
+  transition: all 0.2s ease !important;
+}
+
+.contracts-card .MuiDataGrid-cell .MuiIconButton-root:hover {
+  transform: scale(1.15) !important;
+  background: rgba(212, 175, 55, 0.1) !important;
+}
+
+/* Footer / Pagination */
+.contracts-card .MuiDataGrid-footerContainer {
+  border-top: 2px solid rgba(47, 82, 51, 0.15) !important;
+  background: linear-gradient(135deg, #fafcfb 0%, #f5f7f6 100%);
+  padding: 8px 16px;
+}
+
+.contracts-card .MuiTablePagination-root {
+  color: #4a5c54;
+}
+
+.contracts-card .MuiTablePagination-selectLabel,
+.contracts-card .MuiTablePagination-displayedRows {
+  font-weight: 400;
+}
+
+.contracts-card .MuiTablePagination-actions button {
+  color: #2F5233;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.contracts-card .MuiTablePagination-actions button:hover {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(47, 82, 51, 0.15) 100%);
+  transform: scale(1.1);
+}
+
+/* Checkbox - Gold Accent */
+.contracts-card .MuiCheckbox-root {
+  color: rgba(47, 82, 51, 0.6) !important;
+  transition: all 0.2s ease;
+}
+
+.contracts-card .MuiCheckbox-root:hover {
+  color: #2F5233 !important;
+  transform: scale(1.1);
+}
+
+.contracts-card .MuiCheckbox-root.Mui-checked {
+  color: #D4AF37 !important;
+}
+
+/* Overlay */
+.contracts-card .MuiDataGrid-overlay {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 252, 251, 0.95) 100%);
+  backdrop-filter: blur(4px);
+}
+
+/* Scrollbar - Premium Style */
+.contracts-card .MuiDataGrid-virtualScroller::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.contracts-card .MuiDataGrid-virtualScroller::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, #f5f7f6 0%, #eef1ee 100%);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.contracts-card .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #2F5233 0%, #1a4d2e 100%);
+  border-radius: 8px;
+  border: 2px solid #f5f7f6;
+  box-shadow: 0 2px 4px rgba(47, 82, 51, 0.3);
+}
+
+.contracts-card .MuiDataGrid-virtualScroller::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #D4AF37 0%, #b8860b 100%);
+  box-shadow: 0 2px 8px rgba(212, 175, 55, 0.5);
 }
 
 /* Mobile responsive styles */

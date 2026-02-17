@@ -503,183 +503,82 @@ const DashboardNew = () => {
                 ))}
               </Box>
 
-              {/* Pending Approvals Alert - Only visible to Admin */}
+              {/* Pending Approvals Alert - Professional Subtle Design */}
               {admin && pendingApprovals > 0 && (
                 <Card 
                   className="pending-alert-card"
                   onClick={() => navigate('/bookings?approvals=true')}
                   sx={{ 
                     mb: 3,
-                    background: 'linear-gradient(135deg, #fff5e6 0%, #ffe8cc 100%)',
-                    border: '3px solid #f57c00',
-                    borderRadius: 4,
+                    background: 'linear-gradient(135deg, rgba(47,82,51,0.04) 0%, rgba(47,82,51,0.02) 100%)',
+                    border: '1px solid rgba(47,82,51,0.12)',
+                    borderRadius: 3,
                     overflow: 'hidden',
-                    position: 'relative',
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      height: '6px',
-                      background: 'linear-gradient(90deg, #f57c00 0%, #ff9800 50%, #f57c00 100%)',
-                      backgroundSize: '200% 100%',
-                      animation: 'shimmer 2s linear infinite',
-                    },
-                    '@keyframes shimmer': {
-                      '0%': {
-                        backgroundPosition: '200% 0',
-                      },
-                      '100%': {
-                        backgroundPosition: '-200% 0',
-                      },
+                    cursor: 'pointer',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': {
+                      border: '1px solid rgba(47,82,51,0.25)',
+                      boxShadow: '0 8px 24px rgba(47,82,51,0.08)',
+                      background: 'linear-gradient(135deg, rgba(47,82,51,0.06) 0%, rgba(47,82,51,0.03) 100%)',
                     },
                   }}
                 >
-                  <CardContent sx={{ p: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flex: 1 }}>
-                        {/* Animated Icon */}
-                        <Box
-                          sx={{
-                            position: 'relative',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          {/* Pulsing background circle */}
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              width: 90,
-                              height: 90,
-                              borderRadius: '50%',
-                              bgcolor: 'rgba(245, 124, 0, 0.2)',
-                              animation: 'pulse 2s ease-in-out infinite',
-                            }}
-                          />
-                          <Avatar 
-                            className="bell-icon-animated"
-                            sx={{ 
-                              bgcolor: '#f57c00', 
-                              width: 70, 
-                              height: 70,
-                              boxShadow: '0 8px 24px rgba(245, 124, 0, 0.4)',
-                            }}
-                          >
-                            <NotificationsIcon sx={{ fontSize: 40, color: '#fff' }} />
-                          </Avatar>
-                        </Box>
+                  <CardContent sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 2 }}>
+                    {/* Icon */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 48,
+                        height: 48,
+                        borderRadius: '10px',
+                        background: 'linear-gradient(135deg, #2F5233 0%, #4A7C4E 100%)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <PendingIcon sx={{ color: '#fff', fontSize: 24 }} />
+                    </Box>
 
-                        {/* Content */}
-                        <Box sx={{ flex: 1 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                            <Chip 
-                              label="URGENT"
-                              size="small"
-                              sx={{ 
-                                bgcolor: '#d32f2f', 
-                                color: '#fff', 
-                                fontWeight: 700,
-                                fontSize: '0.7rem',
-                                height: 20,
-                                animation: 'pulse 1.5s ease-in-out infinite',
-                              }}
-                            />
-                            <Chip 
-                              label="Action Required"
-                              size="small"
-                              sx={{ 
-                                bgcolor: '#ff6f00', 
-                                color: '#fff', 
-                                fontWeight: 600,
-                                fontSize: '0.7rem',
-                                height: 20,
-                              }}
-                            />
-                          </Box>
-                          <Typography 
-                            variant="h5" 
-                            sx={{ 
-                              fontWeight: 800, 
-                              color: '#e65100',
-                              mb: 0.5,
-                              letterSpacing: '-0.5px',
-                            }}
-                          >
-                            {pendingApprovals} Booking{pendingApprovals > 1 ? 's' : ''} Awaiting Approval
-                          </Typography>
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              color: '#f57c00', 
-                              fontWeight: 600,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1,
-                            }}
-                          >
-                            <PendingIcon sx={{ fontSize: 18 }} />
-                            Click to review and approve pending bookings now
-                          </Typography>
-                        </Box>
-                      </Box>
-
-                      {/* Action Arrow */}
-                      <Box 
+                    {/* Content */}
+                    <Box sx={{ flex: 1 }}>
+                      <Typography 
                         sx={{ 
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: 1,
+                          fontWeight: 600, 
+                          color: '#2F5233',
+                          fontSize: '0.95rem',
+                          mb: 0.25,
                         }}
                       >
-                        <Box
-                          sx={{
-                            bgcolor: '#e65100',
-                            color: '#fff',
-                            width: 60,
-                            height: 60,
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '1.8rem',
-                            fontWeight: 800,
-                            boxShadow: '0 4px 12px rgba(230, 81, 0, 0.4)',
-                            animation: 'pulse 2s ease-in-out infinite',
-                          }}
-                        >
-                          {pendingApprovals}
-                        </Box>
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 0.5,
-                            color: '#e65100',
-                            fontWeight: 700,
-                            fontSize: '0.9rem',
-                          }}
-                        >
-                          Review
-                          <ArrowForwardIcon 
-                            sx={{ 
-                              fontSize: 20,
-                              animation: 'slideRight 1s ease-in-out infinite',
-                              '@keyframes slideRight': {
-                                '0%, 100%': {
-                                  transform: 'translateX(0)',
-                                },
-                                '50%': {
-                                  transform: 'translateX(4px)',
-                                },
-                              },
-                            }} 
-                          />
-                        </Box>
-                      </Box>
+                        {pendingApprovals} Booking{pendingApprovals > 1 ? 's' : ''} Pending Review
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: 'rgba(47, 82, 51, 0.7)',
+                          fontSize: '0.875rem',
+                        }}
+                      >
+                        Awaiting your approval
+                      </Typography>
+                    </Box>
+
+                    {/* Action Button */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        color: '#2F5233',
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        flexShrink: 0,
+                        opacity: 0.7,
+                        transition: 'opacity 0.3s',
+                      }}
+                    >
+                      Review
+                      <ArrowForwardIcon sx={{ fontSize: 18 }} />
                     </Box>
                   </CardContent>
                 </Card>
@@ -940,8 +839,8 @@ const DashboardNew = () => {
               <Box className="main-grid">
                 <Box className="left-column">
                   {/* Analytics Chart - Enhanced Area Chart */}
-                  <Card className="analytics-card" sx={{ boxShadow: '0 8px 32px rgba(0,0,0,0.08)', borderRadius: 4, minHeight: 300 }}>
-                    <CardContent sx={{ p: 3 }}>
+                  <Card className="analytics-card" sx={{ boxShadow: '0 8px 32px rgba(0,0,0,0.08)', borderRadius: 4, minHeight: 350 }}>
+                    <CardContent sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
                       <AnimatedAreaChart
                         data={analyticsData}
                         title={strings.QUICK_ANALYTICS}
@@ -954,8 +853,8 @@ const DashboardNew = () => {
                   </Card>
 
                   {/* Available Vehicles - Animated Radial Chart */}
-                  <Card className="vehicles-card" sx={{ boxShadow: '0 8px 32px rgba(0,0,0,0.08)', borderRadius: 4, minHeight: 280 }}>
-                    <CardContent sx={{ p: 2.5 }}>
+                  <Card className="vehicles-card" sx={{ boxShadow: '0 8px 32px rgba(0,0,0,0.08)', borderRadius: 4, minHeight: 320 }}>
+                    <CardContent sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
                       <AnimatedRadialChart
                         title={strings.AVAILABLE_VEHICLES}
                         value={availableVehicles}

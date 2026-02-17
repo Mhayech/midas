@@ -113,7 +113,7 @@ const CreateUser = () => {
   }
 
   const onLoad = (_user?: bookcarsTypes.User) => {
-    if (_user && _user.verified) {
+    if (_user) {
       const _admin = helper.admin(_user)
       const _staff = helper.agencyStaff(_user)
       setUser(_user)

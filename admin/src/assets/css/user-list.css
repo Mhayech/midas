@@ -3,6 +3,11 @@ div.us-list {
   height: 100%;
   margin: 0;
   padding: 0;
+  overflow-x: auto;
+}
+
+div.us-list .MuiDataGrid-root {
+  min-width: 500px;
 }
 
 div.us-list a.cell-supplier {
@@ -65,4 +70,37 @@ div.us-list span.us-avatar img {
 div.us-list .us-blacklisted,
 div.us-list .us-blacklisted:hover {
   background: #f0f0f0;
+}
+
+/* Mobile Styles */
+@media only screen and (max-width: 600px) {
+  div.us-list {
+    padding: 0 8px;
+  }
+
+  div.us-list .MuiDataGrid-root {
+    font-size: 0.75rem;
+  }
+
+  div.us-list .MuiDataGrid-columnHeaderTitle {
+    font-size: 0.75rem;
+  }
+
+  div.us-list span.bs {
+    width: 60px;
+    font-size: 0.7rem;
+    height: 22px;
+  }
+
+  div.us-list span.us-avatar {
+    width: 40px;
+    height: 20px;
+  }
+}
+
+/* Tablet Styles */
+@media only screen and (min-width: 601px) and (max-width: 960px) {
+  div.us-list .MuiDataGrid-root {
+    font-size: 0.875rem;
+  }
 }

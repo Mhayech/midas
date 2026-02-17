@@ -250,12 +250,12 @@ body {
 
 .MuiDataGrid-columnHeaders {
   background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-light) 100%) !important;
-  color: #fff !important;
+  color: #000 !important;
 }
 
 .MuiDataGrid-columnHeaderTitle {
-  font-weight: 700 !important;
-  color: #fff !important;
+  font-weight: 400 !important;
+  color: #000 !important;
 }
 
 .MuiDataGrid-row:hover {

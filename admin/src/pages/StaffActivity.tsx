@@ -63,7 +63,7 @@ const StaffActivity = () => {
   const [staffActivity, setStaffActivity] = useState<StaffActivity[]>([])
 
   const onLoad = (_user?: bookcarsTypes.User) => {
-    if (_user && _user.verified) {
+    if (_user) {
       const _admin = helper.admin(_user)
       setUser(_user)
       setAdmin(_admin)

@@ -1,6 +1,11 @@
 div.contracts {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
 }
 
 div.contracts div.title {
@@ -8,30 +13,107 @@ div.contracts div.title {
   margin: 10px 0;
   padding: 5px 15px;
   border-bottom: #949494 1px solid;
+  font-weight: 700;
+  font-size: 0.875rem;
 }
 
 div.contracts div.contract {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: 1fr 2fr auto;
+  gap: 12px;
   margin: 5px 0;
+  padding: 12px 15px;
+  border-bottom: 1px solid #f0f0f0;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+div.contracts div.contract:hover {
+  background-color: #f8faf9;
 }
 
 div.contracts div.contract span.label {
   color: #666666;
-  margin-right: 5px;
+  font-weight: 600;
+  font-size: 0.875rem;
   min-width: 80px;
 }
 
 div.contracts div.contract span.filename {
-  min-width: 260px;
+  color: #333;
+  font-size: 0.875rem;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
-@media only screen and (width <=960px) {
-  div.contracts div.contract {
-    flex-direction: column;
+div.contracts div.contract span.filename a {
+  color: #2F5233;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+div.contracts div.contract span.filename a:hover {
+  color: #4A7C4E;
+  text-decoration: underline;
+}
+
+div.contracts div.contract div.actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+div.contracts div.contract .upload-icon,
+div.contracts div.contract .delete-icon {
+  color: #2F5233;
+  transition: color 0.3s;
+}
+
+div.contracts div.contract .upload-icon:hover,
+div.contracts div.contract .delete-icon:hover {
+  color: #4A7C4E;
+}
+
+/* Mobile Styles */
+@media only screen and (max-width: 600px) {
+  div.contracts {
+    padding: 0 8px;
   }
+
+  div.contracts div.contract {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding: 12px 8px;
+  }
+
+  div.contracts div.contract span.label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #999;
+  }
+
   div.contracts div.contract span.filename {
-    min-width: 0;
-    padding-left: 5px;
+    font-size: 0.75rem;
+  }
+
+  div.contracts div.contract div.actions {
+    justify-content: flex-start;
+  }
+}
+
+/* Tablet Styles */
+@media only screen and (min-width: 601px) and (max-width: 960px) {
+  div.contracts div.contract {
+    grid-template-columns: 1fr 1.5fr auto;
+    gap: 12px;
+  }
+
+  div.contracts div.contract span.label {
+    font-size: 0.8rem;
+  }
+
+  div.contracts div.contract span.filename {
+    font-size: 0.8rem;
   }
 }

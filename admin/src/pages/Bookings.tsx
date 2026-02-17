@@ -46,7 +46,7 @@ const Bookings = () => {
   const [isInitialLoad, setIsInitialLoad] = useState(true)
 
   useEffect(() => {
-    if (user && user.verified) {
+    if (user) {
       const col1 = document.querySelector('div.col-1')
       if (col1) {
         setOffset(col1.clientHeight)

@@ -32,7 +32,6 @@ const SignIn = () => {
   const [otpDialogOpen, setOtpDialogOpen] = useState(false)
   const [pendingUser, setPendingUser] = useState<bookcarsTypes.User | null>(null)
   const [pendingStayConnected, setPendingStayConnected] = useState(false)
-  const [isRedirecting, setIsRedirecting] = useState(false)
 
   const {
     register,
@@ -96,29 +95,32 @@ const SignIn = () => {
             navigate('/')
           }
         }
+      } else if (res.status === 204) {
+        // Invalid credentials - user not found or password incorrect
+        signinError()
       } else {
+        // Unexpected status
         signinError()
       }
-    } catch {
+    } catch (err) {
+      console.error('Sign in error:', err)
       signinError()
     }
   }
 
   const handleOtpSuccess = async (user: bookcarsTypes.User) => {
     try {
-      setOtpDialogOpen(false)
-      setIsRedirecting(true)
-
       if (user.blacklisted) {
         await UserService.signout(false)
+        setOtpDialogOpen(false)
         setError('root', { message: strings.IS_BLACKLISTED })
-        setIsRedirecting(false)
         return
       }
 
       setUser(user)
       setUserLoaded(true)
 
+      // Keep dialog open during navigation to prevent flash
       const params = new URLSearchParams(window.location.search)
 
       if (params.has('u')) {
@@ -132,9 +134,10 @@ const SignIn = () => {
       } else {
         navigate('/')
       }
+      // Dialog will unmount naturally with page transition
     } catch (err) {
       console.error('OTP success error:', err)
-      setIsRedirecting(false)
+      setOtpDialogOpen(false)
       signinError()
     }
   }
@@ -179,7 +182,7 @@ const SignIn = () => {
     <div>
       <Header />
 
-      {visible && !isRedirecting && (
+      {visible && (
         <div className="signin">
           <Paper className={`signin-form ${visible ? '' : 'hidden'}`} elevation={10}>
             <form onSubmit={handleSubmit(onSubmit)}>

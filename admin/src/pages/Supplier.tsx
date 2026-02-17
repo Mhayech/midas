@@ -99,7 +99,7 @@ const Supplier = () => {
     setUser(_user)
     setLanguage(_user?.language as string)
 
-    if (_user && _user.verified) {
+    if (_user) {
       const params = new URLSearchParams(window.location.search)
       if (params.has('c')) {
         const id = params.get('c')
